@@ -1,0 +1,72 @@
+<html>
+
+<head>
+  
+</head>
+
+<body>
+
+<svg width="200px" height="100px">
+<rect x="50" y="40" width="100px" height="50px" fill="#00ffff"/>
+<circle cx="40px" cy="45px" r="30px" fill="red"/>
+</svg>
+
+<div id="square_1" width=500 height=500></div>
+
+<svg width="500" height="100">
+    <circle id="circle1" cx="20" cy="20" r="10"
+            style="stroke: none; fill: #ff0000;"/>
+</svg>
+
+<script>
+    var timerFunction = null;
+
+    function startAnimation() {
+        if(timerFunction == null) {
+            timerFunction = setInterval(animate, 20);
+        }
+    }
+
+    function stopAnimation() {
+        if(timerFunction != null){
+            clearInterval(timerFunction);
+            timerFunction = null;
+        }
+    }
+
+    function animate() {
+        var circle = document.getElementById("circle1");
+        var x = circle.getAttribute("cx");
+        var newX = 2 + parseInt(x);
+        if(newX > 500) {
+            newX = 20;
+        }
+        circle.setAttribute("cx", newX);
+    }
+</script>
+<br/>
+<input type="button" value="Start Animation" onclick="startAnimation();">
+<input type="button" value="Stop Animation" onclick="stopAnimation();">
+
+<br/><br/>
+
+<svg width="100%" height="80%" viewBox="0 0 64 80">
+<rect x="10" y="35" width="40" height="40"
+style="stroke: black; fill: none;" />
+<!-- roof -->
+<polyline points="10 35, 30 7.68, 50 35"
+style="stroke:black; fill: none;" />
+<!-- door -->
+<polyline points="30 75, 30 55, 40 55, 40 75"
+style="stroke:black; fill: none;" />
+</svg>
+
+<script>
+    var str = "09.01.2007  08:00";
+    var result = str.match(/([0-9]+)\.([0-9]+)\.([0-9]+) + ([0-9]+)\:([0-9]+)/);
+    alert(result);
+</script>
+
+</body>
+
+</html>

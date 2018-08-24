@@ -1,0 +1,293 @@
+
+<html>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=cp1251">
+
+	<style type='text/css'>
+		
+		body { 
+			background-color: #FAFCFF;
+			font-family: sans-serif; 
+			scroll-behavior: smooth;
+		}
+		
+		.header {
+			position:fixed; left:0; top:0; z-index:999; height:60px; width:100%; margin:0; padding:0; display:block;
+			border-bottom:0px solid #06446D; background-color:#06446D;
+		}
+		.menu {
+			height:60px; margin:0px 0px 0px 24px; padding:0px; text-align:left; display:table;
+		}
+		.menu div {
+			height:100%; margin-left:4px; padding:0px 8px 0px 8px; display:table-cell; vertical-align:middle; 
+			font-size:18px;
+		}
+		.menu div.normal { color:white; }
+		.menu div.active { color:#EFC133; padding-top:4px; border-bottom:4px solid #EFC133; }
+		.menu .logo {
+			width:241px; height:60px; display:table-cell; margin:0px 24px 0px 24px; vertical-align:middle;
+			background: 
+				url(data:image/png;base64,XXXX)
+				no-repeat left;
+		}
+		 
+		.content {
+			width:100%;
+			position: absolute; top:60px; left:0px;
+			border-top:0px solid white;
+			margin:0; padding:0;
+			background-color:#ffffff;
+		}		
+
+		.page {
+			display:none;
+			width:100%;
+			margin:0; padding:0;
+			background-color:#ffffff;
+			padding-bottom:4%; 
+		}
+
+
+		div.table-row {
+			display:table;
+		}
+		
+		div.table-row div {
+			width:33vw; height:20vh; padding:2%; background-color:#ffffff; color:white; text-align:center; display:table-cell; vertical-align:middle;
+		}
+		div.table-row div div {
+			background-color:#2B6D9A; color:white; text-align:center; 
+		}
+
+		ul {
+			list-style-image:url(data:image/png;base64,XXXX);
+		}
+		ul li {
+			margin:4%;
+			font-size:140%;
+		}
+    	
+    	h1 { margin:2% 1% 1% 4%; font-size:140%; color:#06446D; font-variant:small-caps; }
+
+
+	</style>
+	
+	<script type='text/javascript'>
+		
+		var aPages;
+		var aMenuIds;
+		var sMenuActiveId="";
+				
+		window.onload = function() {
+			aPages = document.querySelectorAll('[data-pageid]');
+			for( var i = 0 ; i < aPages.length ; i++ ) {
+				aPages[i].className='page';
+			}
+			
+			aMenuIds = document.querySelectorAll('[data-menuid]');
+			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
+				aMenuIds[i].style.cursor = 'pointer';
+				aMenuIds[i].className = 'normal';
+				aMenuIds[i].onclick = function() {
+					menuGoTo( this.getAttribute("data-menuid") );
+				}
+			}
+
+			menuGoTo( "main" );
+		}	
+		
+		function menuGoTo( sId ) {		
+			
+			for( var i = 0 ; i < aPages.length ; i++ ) {
+				sPageId = aPages[i].getAttribute("data-pageid");
+				if( sPageId == sId ) {
+					aPages[i].style.display = 'block';
+				} else {
+					aPages[i].style.display = 'none';
+				}
+			}
+			menuHighlight( sId );			
+		}
+		
+		function menuHighlight( sId ) {
+			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
+				if( sId == aMenuIds[i].getAttribute( "data-menuid") ) {
+					aMenuIds[i].className='active';
+				} else {
+					aMenuIds[i].className='normal';
+				}
+			}
+			sMenuActiveId = sId;
+		}
+						
+	</script>
+	
+</head>
+
+<body>
+
+<!-- Header -->
+<div class='header'>
+	<div class='menu'>
+		<div class='logo'>&nbsp;</div>
+		<div data-menuid='main'>&nbsp;&nbsp;&nbsp;&nbsp;GANNT&nbsp;&nbsp;&nbsp;&nbsp;</div>
+		<div data-menuid='help'>&nbsp;&nbsp;&nbsp;&nbsp;HELP&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	</div>
+</div>
+
+<div class='content' style='display:table;'>
+	<div style='display:table-row;'>
+		<div style='display:table-cell; vertical-align:top; width:75%;'>
+
+			<div data-pageid='main'>
+				<h1>MAIN</h1>
+				<div style='width:10%; float:right;'>
+					<svg width="10%" height="80%" id='textSVG' preserveAspectRatio='none'>
+					</svg>				
+				</div>
+				<div style='width:80%; float:right;'>
+					<svg width="80%" height="80%" id='ganntSVG' preserveAspectRatio='none'>
+					</svg>
+				</div>
+			</div>
+			<div data-pageid='help'>
+				HELP
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script type="text/javascript">
+
+var NS = "http://www.w3.org/2000/svg";
+
+var data = {
+	'factStartMin':-1, 'factFinMax':-1, 'asapStartMin':-1, 'asapFinMax':-1,
+	'oper': [
+		{ level:1, code:'1', Name:'Name 1', factStart:'09.01.2007  08:00', factFin:'15.01.2007  16:00', asapStart:'30.01.2007  08:00', asapFin:'30.01.2007  08:00' },
+		{ level:2, code:'2', Name:'Name 2', factStart:'15.01.2007  08:00', factFin:'20.01.2007  16:00', asapStart:'10.01.2007  08:00', asapFin:'21.01.2007  10:00' },
+		{ level:null, code:'3', Name:'Name 3', factStart:'15.01.2007  08:00', factFin:'20.01.2007  16:00', asapStart:'10.01.2007  08:00', asapFin:'21.01.2007  10:00' },	
+		{ level:null, code:'4', Name:'Name 4', factStart:'15.01.2007  08:00', factFin:'20.01.2007  16:00', asapStart:'10.01.2007  08:00', asapFin:'21.01.2007  10:00' }		
+	]
+}
+
+
+let success = createGanntCanvas();
+if( success ) {
+	drawGanntCanvas();
+}
+
+var ganntSGV = null;
+var textSvg = null;
+
+function createGanntCanvas() {
+
+	let plusColor = "#44AA44";
+	let minusColor = "#AA4444";
+	let zeroColor = "#7f7f7f";
+	let backgroundColor = "#f0fff0";
+
+	ganntSVG = document.getElementById("ganntSVG");
+	ganntSVG.style.width = window.innerWidth;
+	ganntSVG.style.height = window.innerHeight*0.8; 
+	ganntSVG.style.background = backgroundColor;
+	ganntSVG.style.cursor = "pointer";
+	ganntSVG.onclick = function() {
+		alert(ganntSVG.viewBox.baseVal.width);
+	};
+
+	textSVG = document.getElementById('textSVG');
+
+	return true;
+}
+
+function drawGanntCanvas() {
+
+	// Retrieving min. and max. dates
+	var parsed;
+	for( let i = 0 ; i < data.oper.length ; i++ ) {
+		parsed = parseDate( data.oper[i].asapStart );
+		data.asapStartMin = reassingBoundaryValue( data.asapStartMin, parsed.timeInSeconds, false );
+		data.oper[i].asapStartInSeconds = parsed.timeInSeconds;
+
+		parsed = parseDate( data.oper[i].asapFin );
+		data.asapFinMax = reassingBoundaryValue( data.asapFinMax, parsed.timeInSeconds, true );
+		data.oper[i].asapFinInSeconds = parsed.timeInSeconds;
+
+		parsed = parseDate( data.oper[i].factStart );
+		data.factStartMin = reassingBoundaryValue( data.factStartMin, parsed.timeInSeconds, false );
+		data.oper[i].factStartInSeconds = parsed.timeInSeconds;
+
+		parsed = parseDate( data.oper[i].factFin );
+		data.factFinMax = reassingBoundaryValue( data.factFinMax, parsed.timeInSeconds, true );
+		data.oper[i].factFinInSeconds = parsed.timeInSeconds;
+	}
+	let xWidth = data.factFinMax - data.factStartMin;
+	let xMargin = xWidth*0.01;
+	ganntSVG.viewBox.baseVal.x = data.factStartMin - xMargin;
+	ganntSVG.viewBox.baseVal.width = xWidth + 2.0 * xMargin;
+
+	ganntSVG.viewBox.baseVal.y = 0; // 0.0 - yMargin;
+	ganntSVG.viewBox.baseVal.height = xWidth; // yHeight + 2.0*yMargin;
+
+	let rectHeight = ganntSVG.viewBox.baseVal.height/data.oper.length;
+	let textSize = rectHeight*0.5;
+
+	for( let i = 0 ; i < data.oper.length ; i++ ) {
+		let rect = document.createElementNS(NS, 'rect');
+		rect.setAttributeNS(null, 'x', data.oper[i].factStartInSeconds ); 
+		rect.setAttributeNS(null, 'width', data.oper[i].factFinInSeconds - data.oper[i].factStartInSeconds ); 
+		rect.setAttributeNS(null, 'y', rectHeight*i ); 
+		rect.setAttributeNS(null, 'height', rectHeight ); 
+		rect.setAttributeNS(null,"fill", "blue");
+		ganntSVG.appendChild(rect);
+
+		let text = document.createElementNS(NS, 'text');
+		text.setAttributeNS(null,'x',data.factStartMin );
+		text.setAttributeNS(null,'y',rectHeight*i );
+		text.setAttributeNS(null,'font-size',textSize );
+		text.setAttributeNS(null,'text-anchor', 'start' );
+		text.setAttributeNS(null,'textLength', 100 );
+		let textNode = document.createTextNode("TEXT!");
+		text.appendChild(textNode)
+ 		textSVG.appendChild(text);
+	}
+
+	ganntSVG.setAttribute("transform", "scale(0.9)");
+}
+
+function parseDate( dateString ) {
+    var parsed = dateString.match(/([0-9]+)\.([0-9]+)\.([0-9]+) + ([0-9]+)\:([0-9]+)/);
+    if( parsed.length != 6 ) {
+    	return null;
+    }
+    var date = new Date(parsed[3], parsed[2], parsed[1], parsed[4], parsed[5], 0, 0);
+    var timeInSeconds = date.getTime();
+    return( { 'date':date, 'timeInSeconds':timeInSeconds/3600000 } ); 
+}
+
+function reassingBoundaryValue( knownBoundary, newBoundary, upperBoundary ) {
+	if( knownBoundary == -1 ) {
+		return newBoundary;
+	} 
+	if( !upperBoundary ) { // Min.
+		if( newBoundary < knownBoundary ) {
+			return newBoundary;			
+		} 
+	} else { // Max.
+		if( newBoundary > knownBoundary ) {
+			return newBoundary;			
+		} 		
+	}
+	return knownBoundary;
+}
+
+
+</script>
+
+</body>
+
+</html

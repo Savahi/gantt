@@ -248,6 +248,8 @@ var verticalScrollSVG = null;
 
 var zoomFactor = 1.25;
 
+var ganttOperationRectColor = '#7f7fff';
+var ganttPhaseRectColor = '#9f9faf';
 var ganttFontColor = '#4f4f4f';
 var timeScaleFontColor = '#4f4f4f';
 var timeScaleFillColor = '#cfcfdf';
@@ -258,6 +260,10 @@ var tableHeaderStrokeColor = '#4f4f4f';
 var tableContentFontColor = '#4f4f4f'
 var tableContentFillColor = '#ffffff';
 var tableContentStrokeColor = '#4f4f4f';
+var scrollBkgrColor = '#cfcfcf';
+var scrollRectColor = '#afafaf';
+var scrollSliderColor = '#8f8f8f';
+var scrollSliderActiveColor = '#000000';
 
 var containerDivHeight, containerDivWidth;
 
@@ -300,12 +306,11 @@ var verticalSplitterPosition = 0.25;
 var tableSplitterCaptured = -1;
 var tableSplitterCapturedAtX = -1;
 
-var scrollThick = 3;
+var ganttRectBracketRelSize = 2.0;
+var ganttRectBracketThick = 4
+
+var scrollThick = 8;
 var scrollSliderSize = 10;
-var scrollBkgrColor = '#afafaf';
-var scrollRectColor = '#7f7f7f';
-var scrollSliderColor = '#4f4f4f';
-var scrollSliderActiveColor = '#000000';
 var tableScrollSVGWidth, tableScrollSVGHeight;
 var tableScrollCaptured = false;
 var tableScrollCapturedAtX = -1;
@@ -384,8 +389,11 @@ window.addEventListener( 'mousemove', function(e) {
 		return;
 	}
 	if( ganttHScrollCaptured ) {
-		let newSliderX = ganttHScrollXAtCapture + (e.x - ganttHScrollCapturedAtX);
 		let maxSlider = ganttHScrollSVGWidth - ganttHScrollSVGSlider.getBBox().width;
+		if( !( maxSlider > 0 ) ) {
+			return;
+		}
+		let newSliderX = ganttHScrollXAtCapture + (e.x - ganttHScrollCapturedAtX);
 		if( newSliderX < 0 ) {
 			newSliderX = 0;
 		} else if( newSliderX > maxSlider ) {
@@ -398,8 +406,11 @@ window.addEventListener( 'mousemove', function(e) {
 		return;
 	}
 	if( verticalScrollCaptured ) {
-		let newSliderY = verticalScrollYAtCapture + (e.y - verticalScrollCapturedAtY);
 		let maxSlider = verticalScrollSVGHeight - verticalScrollSVGSlider.getBBox().height;
+		if( !( maxSlider > 0 ) ) {
+			return;
+		}
+		let newSliderY = verticalScrollYAtCapture + (e.y - verticalScrollCapturedAtY);
 		if( newSliderY < 0 ) {
 			newSliderY = 0;
 		} else if( newSliderY > maxSlider ) {
@@ -584,7 +595,7 @@ function initLayout() {
 function initLayoutCoords() {
 	splitter = verticalSplitterPosition;
 
-	containerDivHeight = window.innerHeight - getElementPosition(containerDiv).y-10;
+	containerDivHeight = window.innerHeight - getElementPosition(containerDiv).y-60;
 	containerDiv.style.height = containerDivHeight;
 	containerDivWidth = parseInt( getComputedStyle(containerDiv).width );
 	containerDiv.style.width = containerDivWidth;
@@ -652,10 +663,10 @@ function initLayoutCoords() {
 
 	// Vertical scrolling tool
 	verticalScrollSVG.setAttributeNS(null, 'x', tableContentSVGWidth + verticalSplitterSVGWidth + ganttSVGWidth )
-	verticalScrollSVG.setAttributeNS(null, 'y', 0 ); 
+	verticalScrollSVG.setAttributeNS(null, 'y', tableHeaderSVGHeight ); 
 	verticalScrollSVGWidth = scrollThick;
 	verticalScrollSVG.setAttributeNS(null, 'width', verticalScrollSVGWidth );
-	verticalScrollSVGHeight = containerDivHeight;
+	verticalScrollSVGHeight = ganttSVGHeight; // containerDivHeight;
 	verticalScrollSVG.setAttributeNS(null, 'height', verticalScrollSVGHeight ); 
 }
 
@@ -701,18 +712,36 @@ function drawGantt( init ) {
 
 	let rectCounter = 0;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
-		let rect, text;
+		let rect, rectLeftBracket, rectRightBracket, text;
+
+		let rectStart = timeToScreen( data.operations[rectCounter].displayStartInSeconds );
+		let rectEnd = timeToScreen( data.operations[rectCounter].displayFinInSeconds );
+		let rectTop = operToScreen(rectCounter+0.2);
+		let rectBottom = operToScreen(rectCounter+1.0-0.2);
+		let bracketSize = (rectBottom-rectTop)/ganttRectBracketRelSize;
+		let rectVMiddle = rectTop + (rectBottom-rectTop)/2;
+		rectCounter += 1;
 
 		if( init ) { // Initializing...
 			let g = document.createElementNS( NS, 'g' ); // Container
-			let properties = { fill:'#7f7fff', stroke:'#7f7fff', strokeWidth:1 };
-			properties.opacity = (data.operations[i].level === null ) ? 0.75 : 1.0;
-			properties.id = 'ganttRect'+i;
-			rect = createRect( 0, 0, 1, 1, properties ); // Rectangle
+			if( data.operations[i].level === null ) {
+				let properties = { id:'ganttRect'+i, fill:ganttOperationRectColor };
+				rect = createRect( rectStart, rectTop, rectEnd-rectStart, rectBottom-rectTop, properties ); // Rectangle
+			} else {
+				let properties = { id:'ganttRect'+i, fill:ganttPhaseRectColor, opacity:0.75 };
+				let height = rectBottom-rectTop-bracketSize;
+				rect = createRect( rectStart, rectTop, rectEnd-rectStart, height, properties ); // Rectangle				
+				properties.id = 'ganttRectLeftBracket'+i;
+				rectLeftBracket = createRect( rectStart, rectTop+height, ganttRectBracketThick, bracketSize, properties ); // Rectangle				
+				properties.id = 'ganttRectRightBracket'+i;
+				rectRightBracket = createRect( rectEnd - ganttRectBracketThick, rectTop+height, ganttRectBracketThick, bracketSize, properties ); // Rectangle				
+				g.appendChild(rectLeftBracket);
+				g.appendChild(rectRightBracket);
+			}
+			g.appendChild(rect);
 			rect.onmouseover = function(e) { rect.setAttributeNS( null, 'stroke', '#4f4f7f' ); };
 			rect.onmouseout = function(e) { rect.setAttributeNS( null, 'stroke', '#4f4f7f' ); };
 			rect.style.cursor = 'pointer';
-			g.appendChild(rect);
 
 			let title = document.createElementNS( NS,'title' ); // Title
 			title.textContent = "Operation: " + data.operations[i].name + "\r\n";
@@ -737,7 +766,7 @@ function drawGantt( init ) {
 			}
 			g.appendChild(title);
 
-			text = createText( data.operations[i].name, 0, 0, { fontSize:10, fill:ganttFontColor, id:'ganttText'+i } );
+			text = createText( data.operations[i].name, rectEnd+10, rectVMiddle, { fontSize:10, fill:ganttFontColor, id:'ganttText'+i } );
 			text.style.cursor = 'pointer';
 			g.appendChild(text);
 
@@ -745,26 +774,18 @@ function drawGantt( init ) {
 		} else {
 			rect = document.getElementById( 'ganttRect'+i );
 			text = document.getElementById( 'ganttText'+i );
+			rect.setAttributeNS(null,'x',rectStart);
+			rect.setAttributeNS(null,'width',rectEnd - rectStart);
+			rect.setAttributeNS(null,'y',rectTop);
+			rect.setAttributeNS(null,'height',rectBottom - rectTop);
+			text.setAttributeNS(null,'x',rectEnd+10);
+			text.setAttributeNS(null,'y',rectVMiddle);			
 		}
 		if( !data.operations[i].visible ) {
 			rect.setAttributeNS(null,'display','none');
 			text.setAttributeNS(null,'display','none');
 			continue;
 		} 
-
-		let rectStart = timeToScreen( data.operations[rectCounter].displayStartInSeconds );
-		let rectEnd = timeToScreen( data.operations[rectCounter].displayFinInSeconds );
-		let rectTop = operToScreen(rectCounter+0.2);
-		let rectBottom = operToScreen(rectCounter+1.0-0.2);
-		let rectVMiddle = rectTop + (rectBottom-rectTop)/2;
-		rectCounter += 1;
-
-		rect.setAttributeNS(null,'x',rectStart);
-		rect.setAttributeNS(null,'width',rectEnd - rectStart);
-		rect.setAttributeNS(null,'y',rectTop);
-		rect.setAttributeNS(null,'height',rectBottom - rectTop);
-		text.setAttributeNS(null,'x',rectEnd+10);
-		text.setAttributeNS(null,'y',rectVMiddle);
 
 		data.operations[i].left = rectStart;
 		data.operations[i].right = rectEnd;
@@ -1017,7 +1038,6 @@ function drawTableContent( init ) {
 
 
 function drawTimeScale() {
-
 	while (timeSVG.hasChildNodes()) {
 		timeSVG.removeChild(timeSVG.lastChild);
 	}
@@ -1036,14 +1056,42 @@ function drawTimeScale() {
 	let deltaD = maxDT.getDate() - minDT.getDate();
 	let minY = minDT.getFullYear();
 	let maxY = maxDT.getFullYear();
-	let properties = { fill:'none', stroke:timeScaleStrokeColor, strokeWidth:0.25 };
-	let textLength = (dayRectWidth > timeSVGHeight * 0.25) ? timeSVGHeight*0.25 : dayRectWidth * 0.75;
-	let monthProperties = { fontSize:12, fill:timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline', lengthAdjust:"spacing" };
-	let fontSize = (dayRectWidth > timeSVGHeight*0.25) ? timeSVGHeight*0.25 : dayRectWidth * 0.75;
-	let dayProperties = { fontSize:fontSize, fill:timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline', textLength:textLength, lengthAdjust:"spacing" };
-	let monthY = timeSVGHeight/3;
-	let dayY = 2*timeSVGHeight/3;
+	let textRectProperties = { fill:'none', stroke:timeScaleStrokeColor, strokeWidth:0.25 };
+	let monthFontSize;
+	let monthWithYear=false;
+	if( dayRectWidth*30 > timeSVGHeight*0.3*8 ) {
+		monthFontSize = timeSVGHeight*0.25;
+		monthWithYear = true; 
+	} else if( dayRectWidth*30 > timeSVGHeight*0.3*3 ) {
+		monthFontSize = timeSVGHeight*0.25;
+	} else {
+		monthFontSize = dayRectWidth * 30 * 0.25;
+	}
+	let monthProperties = { fontSize:monthFontSize, fill:timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline', lengthAdjust:"spacing" };
+	let textLength = null; //(dayRectWidth > timeSVGHeight * 0.28) ? timeSVGHeight*0.28 : dayRectWidth * 0.75;
+	let dayFontSize = (dayRectWidth > timeSVGHeight*0.25) ? timeSVGHeight*0.22 : dayRectWidth * 0.8;
+	let dayProperties = { fontSize:dayFontSize, fill:timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline', textLength:textLength, lengthAdjust:"spacing" };
+	let textRectHeight = timeSVGHeight/3;
+	let monthY = textRectHeight;
+	let dayY = 2*textRectHeight;
+
 	for( let y = minY ; y <= maxY ; y++ ) {
+		if( minY != maxY ) {
+			let yearText = createText( minY, timeSVGWidth/2, textRectHeight-3, monthProperties );
+			timeSVG.appendChild(yearText);
+		} else {
+			let startOfYear = new Date(y,0,1,0,0,0,0);
+			let startOfYearInSeconds = startOfYear.getTime() / 1000;
+			let endOfYear = new Date(y,11,31,23,59,59,999);
+			let endOfYearInSeconds = endOfYear.getTime() / 1000;
+			let yearStartX = timeToScreen(startOfYearInSeconds);
+			let yearEndX = timeToScreen(endOfYearInSeconds);
+			let yearRect = createRect( yearStartX, 0, yearEndX - yearStartX, textRectHeight, textRectProperties );		
+			timeSVG.appendChild(yearRect);
+			let yearText = createText( y, yearStartX + (yearEndX - yearStartX)/2, textRectHeight-3, monthProperties );
+			timeSVG.appendChild(yearText);
+		}
+
 		let minM = ( y == minY ) ? minDT.getMonth() : 0;
 		let maxM = ( y == maxY ) ? maxDT.getMonth() : 11;
 		for( let m = minM ; m <= maxM ; m++ ) {
@@ -1053,13 +1101,15 @@ function drawTimeScale() {
 			let endOfMonthInSeconds = endOfMonth.getTime() / 1000;
 			let monthStartX = timeToScreen(startOfMonthInSeconds);
 			let monthEndX = timeToScreen(endOfMonthInSeconds);
-			let monthRect = createRect( monthStartX, monthY, monthEndX - monthStartX, timeSVGHeight/3, properties );		
+			let monthRect = createRect( monthStartX, monthY, monthEndX - monthStartX, textRectHeight, textRectProperties );		
 			timeSVG.appendChild(monthRect);
-			let monthText = createText( monthNames[m], monthStartX + (monthEndX - monthStartX)/2, monthY+timeSVGHeight/3-3, monthProperties );
+			let monthString = monthNames[m];
+			if( monthWithYear ) { 
+				monthString += ", " + y;
+			}
+			let monthText = createText( monthString, monthStartX + (monthEndX - monthStartX)/2, monthY+textRectHeight-3, monthProperties );
 			timeSVG.appendChild(monthText);
 
-			//let minD = ( m == minM && y == minY ) ? minDT.getDate() : 1;
-			//let maxD = ( m == maxM && y == maxY ) ? maxDT.getDate() : endOfMonth.getDate();
 			let minD = 1;
 			let maxD = endOfMonth.getDate();
 			for( let d = minD ; d <= maxD ; d++ ) {
@@ -1067,9 +1117,9 @@ function drawTimeScale() {
 				let currentTimeInSeconds = currentDay.getTime()/1000;
 				let dayStartX = timeToScreen(currentTimeInSeconds);
 				let dayEndX = timeToScreen(currentTimeInSeconds + 60*60*24);
-				let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, timeSVGHeight/3, properties );		
+				let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, textRectHeight, textRectProperties );		
 				timeSVG.appendChild(dayRect);
-				let dayText = createText( d.toString(), dayStartX + (dayEndX - dayStartX)/2, dayY+timeSVGHeight/3-3, dayProperties );
+				let dayText = createText( d.toString(), dayStartX + (dayEndX - dayStartX)/2, dayY+textRectHeight-3, dayProperties );
 				timeSVG.appendChild(dayText);
 			}
 		}

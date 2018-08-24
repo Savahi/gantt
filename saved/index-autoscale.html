@@ -1,0 +1,817 @@
+
+<html>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=cp1251">
+
+	<style type='text/css'>
+		
+		body { 
+			background-color: #FAFCFF;
+			font-family: sans-serif; 
+			scroll-behavior: smooth;
+			margin:0; padding:0;
+		}
+		
+		.header {
+			position:fixed; left:0; top:0; z-index:999; height:60px; width:100%; margin:0; padding:0; display:block;
+			border-bottom:0px solid #06446D; background-color:#06446D;
+		}
+		.menu {
+			height:60px; margin:0px 0px 0px 24px; padding:0px; text-align:left; display:table;
+		}
+		.menu div {
+			height:100%; margin-left:4px; padding:0px 8px 0px 8px; display:table-cell; vertical-align:middle; 
+			font-size:18px;
+		}
+		.menu div.normal { color:white; }
+		.menu div.active { color:#EFC133; padding-top:4px; border-bottom:4px solid #EFC133; }
+		.menu .logo {
+			width:241px; height:60px; display:table-cell; margin:0px 24px 0px 24px; vertical-align:middle;
+			background: 
+				url(data:image/png;base64,XXXX)
+				no-repeat left;
+		}
+		 
+		.content {
+			width:100%;
+			position: absolute; top:60px; left:0px;
+			border-top:0px solid white;
+			margin:0; padding:0;
+			background-color:#ffffff;
+		}		
+
+		.page {
+			display:none;
+			width:100%;
+			margin:0; padding:0;
+			background-color:#ffffff;
+			padding-bottom:4%; 
+		}
+
+
+		div.table-row {
+			display:table;
+			margin:0; padding:0;			
+		}
+		
+		div.table-row div {
+			width:33vw; height:20vh; padding:2%; background-color:#ffffff; color:white; text-align:center; display:table-cell; vertical-align:middle;
+			margin:0; padding:0;			
+		}
+		div.table-row div div {
+			background-color:#2B6D9A; color:white; text-align:center; 
+			margin:0; padding:0;			
+		}
+
+		ul {
+			list-style-image:url(data:image/png;base64,XXXX);
+		}
+		ul li {
+			margin:4%;
+			font-size:140%;
+		}
+    	
+    	h1 { margin:2% 1% 1% 4%; font-size:140%; color:#06446D; font-variant:small-caps; }
+
+
+	</style>
+	
+	<script type='text/javascript'>
+		
+		var aPages;
+		var aMenuIds;
+		var sMenuActiveId="";
+				
+		window.onload = function() {
+			aPages = document.querySelectorAll('[data-pageid]');
+			for( var i = 0 ; i < aPages.length ; i++ ) {
+				aPages[i].className='page';
+			}
+			
+			aMenuIds = document.querySelectorAll('[data-menuid]');
+			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
+				aMenuIds[i].style.cursor = 'pointer';
+				aMenuIds[i].className = 'normal';
+				aMenuIds[i].onclick = function() {
+					menuGoTo( this.getAttribute("data-menuid") );
+				}
+			}
+
+			menuGoTo( "main" );
+		}	
+		
+		function menuGoTo( sId ) {		
+			
+			for( var i = 0 ; i < aPages.length ; i++ ) {
+				sPageId = aPages[i].getAttribute("data-pageid");
+				if( sPageId == sId ) {
+					aPages[i].style.display = 'block';
+				} else {
+					aPages[i].style.display = 'none';
+				}
+			}
+			menuHighlight( sId );			
+		}
+		
+		function menuHighlight( sId ) {
+			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
+				if( sId == aMenuIds[i].getAttribute( "data-menuid") ) {
+					aMenuIds[i].className='active';
+				} else {
+					aMenuIds[i].className='normal';
+				}
+			}
+			sMenuActiveId = sId;
+		}
+						
+	</script>
+	
+</head>
+
+<body>
+
+<!-- Header -->
+<div class='header'>
+	<div class='menu'>
+		<div class='logo'>&nbsp;</div>
+		<div data-menuid='main'>&nbsp;&nbsp;&nbsp;&nbsp;GANNT CHART&nbsp;&nbsp;&nbsp;&nbsp;</div>
+		<div data-menuid='help'>&nbsp;&nbsp;&nbsp;&nbsp;HELP&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	</div>
+</div>
+
+<div class='content'>
+			<div data-pageid='main'>
+				<h1>GANNT CHART</h1>
+				<div id='containerDiv' style='width:90%;'>
+					<svg id='containerSVG' style='margin:0; padding:0;'>
+						<svg id='timeSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='ganntSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='operSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+					</svg>
+				</div>
+			</div>
+			<div data-pageid='help'>
+				HELP
+			</div>
+</div>
+
+
+<script type="text/javascript">
+
+var NS = "http://www.w3.org/2000/svg";
+
+var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+var data = {
+	factStartMin:-1, factFinMax:-1, asapStartMin:-1, asapFinMax:-1, startMin:-1, finMax:-1,
+	operations: [
+		{ level:1, code:'1', name:'Phase 1', factStart:'01.01.2007  08:00', factFin:'15.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'15.01.2007  08:00' },
+		{ level:2, code:'2', name:'Phase 2', factStart:'07.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'07.01.2007  08:00', asapFin:'17.01.2007  10:00' },
+		{ level:3, code:'3', name:'Phase 3', factStart:'09.01.2007  08:00', factFin:'15.01.2007  16:00', asapStart:'09.01.2007  08:00', asapFin:'15.01.2007  08:00' },
+		{ level:4, code:'4', name:'Phase 4', factStart:'15.01.2007  08:00', factFin:'12.02.2007  16:00', asapStart:'15.01.2007  08:00', asapFin:'12.02.2007  10:00' },
+		{ level:null, code:'5', name:'Oper 5', factStart:'15.01.2007  08:00', factFin:'20.01.2007  16:00', asapStart:'15.01.2007  08:00', asapFin:'20.01.2007  10:00' },
+		{ level:null, code:'6', name:'Oper 6', factStart:'20.01.2007  08:00', factFin:'23.01.2007  16:00', asapStart:'20.01.2007  08:00', asapFin:'23.01.2007  10:00' },
+		{ level:null, code:'7', name:'Oper 7', factStart:'21.01.2007  08:00', factFin:'12.02.2007  16:00', asapStart:'21.01.2007  08:00', asapFin:'12.02.2007  10:00' }		
+	],
+	operationsLinks: [
+		{ predCode:'5', succCode:'6', typeSF:'FS', lagType:'time', lagUnit:'hour', lag:10 },
+		{ predCode:'6', succCode:'7', typeSF:'FF', lagType:'time', lagUnit:'hour', lag:10 }
+	]
+};
+
+
+var colors = {
+	level1:'#f8edc9', level2:'#ccffcc', level3:'#e1e1ff', level4:'#dfffff', level5:'#e6e6ff',
+	level6:'#e6e6ff', level7:'#e6e6ff', level8:'#e6e6ff', level9:'#e6e6ff', level10:'#e6e6ff',
+	oper:'#ffffff'
+};
+
+var containerDiv = null;
+var containerSVG = null;
+var timeSVG = null;
+var ganntSGV = null;
+var textSvg = null;
+
+var containerDivHeight, containerDivWidth;
+var ganntSVGWidth;
+var ganntSVGHeight;
+var timeSVGWidth;
+var timeSVGHeight;
+var operSVGWidth;
+var operSVGHeight;
+
+var timeCaptured=false;
+var timeCapturedAtX;
+
+var operCaptured=false;
+var operCapturedAtY;
+
+//window.onmouseup = function(e) { timeCaptured = false; operCaptured = false; };
+window.addEventListener( 'mouseup', function() { timeCaptured = false; operCaptured = false; }, true );
+
+let success = createGanntCanvas();
+if( success ) {
+	drawGanntCanvas();
+}
+
+
+function createGanntCanvas() {
+
+	let plusColor = "#44AA44";
+	let minusColor = "#AA4444";
+	let zeroColor = "#7f7f7f";
+	let backgroundColor = "#f0fff0";
+
+	containerDiv = document.getElementById("containerDiv");
+	containerDivHeight = window.innerHeight - getElementPosition(containerDiv).y - 60;
+	containerDiv.style.height = containerDivHeight;
+	containerDivWidth = parseInt( getComputedStyle(containerDiv).width );
+	containerDiv.style.width = containerDivWidth;
+	containerDiv.addEventListener('selectstart', function() { event.preventDefault(); return false; } );
+	containerDiv.addEventListener('selectend', function() { event.preventDefault(); return false; } );
+
+	containerSVG = document.getElementById("containerSVG");
+	containerSVG.setAttributeNS(null, 'x', 0 );
+	containerSVG.setAttributeNS(null, 'y', 0 ); 
+	containerSVG.setAttributeNS(null, 'width', containerDivWidth ); // window.innerWidth-1  );
+	containerSVG.setAttributeNS(null, 'height', containerDivHeight ); 
+
+	// Time scale
+	timeSVG = document.getElementById("timeSVG");
+	timeSVG.setAttributeNS(null, 'x', containerDivWidth * 0.1 );
+	timeSVG.setAttributeNS(null, 'y', 0 ); 
+	timeSVGWidth = containerDivWidth*0.9;
+	timeSVG.setAttributeNS(null, 'width', timeSVGWidth ); // window.innerWidth * 0.9 );
+	timeSVGHeight = containerDivHeight*0.1;
+	timeSVG.setAttributeNS(null, 'height', timeSVGHeight ); //window.innerHeight/2 ); 
+	timeSVG.style.cursor = "pointer";
+	timeSVG.onmousedown = onTimeMouseDown;
+	timeSVG.onmousemove = onTimeCapturedMouseMove;
+	addOnMouseWheel( timeSVG, onTimeMouseWheel );	
+
+	// Gannt chart
+	ganntSVG = document.getElementById("ganntSVG");
+	ganntSVG.setAttributeNS(null, 'x', containerDivWidth * 0.1 );
+	ganntSVG.setAttributeNS(null, 'y', timeSVGHeight ); 
+	ganntSVGWidth = containerDivWidth*0.9;
+	ganntSVG.setAttributeNS(null, 'width', ganntSVGWidth ); // window.innerWidth * 0.9 );
+	ganntSVGHeight = containerDivHeight*0.9
+	ganntSVG.setAttributeNS(null, 'height', ganntSVGHeight ); //window.innerHeight/2 ); 
+	addOnMouseWheel( ganntSVG, onTimeMouseWheel );
+
+	// Operations
+	operSVG = document.getElementById('operSVG');
+	operSVG.setAttributeNS(null, 'x', 0 );
+	operSVG.setAttributeNS(null, 'y', timeSVGHeight ); 
+	operSVGWidth = containerDivWidth * 0.1;
+	operSVG.setAttributeNS(null, 'width', operSVGWidth ); // window.innerWidth * 0.1 );
+	operSVGHeight = ganntSVGHeight;
+	operSVG.setAttributeNS(null, 'height', operSVGHeight ); 
+	operSVG.style.cursor = "pointer";
+	operSVG.onmousedown = onOperMouseDown;
+	operSVG.onmousemove = onOperCapturedMouseMove;
+	addOnMouseWheel( operSVG, 
+		function(e) {
+			let delta = e.deltaY || e.detail || e.wheelDelta;
+			let zoomInc = ( delta > 0 ) ? 0.1 : -0.1;
+			zoomY( zoomInc, null );
+		}
+	);	
+	return true;
+}
+
+function drawGanntCanvas() {
+
+	// Retrieving min. and max. dates
+	var parsed;
+	for( let i = 0 ; i < data.operations.length ; i++ ) {
+		parsed = parseDate( data.operations[i].asapStart );
+		data.asapStartMin = reassingBoundaryValue( data.asapStartMin, parsed.timeInSeconds, false );
+		data.operations[i].asapStartInSeconds = parsed.timeInSeconds;
+
+		parsed = parseDate( data.operations[i].asapFin );
+		data.asapFinMax = reassingBoundaryValue( data.asapFinMax, parsed.timeInSeconds, true );
+		data.operations[i].asapFinInSeconds = parsed.timeInSeconds;
+
+		parsed = parseDate( data.operations[i].factStart );
+		data.factStartMin = reassingBoundaryValue( data.factStartMin, parsed.timeInSeconds, false );
+		data.operations[i].factStartInSeconds = parsed.timeInSeconds;
+
+		parsed = parseDate( data.operations[i].factFin );
+		data.factFinMax = reassingBoundaryValue( data.factFinMax, parsed.timeInSeconds, true );
+		data.operations[i].factFinInSeconds = parsed.timeInSeconds;
+	}
+	data.startMin = (data.asapStartMin > data.factStartMin) ? data.factStartMin : data.asapStartMin;
+	data.finMax = (data.asapFinMax > data.factFinMax) ? data.asapFinMax : data.factFinMax;
+
+	ganntSVG.viewBox.baseVal.x = 0;
+	ganntSVG.viewBox.baseVal.width = ganntSVGWidth;
+	ganntSVG.viewBox.baseVal.y = 0; // 0.0 - yMargin;
+	ganntSVG.viewBox.baseVal.height = ganntSVGHeight; // yHeight + 2.0*yMargin;
+
+	timeSVG.viewBox.baseVal.x = 0;
+	timeSVG.viewBox.baseVal.width = timeSVGWidth;
+	timeSVG.viewBox.baseVal.y = 0; // 0.0 - yMargin;
+	timeSVG.viewBox.baseVal.height = timeSVGHeight; // yHeight + 2.0*yMargin;
+
+	operSVG.viewBox.baseVal.x = 0;
+	operSVG.viewBox.baseVal.width = operSVGWidth;
+	operSVG.viewBox.baseVal.y = 0; // 0.0 - yMargin;
+	operSVG.viewBox.baseVal.height = operSVGHeight; // yHeight + 2.0*yMargin;
+
+	createArrow();
+
+	// Gannt
+	for( let i = 0 ; i < data.operations.length ; i++ ) {
+		let rectStart = timeToInitialViewbox( data.operations[i].factStartInSeconds );
+		let rectEnd = timeToInitialViewbox( data.operations[i].factFinInSeconds );
+		let rectTop = operToScreen(i);
+		let rectBottom = operToScreen(i+1);
+		let properties = { fill:'blue', stroke:'pink', strokeWidth:1 };
+		properties.opacity = (data.operations[i].level === null ) ? 0.25 : 0.5;
+		let rect = createRect( rectStart, rectTop, rectEnd - rectStart, rectBottom - rectTop, properties, 'ganntRect'+i );
+		ganntSVG.appendChild(rect);
+
+		data.operations[i].left = rectStart;
+		data.operations[i].right = rectEnd;
+		data.operations[i].top = rectTop;
+		data.operations[i].bottom = rectBottom;
+	}
+
+	// Gannt links
+	let lineProperties = { stroke:'#000000', strokeWidth: (ganntSVGWidth * 2.0 / ganntSVG.viewBox.baseVal.width), strokeDasharray:'1,4,1,4' };
+	for( let i = 0 ; i < data.operationsLinks.length ; i++ ) {
+
+		let predCode = data.operationsLinks[i].predCode;
+		let succCode = data.operationsLinks[i].succCode;
+		let predOp = null;
+		let succOp = null;
+		for( let op = 0 ; op < data.operations.length ; op++ ) {
+			if( !predOp ) { 
+				if( data.operations[op].code == predCode ) { predOp = op; }
+			}
+			if( !succOp ) {
+				if( data.operations[op].code == succCode ) { succOp = op; }
+			}
+			if( predOp && succOp ) {
+				break;
+			}
+		}
+
+		if( predOp && succOp ) {
+			let lineX1, lineY1, lineX2, lineY2;
+			if( data.operationsLinks[i].typeSF == 'SS' || data.operationsLinks[i].typeSF == 'SF' ) {
+				lineX1 = data.operations[predOp].left;
+			} else {
+				lineX1 = data.operations[predOp].right;				
+			}
+			lineY1 = data.operations[predOp].top + (data.operations[predOp].bottom - data.operations[predOp].top) / 2.0;
+			if( data.operationsLinks[i].typeSF == 'SF' || data.operationsLinks[i].typeSF == 'FF' ) {
+				lineX2 = data.operations[succOp].left;
+			} else {
+				lineX2 = data.operations[succOp].right;				
+			}
+			lineY2 = data.operations[succOp].top + (data.operations[succOp].bottom - data.operations[succOp].top) / 2.0;
+			let line = createLine( lineX1, lineY1, lineX2, lineY2, lineProperties, 'ganntLine'+i );
+			ganntSVG.appendChild(line);
+			//alert( lineX1 + "," + lineY1 + "," + lineX2 + "," + lineY2 );
+		}
+	}
+
+	drawOperations();
+	drawTimeScale();
+
+}
+
+function drawOperations() {
+	let operBkgrRect = createRect( 0, 0, operSVGWidth, operSVGHeight, { fill:'#bfefef', opacity:0.75 } ); 	// backgroud rect
+	operSVG.appendChild( operBkgrRect );
+
+	// Operations names
+	for( let i = 0 ; i < data.operations.length ; i++ ) {
+		let text = createText( data.operations[i].name, operSVGWidth-10, operToScreen(i+0.5), { fontSize:12, textAnchor:'end' } );
+ 		operSVG.appendChild(text);
+	}
+}
+
+function drawTimeScale() {
+
+	while (timeSVG.hasChildNodes()) {
+	  timeSVG.removeChild(timeSVG.lastChild);
+	}
+
+	let minScreenTime = screenToTime(0);
+	let maxScreenTime = screenToTime( timeSVG.viewBox.baseVal.width ); //screenToTime( timeSVGWidth );
+	let daysInScreen = (maxScreenTime - minScreenTime)/ (60*60*24);
+	let dayRectWidth = timeSVGWidth / daysInScreen;
+
+	let minTime = data.startMin * 1000; // screenToTime(0) * 1000;
+	let maxTime = data.finMax * 1000; // screenToTime( timeSVGWidth ) * 1000;
+	let minDT = new Date(minTime);
+	let maxDT = new Date(maxTime);
+	let deltaY = maxDT.getFullYear() - minDT.getFullYear();
+	let deltaM = maxDT.getMonth() - minDT.getMonth();
+	let deltaD = maxDT.getDate() - minDT.getDate();
+	let minY = minDT.getFullYear();
+	let maxY = maxDT.getFullYear();
+	let strokeWidth = timeSVG.viewBox.baseVal.width / timeSVGWidth;
+	let properties = { fill:'#cfffff', stroke:'#7fafaf', strokeWidth:strokeWidth };
+	let fontSize = timeSVGHeight*0.25;
+	//let temp = initialViewboxToScreen( timeToInitialViewbox( 60*60*24 ) ) - initialViewboxToScreen( timeToInitialViewbox( 0 ) );
+	//let temp = timeToInitialViewbox( 60*60*24 ) - timeToInitialViewbox( 0 );
+	//alert(temp + "vs" + dayRectWidth);
+	let textLength = null; // (dayRectWidth > temp) ? screenToTime(temp) : null;
+	let dayProperties = { fontSize:fontSize, textAnchor:'middle', alignmentBaseline:'baseline', textLength:textLength, lengthAdjust:"spacing" };
+	let monthY = timeSVGHeight/3;
+	let dayY = 2*timeSVGHeight/3;
+	for( let y = minY ; y <= maxY ; y++ ) {
+		let minM = ( y == minY ) ? minDT.getMonth() : 0;
+		let maxM = ( y == maxY ) ? maxDT.getMonth() : 11;
+		for( let m = minM ; m <= maxM ; m++ ) {
+			let startOfMonth = new Date(y,m,1,0,0,0,0);
+			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;
+			let endOfMonth = new Date(y,m+1,0,23,59,59,999);
+			let endOfMonthInSeconds = endOfMonth.getTime() / 1000;
+			let monthStartX = timeToInitialViewbox(startOfMonthInSeconds);
+			let monthEndX = timeToInitialViewbox(endOfMonthInSeconds);
+			let monthRect = createRect( monthStartX, monthY, monthEndX - monthStartX, timeSVGHeight/3, properties );		
+			timeSVG.appendChild(monthRect);
+			let minD = ( m == minM && y == minY ) ? minDT.getDate() : 1;
+			let maxD = ( m == maxM && y == maxY ) ? maxDT.getDate() : endOfMonth.getDate();
+			for( let d = minD ; d <= maxD ; d++ ) {
+				let currentDay = new Date(y,m,d,0,0,0,0);
+				let currentTimeInSeconds = currentDay.getTime()/1000;
+				let dayStartX = timeToInitialViewbox(currentTimeInSeconds);
+				let dayEndX = timeToInitialViewbox(currentTimeInSeconds + 60*60*24);
+				let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, timeSVGHeight/3, properties );		
+				timeSVG.appendChild(dayRect);
+				let dayText = createText( d.toString(), dayStartX + (dayEndX - dayStartX)/2, dayY+timeSVGHeight/3-3, dayProperties );
+				timeSVG.appendChild(dayText);
+			}
+		}
+	}
+	/*
+	// **** Time scale
+	let minDate = new Date(data.startMin*1000);
+	let minYear = minDate.getFullYear();
+	var maxDate = new Date(data.finMax*1000);
+	var maxYear = maxDate.getFullYear();
+	var dateTextProperties = { fontSize: timeSVGHeight/4.5, textAnchor:'middle', alignmentBaseline:'baseline' };
+	for( let year = minYear ; year <= maxYear ; year++ ) { 	// years
+		let yearStartDate = new Date(year,0,1,0,0,0,0);
+		let yearStartX = timeToInitialViewbox( yearStartDate.getTime()/1000 );
+		let yearEndDate = new Date(year,12,31,23,59,59,999);
+		let yearEndX = timeToInitialViewbox( yearEndDate.getTime()/1000 );
+		let yearRect = createRect( yearStartX, 0, yearEndX - yearStartX, timeSVGHeight/3, { fill:'#cfffff'} );
+		timeSVG.appendChild(yearRect);
+		// year text
+		let yearText = createText( year.toString(), yearStartX + (yearEndX - yearStartX)/2, timeSVGHeight/3-3, dateTextProperties );
+		yearText.appendChild( document.createTextNode( year.toString() ) );
+		
+		for( let month = 0 ; month <= 11 ; month++ ) { // months
+			let monthStartDate = new Date(year,month,1,0,0,0,0);
+			let monthStartX = timeToInitialViewbox( monthStartDate.getTime()/1000 );
+			let monthEndDate = new Date(year,month+1,0,23,59,59,999);
+			let monthEndX = timeToInitialViewbox( monthEndDate.getTime()/1000 );
+			let monthRect = createRect( monthStartX, timeSVGHeight/3, monthEndX - monthStartX, timeSVGHeight/3, 
+				{ fill:'#bfefef', stroke:'#ffffff', strokeWidth:1 } );
+			timeSVG.appendChild(monthRect);
+			let monthText = createText( monthNames[month], monthStartX + (monthEndX - monthStartX)/2, 2*timeSVGHeight/3-3, dateTextProperties );
+			timeSVG.appendChild(monthText);
+
+			for( let day = 1 ; day <= monthEndDate.getDate() ; day++ ) { // days
+				let dayStartDate = new Date(year,month,day,0,0,0,0);
+				let dayStartX = timeToInitialViewbox( dayStartDate.getTime()/1000 );
+				let dayEndDate = new Date(year,month,day,23,59,59,999);
+				let dayEndX = timeToInitialViewbox( dayEndDate.getTime()/1000 );
+				let dayRect = createRect( dayStartX, 2*timeSVGHeight/3, dayEndX - dayStartX, timeSVGHeight/3, 
+					{ fill:'#bfefef', stroke:'#ffffff', strokeWidth:1 } );				
+
+				timeSVG.appendChild(dayRect);
+
+				//dateTextProperties.lengthAdjust = 'spacingAndGlyphs'; //(dayEndX - dayStartX)*0.5;
+				let dayText = createText( day.toString(), dayStartX + (dayEndX - dayStartX)/2, 3*timeSVGHeight/3-3, dateTextProperties );
+				timeSVG.appendChild(dayText);
+			}
+		}
+	}
+	*/
+}
+
+function zoomX( zoomFactorChange, zoomPositionChange ) {
+	let min = 0;
+	let max = ganntSVGWidth;
+	let originalViewBoxWidth = max - min;
+	if( (zoomFactorChange === null || zoomFactorChange == '100%') && zoomPositionChange === null ) {
+		ganntSVG.viewBox.baseVal.x = timeSVG.viewBox.baseVal.x = min;
+		ganntSVG.viewBox.baseVal.width = timeSVG.viewBox.baseVal.width = originalViewBoxWidth;
+		return;
+	} 
+	if( zoomFactorChange !== null && zoomPositionChange === null ) {
+		let currentZoomFactor = ganntSVG.viewBox.baseVal.width / originalViewBoxWidth;
+		let newZoomFactor = currentZoomFactor + zoomFactorChange;
+		if( !(newZoomFactor > 0) ) {
+			return;
+		}
+		let newWidth = originalViewBoxWidth * newZoomFactor;
+		let newX = ganntSVG.viewBox.baseVal.x - (newWidth - ganntSVG.viewBox.baseVal.width) / 2.0;	
+		if( newX < min ) {
+			newX = min;
+		} else if( newX + newWidth > max ) {
+			newX = min;
+		}
+		ganntSVG.viewBox.baseVal.x = timeSVG.viewBox.baseVal.x = newX;
+		ganntSVG.viewBox.baseVal.width = timeSVG.viewBox.baseVal.width = newWidth;
+		return;
+	} 
+	if( zoomFactorChange === null && zoomPositionChange !== null ) {
+		let newX = timeSVG.viewBox.baseVal.x + zoomPositionChange;
+		if( newX < min ) {
+			newX = min;
+		} 
+		ganntSVG.viewBox.baseVal.x = newX;
+		timeSVG.viewBox.baseVal.x = newX;
+	}
+}
+
+
+function zoomY( zoomFactorChange, zoomPositionChange ) {
+	let min = 0;
+	let max = ganntSVGHeight;
+	let originalViewBoxHeight = max - min;
+	if( (zoomFactorChange === null || zoomFactorChange == '100%') && zoomPositionChange === null ) {
+		ganntSVG.viewBox.baseVal.y = operSVG.viewBox.baseVal.y = min;
+		ganntSVG.viewBox.baseVal.height = operSVG.viewBox.baseVal.width = originalViewBoxHeight;
+		return;
+	} 
+	if( zoomFactorChange !== null && zoomPositionChange === null ) {
+		let currentZoomFactor = ganntSVG.viewBox.baseVal.height / originalViewBoxHeight;
+		let newZoomFactor = currentZoomFactor + zoomFactorChange;
+		if( !(newZoomFactor > 0) ) {
+			return;
+		}
+		let newHeight = originalViewBoxHeight * newZoomFactor;
+		let newY = ganntSVG.viewBox.baseVal.y - (newHeight - ganntSVG.viewBox.baseVal.height) / 2.0;	
+		if( newY < min ) {
+			newY = min;
+		} else if( newY + newHeight > max ) {
+			newY = min;
+		}
+		ganntSVG.viewBox.baseVal.y = operSVG.viewBox.baseVal.y = newY;
+		ganntSVG.viewBox.baseVal.height = operSVG.viewBox.baseVal.height = newHeight;
+		return;
+	} 
+	if( zoomFactorChange === null && zoomPositionChange !== null ) {
+		let newY = operSVG.viewBox.baseVal.y + zoomPositionChange;
+		if( newY < min ) {
+			newY = min;
+		} 
+		ganntSVG.viewBox.baseVal.y = operSVG.viewBox.baseVal.y = newY;
+	}
+}
+
+
+function reassingBoundaryValue( knownBoundary, newBoundary, upperBoundary ) {
+	if( knownBoundary == -1 ) {
+		return newBoundary;
+	} 
+	if( !upperBoundary ) { // Min.
+		if( newBoundary < knownBoundary ) {
+			return newBoundary;			
+		} 
+	} else { // Max.
+		if( newBoundary > knownBoundary ) {
+			return newBoundary;			
+		} 		
+	}
+	return knownBoundary;
+}
+
+function getElementPosition(el) {
+	let lx=0, ly=0
+    for( ; el != null ; ) {
+		lx += el.offsetLeft;
+		ly += el.offsetTop;
+		el = el.offsetParent;    	
+    }
+    return {x:lx, y:ly};
+}
+
+function addOnMouseWheel(elem, handler) {
+	if (elem.addEventListener) {
+		if ('onwheel' in document) {           // IE9+, FF17+
+			elem.addEventListener("wheel", handler);
+		} else if ('onmousewheel' in document) {           // устаревший вариант события
+			elem.addEventListener("mousewheel", handler);
+		} else {          // 3.5 <= Firefox < 17, более старое событие DOMMouseScroll пропустим
+			elem.addEventListener("MozMousePixelScroll", handler);
+		}
+	} else { // IE8-
+		elem.attachEvent("onmousewheel", handler);
+	}
+}
+
+function onTimeMouseWheel(e) {
+	let delta = e.deltaY || e.detail || e.wheelDelta;
+	let zoomInc;
+	if( delta > 0 ) {
+		zoomInc = 0.1;
+	} else {
+		zoomInc = -0.1;
+	}
+	zoomX( zoomInc, null );
+	drawTimeScale();
+}
+
+function onTimeCapturedMouseMove(e) {
+	if( !timeCaptured ) {
+		return;
+	}
+	let deltaX = timeSVG.viewBox.baseVal.width * (e.clientX - timeCapturedAtX) / ganntSVGWidth;
+	zoomX(null,-deltaX);
+ 	//ganntSVG.viewBox.baseVal.x -= deltaX;
+	//timeSVG.viewBox.baseVal.x -= deltaX;
+}
+
+function onTimeMouseDown(e) {
+	timeCaptured = true;
+	timeCapturedAtX = e.clientX;
+};
+
+function onTimeMouseUp(e) {
+	timeCaptured = false;
+};
+
+function onTimeMouseOut(e) {
+	timeCaptured = false;
+};
+
+function onOperMouseWheel(e) {
+	let delta = e.deltaY || e.detail || e.wheelDelta;
+	let zoomInc;
+	if( delta > 0 ) {
+		zoomInc = 0.1;
+	} else {
+		zoomInc = -0.1;
+	}
+	zoomX( zoomInc, null );
+}
+
+function onOperCapturedMouseMove(e) {
+	if( !operCaptured ) {
+		return;
+	}
+	let deltaY = operSVG.viewBox.baseVal.height * (e.clientY - operCapturedAtY) / ganntSVGHeight;
+	zoomY(null,-deltaY);
+ 	//ganntSVG.viewBox.baseVal.x -= deltaX;
+	//timeSVG.viewBox.baseVal.x -= deltaX;
+}
+
+function onOperMouseDown(e) {
+	operCaptured = true;
+	operCapturedAtY = e.clientY;
+};
+
+function onOperMouseUp(e) {
+	operCaptured = false;
+};
+
+function onOperMouseOut(e) {
+	operCaptured = false;
+};
+
+function initialViewboxToScreen( initialViewboxCoord ) {
+	return (initialViewboxCoord - ganntSVG.viewBox.baseVal.x) * ganntSVGWidth / ganntSVG.viewBox.baseVal.width; 
+}
+
+function timeToInitialViewbox( timeInSeconds ) {
+	return ((timeInSeconds-data.startMin) * (ganntSVGWidth-1)) / (data.finMax - data.startMin);
+}
+
+function screenToTime( xScreen ) {
+	let xNotScaled = ganntSVG.viewBox.baseVal.x + xScreen * (ganntSVG.viewBox.baseVal.width - 1) / (ganntSVGWidth-1);
+	return data.startMin + (data.finMax - data.startMin) * xNotScaled / (ganntSVGWidth-1);
+}
+
+function operToScreen( n ) {
+	return ( ( n ) * ganntSVGHeight ) / data.operations.length; 
+} 
+
+function createRect( x, y, width, height, properties, id ) {
+	let rect = document.createElementNS(NS, 'rect');
+	if( id != undefined) {
+		rect.setAttributeNS(null, 'id', id ); 		
+	} 
+	rect.setAttributeNS(null, 'x', x ); 
+	rect.setAttributeNS(null, 'width', width ); 
+	rect.setAttributeNS(null, 'y', y ); 
+	rect.setAttributeNS(null, 'height', height );
+	if( 'fill' in properties ) {
+		rect.setAttributeNS(null, 'fill', properties.fill );
+	} 
+	if( 'stroke' in properties ) {
+		rect.setAttributeNS(null, 'stroke', properties.stroke );
+	}
+	if( 'strokeWidth' in properties ) {
+		rect.setAttributeNS(null, 'stroke-width', properties.strokeWidth );			
+	}
+	if( 'opacity' in properties ) {
+		rect.setAttributeNS(null, 'opacity', properties.opacity );
+	} 
+	return rect;
+}
+
+function createText( textString, x, y, properties ) {
+	let text = document.createElementNS(NS, 'text');
+	text.setAttributeNS(null,'x', x );
+	text.setAttributeNS(null,'y', y );
+	if( 'fontSize'  in properties ) {
+		text.setAttributeNS(null,'font-size', properties.fontSize );
+	}
+	if( 'textAnchor' in properties ) {
+		text.setAttributeNS(null,'text-anchor', properties.textAnchor );
+	}
+	if( 'textLength' in properties ) {
+		if( properties.textLength ) {
+			text.setAttributeNS(null,'textLength', properties.textLength );			
+		}
+	}
+	if( 'lengthAdjust' in properties ) {
+		text.setAttributeNS(null,'lengthAdjust', properties.lengthAdjust );
+	}
+	if( 'alignmentBaseline' in properties ) {
+		text.setAttributeNS(null,'alignment-baseline', properties.alignmentBaseline );
+	}
+	if( 'preserveAspectRatio' in properties ){
+		text.setAttributeNS(null,'preserveAspectRatio', properties.preserveAspectRatio );
+	}
+	text.appendChild( document.createTextNode( textString ) );
+	return text;
+}
+
+function createLine( x1, y1, x2, y2, properties, id ) {
+	let line = document.createElementNS(NS, 'line');
+	if( id != undefined) {
+		line.setAttributeNS(null, 'id', id ); 		
+	} 
+	line.setAttributeNS(null, 'x1', x1 ); 
+	line.setAttributeNS(null, 'y1', y1 ); 
+	line.setAttributeNS(null, 'x2', x2 ); 
+	line.setAttributeNS(null, 'y2', y2 );
+	if( 'fill' in properties ) {
+		line.setAttributeNS(null, 'fill', properties.fill );
+	} 
+	if( 'stroke' in properties ) {
+		line.setAttributeNS(null, 'stroke', properties.stroke );
+	}
+	if( 'strokeWidth' in properties ) {
+		line.setAttributeNS(null, 'stroke-width', properties.strokeWidth );			
+	}
+	if( 'strokeDasharray' in properties ) {
+		line.setAttributeNS(null, 'stroke-dasharray', properties.strokeDasharray );					
+	}
+	if( 'opacity' in properties ) {
+		line.setAttributeNS(null, 'opacity', properties.opacity );
+	} 
+	line.setAttributeNS(null,'marker-end', 'url(#arrow)')
+	return line;
+}
+
+
+function createArrow() {
+	var defs = document.createElementNS(NS, 'defs');
+    var marker = document.createElementNS(NS, 'marker');
+    marker.setAttribute('id', 'arrow');
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '0');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerUnits', 'strokeWidth');
+    marker.setAttribute('markerWidth', ganntSVGWidth*4 / ganntSVG.viewBox.baseVal.width );
+    marker.setAttribute('markerHeight', ganntSVGWidth*4 / ganntSVG.viewBox.baseVal.width );
+    marker.setAttribute('orient', 'auto');
+    var path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    marker.appendChild(path);
+    defs.appendChild(marker);	
+
+    ganntSVG.appendChild(defs);
+}
+
+
+function parseDate( dateString ) {
+    var parsed = dateString.match( /([0-9]+)\.([0-9]+)\.([0-9]+) + ([0-9]+)\:([0-9]+)/ );
+    if( parsed.length != 6 ) {
+    	return null;
+    }
+    var date = new Date(parsed[3], parsed[2]-1, parsed[1], parsed[4], parsed[5], 0, 0);
+    var timeInSeconds = date.getTime();
+    return( { 'date':date, 'timeInSeconds':timeInSeconds/1000 } ); 
+}
+
+</script>
+
+</body>
+
+</html
