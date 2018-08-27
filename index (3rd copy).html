@@ -314,10 +314,8 @@ var verticalSplitterPosition = 0.25;
 var tableSplitterCaptured = -1;
 var tableSplitterCapturedAtX = -1;
 
-var ganttRectBracketRelHeight = 0.8;
-var ganttRectBracketThick = 5
-
-var minDayWidthOnTimeScale = 8;
+var ganttRectBracketRelHeight = 0.75;
+var ganttRectBracketThick = 4
 
 var scrollThick = 8;
 var scrollSliderSize = 10;
@@ -729,12 +727,13 @@ function drawGantt( init ) {
 		let rectTop = operToScreen(rectCounter+0.2);
 		let rectBottom = operToScreen(rectCounter+1.0-0.2);
 		let rectWidth = rectEnd - rectStart;
+		if( data.operations[i].level === null ) {
+			let bracketHeight = (rectBottom - rectTop) * ganttRectBracketRelHeight;
+			let rectCoords = rectStart+" "+rectTop+" "+rectEnd+" "+rectTop+" "+rectEnd+" "+(rectTop+rectHeight*2)+" "+(rectEnd-5)+" "+(rectTop+rectHeight)+" "+(rectStart+5)+" "+(rectTop+rectHeight)+" "+rectStart+" "+(rectTop+rectHeight*2);
+		}
+		//let rectHeight = (data.operations[i].level === null) ? (rectBottom-rectTop) : (rectBottom-rectTop-bracketHeight);
 		let rectHeight = (rectBottom-rectTop);
 		let rectVMiddle = rectTop + (rectBottom-rectTop)/2;
-		if( data.operations[i].level !== null ) {
-			bracketHeight = (rectBottom - rectTop) * ganttRectBracketRelHeight;
-			rectCoords = rectStart+" "+rectTop+" "+rectEnd+" "+rectTop+" "+rectEnd+" "+(rectTop+rectHeight)+" "+(rectEnd-ganttRectBracketThick)+" "+(rectTop+bracketHeight)+" "+(rectStart+ganttRectBracketThick)+" "+(rectTop+bracketHeight)+" "+rectStart+" "+(rectTop+rectHeight);
-		}
 		rectCounter += 1;
 
 		if( init ) { // Initializing...
@@ -742,15 +741,12 @@ function drawGantt( init ) {
 			g.setAttributeNS(null,'id','ganttRectGroup'+i);
 			let rectProperties;
 			if( data.operations[i].level === null ) {
-				rectProperties = { id:'ganttRect'+i, fill:ganttOperationRectColor, stroke:ganttOperationStrokeColor, strokeWidth:2, opacity:0.75 };
+				rectProperties = { id: 'ganttRect'+i, fill:ganttOperationRectColor, stroke:ganttOperationStrokeColor, strokeWidth:2, opacity:0.75 };
 				rect = createRect( rectStart, rectTop, rectWidth, rectHeight, rectProperties ); // Rectangle
 				g.appendChild(rect);
 			} else {
-				rectProperties = { fill:ganttPhaseRectColor, stroke:ganttPhaseStrokeColor, strokeWidth:1, opacity:1 };
+				rectProperties = { id:'ganttRect'+i, fill:ganttPhaseRectColor, stroke:ganttPhaseStrokeColor, strokeWidth:1, opacity:1 };
 				rect = document.createElementNS( NS, 'polygon' );
-				rect.setAttributeNS(null,'id','ganttRect'+i);
-				rect.setAttributeNS(null,'fill',ganttPhaseRectColor);
-				rect.setAttributeNS(null,'stroke',ganttPhaseStrokeColor);
 				rect.setAttributeNS(null,'points',rectCoords);
 				g.appendChild(rect);
 			}
@@ -785,27 +781,39 @@ function drawGantt( init ) {
 				title.textContent += tableColumns[col].name + ": " + content + "\r\n";
 			}
 			g.appendChild(title);
+
 			text = createText( data.operations[i].name, rectEnd+10, rectVMiddle, { fontSize:10, fill:ganttFontColor, id:'ganttText'+i } );
 			text.style.cursor = 'pointer';
 			g.appendChild(text);
+
 			ganttSVG.appendChild(g);			
 		} else {
 			g = document.getElementById('ganttRectGroup'+i);
 			rect = document.getElementById( 'ganttRect'+i );
 			text = document.getElementById( 'ganttText'+i );
+			rect.setAttributeNS(null,'x',rectStart);
+			rect.setAttributeNS(null,'width',rectWidth);
+			rect.setAttributeNS(null,'y',rectTop);
+			rect.setAttributeNS(null,'height',rectHeight);
 			text.setAttributeNS(null,'x',rectEnd+10);
 			text.setAttributeNS(null,'y',rectVMiddle);			
-			if( data.operations[i].level === null ) {
-				rect.setAttributeNS(null,'x',rectStart);
-				rect.setAttributeNS(null,'width',rectWidth);
-				rect.setAttributeNS(null,'y',rectTop);
-				rect.setAttributeNS(null,'height',rectHeight);
-			} else {
-				rect.setAttributeNS(null,'points',rectCoords);
+			if( data.operations[i].level !== null ) {
+				rectLeftBracket = document.getElementById( 'ganttRectLeftBracket'+i );
+				rectRightBracket = document.getElementById( 'ganttRectRightBracket'+i );
+				rectLeftBracket.setAttributeNS(null,'x',rectStart);
+				rectLeftBracket.setAttributeNS(null,'y',rectTop + rectHeight);
+				rectLeftBracket.setAttributeNS(null,'width',ganttRectBracketThick);
+				rectLeftBracket.setAttributeNS(null,'height',bracketHeight);
+				rectRightBracket.setAttributeNS(null,'x',rectEnd - ganttRectBracketThick);
+				rectRightBracket.setAttributeNS(null,'y',rectTop + rectHeight);
+				rectRightBracket.setAttributeNS(null,'width',ganttRectBracketThick);
+				rectRightBracket.setAttributeNS(null,'height',bracketHeight);
 			}
 		}
 		if( !data.operations[i].visible ) {
 			g.setAttributeNS(null,'display','none');
+			//rect.setAttributeNS(null,'display','none');
+			//text.setAttributeNS(null,'display','none');
 			continue;
 		} 
 
@@ -815,6 +823,8 @@ function drawGantt( init ) {
 		data.operations[i].bottom = rectBottom;
 		
 		g.setAttributeNS(null,'display','block');
+		//rect.setAttributeNS(null,'display','block');
+		//text.setAttributeNS(null,'display','block');
 	}
 
 	// Gantt links
@@ -850,6 +860,7 @@ function drawGantt( init ) {
 			} else {
 				lineX2 = data.operations[succOp].right;				
 			}
+			//lineX2 = (lineX2 > lineX1) ? lineX2-10 : lineX2+10;
 			lineY2 = data.operations[succOp].top + (data.operations[succOp].bottom - data.operations[succOp].top) / 2.0;
 			if( init ) {
 				lineProperties.id='ganttLine'+i;
@@ -1066,8 +1077,6 @@ function drawTimeScale() {
 
 	let daysInScreen = (ganttVisibleWidth)/ (60*60*24);
 	let dayRectWidth = timeSVGWidth / daysInScreen;
-	let displayDays = ( dayRectWidth > minDayWidthOnTimeScale ) ? true : false;
-	let displayWeeks = ( !displayDays && dayRectWidth*7 > minDayWidthOnTimeScale ) ? true : false;
 
 	let minTime = data.startMin * 1000; // screenToTime(0) * 1000;
 	let maxTime = data.displayMax * 1000; // screenToTime( timeSVGWidth ) * 1000;
@@ -1091,18 +1100,11 @@ function drawTimeScale() {
 	}
 	let monthProperties = { fontSize:monthFontSize, fill:timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline', lengthAdjust:"spacing" };
 	let textLength = null; //(dayRectWidth > timeSVGHeight * 0.28) ? timeSVGHeight*0.28 : dayRectWidth * 0.75;
-	let dayFontSize=0;
-	if( displayDays ) {
-		dayFontSize = (dayRectWidth > timeSVGHeight*0.25) ? timeSVGHeight*0.22 : dayRectWidth * 0.8;
-	} else if( !displayDays && displayWeeks ) {
-		dayFontSize = (dayRectWidth*7 > timeSVGHeight*0.25) ? timeSVGHeight*0.22 : (dayRectWidth*7) * 0.8;
-	}
+	let dayFontSize = (dayRectWidth > timeSVGHeight*0.25) ? timeSVGHeight*0.22 : dayRectWidth * 0.8;
 	let dayProperties = { fontSize:dayFontSize, fill:timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline', textLength:textLength, lengthAdjust:"spacing" };
 	let textRectHeight = timeSVGHeight/3;
 	let monthY = textRectHeight;
 	let dayY = 2*textRectHeight;
-	let dayTextY = dayY+textRectHeight-3;
-	let numSecondsInDay = 24*60*60;
 
 	for( let y = minY ; y <= maxY ; y++ ) {
 		if( minY != maxY ) {
@@ -1139,43 +1141,19 @@ function drawTimeScale() {
 			let monthText = createText( monthString, monthStartX + (monthEndX - monthStartX)/2, monthY+textRectHeight-3, monthProperties );
 			timeSVG.appendChild(monthText);
 
-			if( displayDays ) {
-				let minD = 1;
-				let maxD = endOfMonth.getDate();
-				for( let d = minD ; d <= maxD ; d++ ) {
-					let currentDay = new Date(y,m,d,0,0,0,0);
-					let currentTimeInSeconds = currentDay.getTime()/1000;
-					let dayStartX = timeToScreen(currentTimeInSeconds);
-					let dayEndX = timeToScreen(currentTimeInSeconds + numSecondsInDay);
-					let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, textRectHeight, textRectProperties );		
-					timeSVG.appendChild(dayRect);
-					let dayText = createText( d.toString(), dayStartX + (dayEndX - dayStartX)/2, dayTextY, dayProperties );
-					timeSVG.appendChild(dayText);
-				}				
-			} 
+			let minD = 1;
+			let maxD = endOfMonth.getDate();
+			for( let d = minD ; d <= maxD ; d++ ) {
+				let currentDay = new Date(y,m,d,0,0,0,0);
+				let currentTimeInSeconds = currentDay.getTime()/1000;
+				let dayStartX = timeToScreen(currentTimeInSeconds);
+				let dayEndX = timeToScreen(currentTimeInSeconds + 60*60*24);
+				let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, textRectHeight, textRectProperties );		
+				timeSVG.appendChild(dayRect);
+				let dayText = createText( d.toString(), dayStartX + (dayEndX - dayStartX)/2, dayY+textRectHeight-3, dayProperties );
+				timeSVG.appendChild(dayText);
+			}
 		}
-		
-		if( !displayDays && displayWeeks ) {
-			let minW = getWeekNumber(minDT);
-			let maxW = getWeekNumber(maxDT);
-			let numSecondsInWeek = 7*numSecondsInDay;
-			let startOfWeekInSeconds = minDT.getTime()/1000;
-			let endOfWeekInSeconds = startOfWeekInSeconds + (8-minDT.getDay())*numSecondsInDay;
-			for( let w = minW ; w <= maxW ; w++ ) {
-				let weekStartX = timeToScreen(startOfWeekInSeconds);
-				let weekEndX = timeToScreen(endOfWeekInSeconds);
-				let weekRect = createRect( weekStartX, dayY, weekEndX - weekStartX, textRectHeight, textRectProperties );		
-				timeSVG.appendChild(weekRect);
-				let weekText = createText( w.toString(), weekStartX + (weekEndX - weekStartX)/2, dayTextY, dayProperties );
-				timeSVG.appendChild(weekText);
-				startOfWeekInSeconds = endOfWeekInSeconds;
-				if( w < maxW ) {
-					endOfWeekInSeconds += numSecondsInWeek;
-				} else {
-					endOfWeekInSeconds = maxDT.getTime()/1000;
-				}
-			}								
-		}	
 	}
 }
 
@@ -1607,37 +1585,40 @@ function createDefs() {
     marker.setAttribute('orient', 'auto');
     let path = document.createElementNS(NS, 'path');
     path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-    path.setAttribute('fill', 'url(#blackToGrayGradient)');
     marker.appendChild(path);
     defs.appendChild(marker);	
 
-	let gradient1 = initLinearGradient( [{"color":"#cfcfdf","offset":"0%"},{"color":"#ffffff","offset":"100%"}], 'timeScaleGradient' );
-	defs.appendChild(gradient1);
-
-	let gradient2 = initLinearGradient( [{"color":"#f7f7f7","offset":"0%"},{"color":"#ffffff","offset":"100%"}], 'ganttGradient' );
-	defs.appendChild(gradient2);
-
-	let gradient3 = initLinearGradient( [{"color":"#2f2f2f","offset":"0%"},{"color":"#afafaf","offset":"100%"}], 'blackToGrayGradient' );
-	defs.appendChild(gradient3);
-
-    containerSVG.appendChild(defs);
-}
-
-
-function initLinearGradient( stops, name ) {
 	let gradient = document.createElementNS(NS, 'linearGradient');
+	let stops = [ {"color": "#cfcfdf","offset": "0%"}, {"color": "#ffffff","offset": "100%"} ];
 	for( let i = 0 ; i < stops.length; i++ ) {
 	    let stop = document.createElementNS(NS, 'stop');
 	    stop.setAttribute('offset', stops[i].offset);
 	    stop.setAttribute('stop-color', stops[i].color);
     	gradient.appendChild(stop);
     }
-	gradient.id = name;
+	gradient.id = 'timeScaleGradient';
 	gradient.setAttribute('x1', '0');
 	gradient.setAttribute('x2', '1');
 	gradient.setAttribute('y1', '0');
 	gradient.setAttribute('y2', '0');
-	return gradient;
+	defs.appendChild(gradient);
+
+	let gradient2 = document.createElementNS(NS, 'linearGradient');
+	let stops2 = [ {"color": "#f7f7f7","offset": "0%"}, {"color": "#ffffff","offset": "100%"} ];
+	for( let i = 0 ; i < stops2.length; i++ ) {
+	    let stop = document.createElementNS(NS, 'stop');
+	    stop.setAttribute('offset', stops2[i].offset);
+	    stop.setAttribute('stop-color', stops2[i].color);
+    	gradient2.appendChild(stop);
+    }
+	gradient2.id = 'ganttGradient';
+	gradient2.setAttribute('x1', '0');
+	gradient2.setAttribute('x2', '1');
+	gradient2.setAttribute('y1', '0');
+	gradient2.setAttribute('y2', '0');
+	defs.appendChild(gradient2);
+
+    containerSVG.appendChild(defs);
 }
 
 
@@ -1652,15 +1633,6 @@ function parseDate( dateString ) {
     var date = new Date(parsed[3], parsed[2]-1, parsed[1], parsed[4], parsed[5], 0, 0);
     var timeInSeconds = date.getTime();
     return( { 'date':date, 'timeInSeconds':timeInSeconds/1000 } ); 
-}
-
-// Returns the number of week of the year
-function getWeekNumber(d) {
-    d = new Date( Date.UTC( d.getFullYear(), d.getMonth(), d.getDate() ) );
-    d.setUTCDate( d.getUTCDate() + 4 - (d.getUTCDay() || 7) );
-    var startOfYear = new Date( Date.UTC( d.getUTCFullYear(), 0,1 ) );
-    var weekNumber = Math.ceil( ( ( (d - startOfYear) / 86400000 ) + 1 ) / 7 );
-    return weekNumber;
 }
 
 function dbg(text,append) {
