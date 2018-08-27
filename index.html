@@ -255,9 +255,11 @@ var zoomFactor = 1.25;
 var ganttOperationRectColor = '#7f7fff';
 var ganttOperationStrokeColor = '#4f4f7f';
 var ganttOperationActiveColor = '#2f2f5f';
+var ganttOperationOpacity = 0.9;
 var ganttPhaseRectColor = '#afafaf';
 var ganttPhaseStrokeColor = '#7f7f7f';
 var ganttPhaseActiveColor = '#4f4f4f';
+var ganttPhaseOpacity = 0.75;
 var ganttFontColor = '#4f4f4f';
 var timeScaleFontColor = '#4f4f4f';
 var timeScaleFillColor = '#cfcfdf';
@@ -272,6 +274,7 @@ var scrollBkgrColor = '#cfcfcf';
 var scrollRectColor = '#afafaf';
 var scrollSliderColor = '#8f8f8f';
 var scrollSliderActiveColor = '#000000';
+var gridColor = "#bfbfbf";
 
 var containerDivHeight, containerDivWidth;
 
@@ -317,7 +320,12 @@ var tableSplitterCapturedAtX = -1;
 var ganttRectBracketRelHeight = 0.8;
 var ganttRectBracketThick = 5
 
-var minDayWidthOnTimeScale = 8;
+var minDayWidthOnTimeScale = 12;
+
+var gridThick = 1;
+var gridOpacity = 0.5;
+
+var timeScaleToGrid = [];
 
 var scrollThick = 8;
 var scrollSliderSize = 10;
@@ -411,8 +419,8 @@ window.addEventListener( 'mousemove', function(e) {
 		}
 		ganttVisibleLeft = data.startMin + newSliderX * (data.displayMaxWidth - ganttVisibleWidth) / maxSlider;
 		ganttHScrollSVGSlider.setAttributeNS( null,'x', newSliderX );
-		drawGantt();
 		drawTimeScale();
+		drawGantt();
 		return;
 	}
 	if( verticalScrollCaptured ) {
@@ -442,8 +450,8 @@ if( success ) {
 	createDefs();
 	drawTableContent(true);
 	drawTableHeader(true);
-	drawGantt(true);
 	drawTimeScale();
+	drawGantt(true);
 	drawTableScroll( true );
 	drawGanttHScroll( true );
 	drawVerticalScroll( true );
@@ -716,9 +724,27 @@ function drawGantt( init ) {
 		}		
 		ganttSVGBkgr = createRect( 0, 0, ganttSVGWidth, ganttSVGHeight, {fill:'url(#ganttGradient)'} );
 		ganttSVG.appendChild(ganttSVGBkgr);		
+
 	} else {
-		ganttSVGBkgr.setAttributeNS(null,'width',ganttSVGWidth);
+		ganttSVGBkgr.setAttributeNS(null,'width',ganttSVGWidth);		
 	}
+
+	// Drawing grid
+	for( let i = 0 ;  ; i++ ) {
+		let el = document.getElementById( 'ganttGrid' + i );
+		if( !el ) {
+			break;
+		}
+		ganttSVG.removeChild(el);
+	}
+	let gridLineProperties = { stroke:gridColor, strokeWidth:0.5 /*, opacity:gridOpacity*/ }; 
+	for( let i = 0 ; i < timeScaleToGrid.length ; i++ ) {
+		let x = timeToScreen( timeScaleToGrid[i] );
+		let y = operToScreen(data.operations.length);
+		gridLineProperties.id = 'ganttGrid' + i;
+		let line = createLine( x, 0, x, y, gridLineProperties );
+		ganttSVG.appendChild(line);
+	}		
 
 	let rectCounter = 0;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
@@ -742,15 +768,16 @@ function drawGantt( init ) {
 			g.setAttributeNS(null,'id','ganttRectGroup'+i);
 			let rectProperties;
 			if( data.operations[i].level === null ) {
-				rectProperties = { id:'ganttRect'+i, fill:ganttOperationRectColor, stroke:ganttOperationStrokeColor, strokeWidth:2, opacity:0.75 };
+				let rectProperties = { id:'ganttRect'+i, fill:ganttOperationRectColor, stroke:ganttOperationStrokeColor, strokeWidth:2, opacity:ganttOperationOpacity };
 				rect = createRect( rectStart, rectTop, rectWidth, rectHeight, rectProperties ); // Rectangle
 				g.appendChild(rect);
 			} else {
-				rectProperties = { fill:ganttPhaseRectColor, stroke:ganttPhaseStrokeColor, strokeWidth:1, opacity:1 };
+				//rectProperties = { fill:ganttPhaseRectColor, stroke:ganttPhaseStrokeColor, strokeWidth:1, opacity:ganttPhaseOpacity };
 				rect = document.createElementNS( NS, 'polygon' );
 				rect.setAttributeNS(null,'id','ganttRect'+i);
 				rect.setAttributeNS(null,'fill',ganttPhaseRectColor);
 				rect.setAttributeNS(null,'stroke',ganttPhaseStrokeColor);
+				rect.setAttributeNS(null,'opacity',ganttPhaseOpacity);
 				rect.setAttributeNS(null,'points',rectCoords);
 				g.appendChild(rect);
 			}
@@ -1001,9 +1028,9 @@ function drawTableContent( init ) {
 			 			}
 		 				data.operations[this._operationNumber].expanded = true;
 		 			}
-		 			drawGantt();
-		 			drawTimeScale();
 		 			drawTableContent();
+		 			drawTimeScale();
+		 			drawGantt();
 		 		};
 		 	}
 
@@ -1104,6 +1131,8 @@ function drawTimeScale() {
 	let dayTextY = dayY+textRectHeight-3;
 	let numSecondsInDay = 24*60*60;
 
+	timeScaleToGrid = []; // To draw a grid later on the Gantt chart...
+
 	for( let y = minY ; y <= maxY ; y++ ) {
 		if( minY != maxY ) {
 			let yearText = createText( minY, timeSVGWidth/2, textRectHeight-3, monthProperties );
@@ -1147,10 +1176,11 @@ function drawTimeScale() {
 					let currentTimeInSeconds = currentDay.getTime()/1000;
 					let dayStartX = timeToScreen(currentTimeInSeconds);
 					let dayEndX = timeToScreen(currentTimeInSeconds + numSecondsInDay);
-					let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, textRectHeight, textRectProperties );		
+					let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, textRectHeight, textRectProperties );
 					timeSVG.appendChild(dayRect);
 					let dayText = createText( d.toString(), dayStartX + (dayEndX - dayStartX)/2, dayTextY, dayProperties );
 					timeSVG.appendChild(dayText);
+					timeScaleToGrid.push(currentTimeInSeconds); // To a draw grid later on the Gantt chart...
 				}				
 			} 
 		}
@@ -1168,6 +1198,7 @@ function drawTimeScale() {
 				timeSVG.appendChild(weekRect);
 				let weekText = createText( w.toString(), weekStartX + (weekEndX - weekStartX)/2, dayTextY, dayProperties );
 				timeSVG.appendChild(weekText);
+				timeScaleToGrid.push(startOfWeekInSeconds); // To draw a grid later on the Gantt chart...
 				startOfWeekInSeconds = endOfWeekInSeconds;
 				if( w < maxW ) {
 					endOfWeekInSeconds += numSecondsInWeek;
@@ -1420,8 +1451,8 @@ function zoomXByWheel(e) {
 		zoomFactorChange = 1.0/zoomFactor;
 	}
 	zoomX( zoomFactorChange, null );
-	drawGantt();
 	drawTimeScale();
+	drawGantt();
 	drawGanttHScroll();
 }
 
@@ -1432,8 +1463,8 @@ function onTimeCapturedMouseMove(e) {
 	}
 	let deltaX = ganttVisibleWidth * (e.clientX - timeCapturedAtX) / ganttSVGWidth;
 	zoomX( null, -deltaX );
-	drawGantt();
 	drawTimeScale();
+	drawGantt();
 	drawGanttHScroll();
 }
 
@@ -1447,8 +1478,8 @@ function zoomYByWheel(e) {
 		zoomFactorChange = 1.0 / zoomFactor;
 	}
 	zoomY( zoomFactorChange, null );
-	drawGantt();
 	drawTableContent();
+	drawGantt();
 	drawVerticalScroll();
 }
 
@@ -1459,8 +1490,8 @@ function onGanttCapturedMouseMove(e) {
 	}
 	let deltaY = ganttVisibleHeight * (e.clientY - ganttCapturedAtY) / ganttSVGHeight;
 	zoomY(null,-deltaY);
-	drawGantt();
 	drawTableContent();
+	drawGantt();
 	drawVerticalScroll();
 }
 
@@ -1469,6 +1500,10 @@ function timeToScreen( timeInSeconds ) {
 	return (timeInSeconds - ganttVisibleLeft) * ganttSVGWidth / ganttVisibleWidth; 
 }
 
+function timeToScreenInt( timeInSeconds ) {
+	let x = timeToScreen(timeInSeconds);
+	return parseInt(x+0.5); 
+}
 
 function screenToTime( screenX ) {
 	let xNotScaled = ganttVisibleLeft + screenX * (ganttVisibleWidth - 1) / (ganttSVGWidth-1);
