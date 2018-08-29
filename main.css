@@ -1,0 +1,84 @@
+	body { 
+		background-color: #FAFCFF;
+		font-family: sans-serif; 
+		scroll-behavior: smooth;
+		margin:0; padding:0;
+	}
+	
+	.header {
+		position:fixed; left:0; top:0; z-index:999; height:60px; width:100%; margin:0; padding:0; display:block;
+		border-bottom:0px solid #06446D; background-color:#06446D;
+	}
+	.menu {
+		height:60px; margin:0px 0px 0px 24px; padding:0px; text-align:center; display:table; width:100%;
+	}
+	.menu div {
+		height:100%; margin-left:4px; padding:0px 8px 0px 8px; display:table-cell; vertical-align:middle; 
+		font-size:18px; width:40px; tex-align:right;
+	}
+	.menu div.normal { color:white; }
+	.menu div.active { color:#EFC133; padding-top:4px; border-bottom:4px solid #EFC133; }
+	.menu .project-name {
+		width:70%; height:60px; display:table-cell; margin:0px 24px 0px 24px; vertical-align:middle; color:white; text-align:center;
+	}
+	 
+	.content {
+		width:100%;
+		position: absolute; top:60px; left:0px;
+		border-top:0px solid white;
+		margin:0; padding:0;
+		background-color:#ffffff;
+	}		
+
+	.page {
+		display:none;
+		width:100%;
+		margin:0; padding:0;
+		background-color:#ffffff;
+		padding-bottom:4%; 
+	}
+
+
+	div.table-row {
+		display:table;
+		margin:0; padding:0;			
+	}
+	
+	div.table-row div {
+		width:33vw; height:20vh; padding:2%; background-color:#ffffff; color:white; text-align:center; display:table-cell; vertical-align:middle;
+		margin:0; padding:0;			
+	}
+	div.table-row div div {
+		background-color:#2B6D9A; color:white; text-align:center; 
+		margin:0; padding:0;			
+	}
+
+	ul {
+		list-style-image:url(data:image/png;base64,XXXX);
+	}
+	ul li {
+		margin:4%;
+		font-size:140%;
+	}
+	
+	h1 { margin:2% 1% 1% 4%; font-size:140%; color:#06446D; font-variant:small-caps; }
+
+	.slidecontainer { width: 100%; }
+
+	.slider { 
+		-webkit-appearance: none;
+		width: 100%; height: 5px; background: #d3d3d3; outline: none; opacity: 0.7;
+		-webkit-transition: .2s; transition: opacity .2s;
+	}
+
+	.slider:hover { opacity: 1; }
+
+	.slider::-webkit-slider-thumb {
+		-webkit-appearance: none; appearance: none;
+		width: 25px; height: 5px; background: #4CAF50; cursor: pointer;
+	}
+
+	.slider::-moz-range-thumb {
+		width: 25px; height: 5px; background: #4CAF50; cursor: pointer;
+	}    	
+

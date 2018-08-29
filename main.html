@@ -1,0 +1,98 @@
+<html>
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=cp1251">
+
+	<link href="main.css" rel="stylesheet">
+	
+	<script type='text/javascript'>
+		
+		var aPages;
+		var aMenuIds;
+		var sMenuActiveId="";
+				
+		window.onload = function() {
+			aPages = document.querySelectorAll('[data-pageid]');
+			for( var i = 0 ; i < aPages.length ; i++ ) {
+				aPages[i].className='page';
+			}
+			
+			aMenuIds = document.querySelectorAll('[data-menuid]');
+			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
+				aMenuIds[i].style.cursor = 'pointer';
+				aMenuIds[i].className = 'normal';
+				aMenuIds[i].onclick = function() {
+					menuGoTo( this.getAttribute("data-menuid") );
+				}
+			}
+
+			menuGoTo( "main" );
+		}	
+		
+		function menuGoTo( sId ) {		
+			
+			for( var i = 0 ; i < aPages.length ; i++ ) {
+				sPageId = aPages[i].getAttribute("data-pageid");
+				if( sPageId == sId ) {
+					aPages[i].style.display = 'block';
+				} else {
+					aPages[i].style.display = 'none';
+				}
+			}
+			menuHighlight( sId );			
+		}
+		
+		function menuHighlight( sId ) {
+			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
+				if( sId == aMenuIds[i].getAttribute( "data-menuid") ) {
+					aMenuIds[i].className='active';
+				} else {
+					aMenuIds[i].className='normal';
+				}
+			}
+			sMenuActiveId = sId;
+		}
+						
+	</script>
+	
+</head>
+
+<body>
+
+<!-- Header -->
+<div class='header'>
+	<div class='menu'>
+		<div class='project-name' id='menuProjectName'>
+			SPIDER PROJECT
+		</div>
+		<div data-menuid='main'>&nbsp;&nbsp;GANTT&nbsp;&nbsp;</div>
+		<div data-menuid='help'>&nbsp;&nbsp;HELP&nbsp;&nbsp;</div>
+	</div>
+</div>
+
+<div class='content'>
+			<div data-pageid='main'>
+				<div id='containerDiv' style='width:98%; margin-left:1%; font-family:Courier New, Courier, monospace;'>
+					<svg id='containerSVG' style='margin:0; padding:0;'>
+						<svg id='timeSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='ganttSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='tableContentSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='tableHeaderSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='verticalSplitterSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='tableScrollSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='ganttScrollSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+						<svg id='verticalScrollSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
+					</svg>
+				</div>
+			</div>
+			<div data-pageid='help'>
+				<h1>HELP</h1>
+			</div>
+</div>
+
+<script type="text/javascript" src="main.js">
+</script>
+
+</body>
+
+</html>

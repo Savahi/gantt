@@ -1,192 +1,10 @@
-<html>
-<head>
-
-	<meta http-equiv="Content-Type" content="text/html; charset=cp1251">
-
-	<style type='text/css'>
-		
-		body { 
-			background-color: #FAFCFF;
-			font-family: sans-serif; 
-			scroll-behavior: smooth;
-			margin:0; padding:0;
-		}
-		
-		.header {
-			position:fixed; left:0; top:0; z-index:999; height:60px; width:100%; margin:0; padding:0; display:block;
-			border-bottom:0px solid #06446D; background-color:#06446D;
-		}
-		.menu {
-			height:60px; margin:0px 0px 0px 24px; padding:0px; text-align:left; display:table;
-		}
-		.menu div {
-			height:100%; margin-left:4px; padding:0px 8px 0px 8px; display:table-cell; vertical-align:middle; 
-			font-size:18px;
-		}
-		.menu div.normal { color:white; }
-		.menu div.active { color:#EFC133; padding-top:4px; border-bottom:4px solid #EFC133; }
-		.menu .logo {
-			width:340px; height:60px; display:table-cell; margin:0px 24px 0px 24px; vertical-align:middle; color:white;
-			background: 
-				url(data:image/png;base64,XXXX)
-				no-repeat left;
-		}
-		 
-		.content {
-			width:100%;
-			position: absolute; top:60px; left:0px;
-			border-top:0px solid white;
-			margin:0; padding:0;
-			background-color:#ffffff;
-		}		
-
-		.page {
-			display:none;
-			width:100%;
-			margin:0; padding:0;
-			background-color:#ffffff;
-			padding-bottom:4%; 
-		}
-
-
-		div.table-row {
-			display:table;
-			margin:0; padding:0;			
-		}
-		
-		div.table-row div {
-			width:33vw; height:20vh; padding:2%; background-color:#ffffff; color:white; text-align:center; display:table-cell; vertical-align:middle;
-			margin:0; padding:0;			
-		}
-		div.table-row div div {
-			background-color:#2B6D9A; color:white; text-align:center; 
-			margin:0; padding:0;			
-		}
-
-		ul {
-			list-style-image:url(data:image/png;base64,XXXX);
-		}
-		ul li {
-			margin:4%;
-			font-size:140%;
-		}
-    	
-    	h1 { margin:2% 1% 1% 4%; font-size:140%; color:#06446D; font-variant:small-caps; }
-
-		.slidecontainer { width: 100%; }
-
-		.slider { 
-			-webkit-appearance: none;
-			width: 100%; height: 5px; background: #d3d3d3; outline: none; opacity: 0.7;
-    		-webkit-transition: .2s; transition: opacity .2s;
-		}
-
-		.slider:hover { opacity: 1; }
-
-		.slider::-webkit-slider-thumb {
-    		-webkit-appearance: none; appearance: none;
-    		width: 25px; height: 5px; background: #4CAF50; cursor: pointer;
-		}
-
-		.slider::-moz-range-thumb {
-    		width: 25px; height: 5px; background: #4CAF50; cursor: pointer;
-		}    	
-
-	</style>
-	
-	<script type='text/javascript'>
-		
-		var aPages;
-		var aMenuIds;
-		var sMenuActiveId="";
-				
-		window.onload = function() {
-			aPages = document.querySelectorAll('[data-pageid]');
-			for( var i = 0 ; i < aPages.length ; i++ ) {
-				aPages[i].className='page';
-			}
-			
-			aMenuIds = document.querySelectorAll('[data-menuid]');
-			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
-				aMenuIds[i].style.cursor = 'pointer';
-				aMenuIds[i].className = 'normal';
-				aMenuIds[i].onclick = function() {
-					menuGoTo( this.getAttribute("data-menuid") );
-				}
-			}
-
-			menuGoTo( "main" );
-		}	
-		
-		function menuGoTo( sId ) {		
-			
-			for( var i = 0 ; i < aPages.length ; i++ ) {
-				sPageId = aPages[i].getAttribute("data-pageid");
-				if( sPageId == sId ) {
-					aPages[i].style.display = 'block';
-				} else {
-					aPages[i].style.display = 'none';
-				}
-			}
-			menuHighlight( sId );			
-		}
-		
-		function menuHighlight( sId ) {
-			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
-				if( sId == aMenuIds[i].getAttribute( "data-menuid") ) {
-					aMenuIds[i].className='active';
-				} else {
-					aMenuIds[i].className='normal';
-				}
-			}
-			sMenuActiveId = sId;
-		}
-						
-	</script>
-	
-</head>
-
-<body>
-
-<!-- Header -->
-<div class='header'>
-	<div class='menu'>
-		<div class='logo'>
-			<div style='background: -webkit-linear-gradient(#FFFFFF, #7F7F7F); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style:italic;'>SPIDER PROJECT</div>
-		</div>
-		<div data-menuid='main'>&nbsp;&nbsp;&nbsp;&nbsp;GANTT CHART&nbsp;&nbsp;&nbsp;&nbsp;</div>
-		<div data-menuid='help'>&nbsp;&nbsp;&nbsp;&nbsp;HELP&nbsp;&nbsp;&nbsp;&nbsp;</div>
-	</div>
-</div>
-
-<div class='content'>
-			<div data-pageid='main'>
-				<div id='containerDiv' style='width:98%; margin-left:1%; font-family:Courier New, Courier, monospace;'>
-					<svg id='containerSVG' style='margin:0; padding:0;'>
-						<svg id='timeSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
-						<svg id='ganttSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
-						<svg id='tableContentSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
-						<svg id='tableHeaderSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
-						<svg id='verticalSplitterSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
-						<svg id='tableScrollSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
-						<svg id='ganttScrollSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
-						<svg id='verticalScrollSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
-					</svg>
-				</div>
-			</div>
-			<div data-pageid='help'>
-				<h1>HELP</h1>
-			</div>
-</div>
-
-
-<script type="text/javascript">
 
 var NS = "http://www.w3.org/2000/svg";
 
 var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 var data = {
+	proj: { code:'Project-1', name:'The Project has no Name yet', projVer:'1.0', curTime:'09.02.2007 08:00' },
 	factStartMin:-1, factFinMax:-1, asapStartMin:-1, asapFinMax:-1, startMin:-1, finMax:-1, startFin:-1,
 	operations: [
 		{ level:1, code:'1', name:'Phase 1', factStart:'01.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'17.01.2007  08:00', costTotal:100, volSum:1000, durSumD:24 },
@@ -227,9 +45,8 @@ var data = {
 	],
 	colors: {
 		level1:'#f8edc9', level2:'#ccffcc', level3:'#e1e1ff', level4:'#dfffff', level5:'#e6e6ff',
-		level6:'#e6e6ff', level7:'#e6e6ff', level8:'#e6e6ff', level9:'#e6e6ff', level10:'#e6e6ff',
-		oper:'#ffffff'
-	}
+		level6:'#e6e6ff', level7:'#e6e6ff', level8:'#e6e6ff', level9:'#e6e6ff', level10:'#e6e6ff', oper:'#ffffff'
+	}	
 };
 
 var tableColumns = [ { name:'[]', ref:'', width:30 }, { name:'Level', ref:'level', width:40 },
@@ -274,6 +91,7 @@ var scrollRectColor = '#afafaf';
 var scrollSliderColor = '#8f8f8f';
 var scrollSliderActiveColor = '#000000';
 var gridColor = "#bfbfbf";
+var gridCurrentTimeColor = "#bf2f2f";
 
 var containerDivHeight, containerDivWidth;
 
@@ -316,7 +134,11 @@ var verticalSplitterPosition = 0.25;
 var tableSplitterCaptured = -1;
 var tableSplitterCapturedAtX = -1;
 
-var ganttRectBracketRelHeight = 0.8;
+var ganttChartLeftMargin=8;
+var ganttChartRightMargin=8;
+var ganttRectTopMargin = 0.4;
+var ganttRectBottomMargin = 0.2;
+var ganttRectBracketRelHeight = 0.75;
 var ganttRectBracketThick = 5
 
 var minDayWidthOnTimeScale = 12;
@@ -391,7 +213,7 @@ window.addEventListener( 'mousemove', function(e) {
 		return;
 	}
 	if( tableScrollCaptured ) {
-		let maxVisibleStart = (tableHeaderOverallWidth > tableHeaderSVGWidth) ? (tableHeaderOverallWidth - tableHeaderSVGWidth) : 0;
+		let visibleMaxStart = (tableHeaderOverallWidth > tableHeaderSVGWidth) ? (tableHeaderOverallWidth - tableHeaderSVGWidth) : 0;
 		let newSliderX = tableScrollXAtCapture + (e.x - tableScrollCapturedAtX);
 		let maxSlider = tableScrollSVGWidth - tableScrollSVGSlider.getBBox().width;
 		if( newSliderX < 0 ) {
@@ -399,7 +221,7 @@ window.addEventListener( 'mousemove', function(e) {
 		} else if( newSliderX > maxSlider ) {
 			newSliderX = maxSlider;
 		}
-		tableVisibleLeft = newSliderX * maxVisibleStart / maxSlider;
+		tableVisibleLeft = newSliderX * visibleMaxStart / maxSlider;
 		tableScrollSVGSlider.setAttributeNS( null,'x', newSliderX );
 		drawTableHeader();
 		drawTableContent();
@@ -416,7 +238,7 @@ window.addEventListener( 'mousemove', function(e) {
 		} else if( newSliderX > maxSlider ) {
 			newSliderX = maxSlider;
 		}
-		ganttVisibleLeft = data.startMin + newSliderX * (data.displayMaxWidth - ganttVisibleWidth) / maxSlider;
+		ganttVisibleLeft = data.visibleMin + newSliderX * (data.visibleMaxWidth - ganttVisibleWidth) / maxSlider;
 		ganttHScrollSVGSlider.setAttributeNS( null,'x', newSliderX );
 		drawTimeScale();
 		drawGantt();
@@ -441,7 +263,7 @@ window.addEventListener( 'mousemove', function(e) {
 	}
 } );
 
-initGanttData();
+loadData();
 drawAll();
 
 function drawAll() {	
@@ -460,8 +282,15 @@ function drawAll() {
 }
 
 
-function initGanttData() {
-	// Retrieving min. and max. dates
+function loadData() {
+	var curTimeParsed = parseDate( data.proj.curTime );
+	if( curTimeParsed != null ) {
+		data.proj.curTimeInSeconds = curTimeParsed.timeInSeconds;
+	} else {
+		data.proj.curTimeInSeconds = parseInt(Date.now()/1000);		
+	}
+
+	// Retrieving dates of operations, calculating min. and max. dates.
 	var parsed;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
 		let d = data.operations[i];
@@ -516,8 +345,9 @@ function initGanttData() {
 	data.startMin = (data.asapStartMin > data.factStartMin) ? data.factStartMin : data.asapStartMin;
 	data.finMax = (data.asapFinMax > data.factFinMax) ? data.asapFinMax : data.factFinMax;
 	data.startFin = data.finMax - data.startMin;
-	data.displayMax = data.finMax + (data.finMax-data.startMin)/2.0;
-	data.displayMaxWidth = data.displayMax - data.startMin;
+	data.visibleMin = data.startMin; // - (data.finMax-data.startMin)/20.0;
+	data.visibleMax = data.finMax; // + (data.finMax-data.startMin)/20.0;
+	data.visibleMaxWidth = data.visibleMax - data.visibleMin;
 
 	// Initializing the structure 
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
@@ -551,8 +381,7 @@ function initGanttData() {
 }
 
 function initLayout() {
-	splitter = verticalSplitterPosition;
-
+	document.getElementById('menuProjectName').innerText = data.proj.name;
 	let plusColor = "#44AA44";
 	let minusColor = "#AA4444";
 	let zeroColor = "#7f7f7f";
@@ -613,8 +442,6 @@ function initLayout() {
 }
 
 function initLayoutCoords() {
-	splitter = verticalSplitterPosition;
-
 	containerDivHeight = window.innerHeight - getElementPosition(containerDiv).y-60;
 	containerDiv.style.height = containerDivHeight;
 	containerDivWidth = parseInt( getComputedStyle(containerDiv).width );
@@ -628,7 +455,7 @@ function initLayoutCoords() {
 	// Table Header
 	tableHeaderSVG.setAttributeNS(null, 'x', 0 );
 	tableHeaderSVG.setAttributeNS(null, 'y', 0 ); 
-	tableHeaderSVGWidth = containerDivWidth * splitter;
+	tableHeaderSVGWidth = containerDivWidth * verticalSplitterPosition;
 	tableHeaderSVG.setAttributeNS(null, 'width', tableHeaderSVGWidth ); // window.innerWidth * 0.1 );
 	tableHeaderSVGHeight = containerDivHeight * 0.1;
 	tableHeaderSVG.setAttributeNS(null, 'height', tableHeaderSVGHeight ); 
@@ -740,24 +567,32 @@ function drawGantt( init ) {
 		ganttSVG.removeChild(el);
 	}
 	let gridLineProperties = { stroke:gridColor, strokeWidth:0.5 /*, opacity:gridOpacity*/ }; 
+	let gridMaxY = operToScreen(data.operations.length);
 	for( let i = 0 ; i < timeScaleToGrid.length ; i++ ) {
 		let x = timeToScreen( timeScaleToGrid[i] );
-		let y = operToScreen(data.operations.length);
 		gridLineProperties.id = 'ganttGrid' + i;
-		let line = createLine( x, 0, x, y, gridLineProperties );
+		let line = createLine( x, 0, x, gridMaxY, gridLineProperties );
 		ganttSVG.appendChild(line);
 	}		
+	let gridXNow = timeToScreen( data.proj.curTimeInSeconds );
+	console.log(gridXNow);
+	gridLineProperties.id = 'ganttGrid' + timeScaleToGrid.length;
+	gridLineProperties.stroke = gridCurrentTimeColor;
+	let gridLine = createLine( gridXNow, 0, gridXNow, gridMaxY, gridLineProperties );
+	ganttSVG.appendChild(gridLine);
+
 	// ...the grid is done.
 
 	// Drawing gantt visual elements...
 	let rectCounter = 0;
+	let fontSize = (operToScreen(ganttRectTopMargin) - operToScreen(0)) * 0.7;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
 		let g, rect, bracketHeight, rectCoords, text;
 
 		let rectStart = timeToScreen( data.operations[i].displayStartInSeconds );
 		let rectEnd = timeToScreen( data.operations[i].displayFinInSeconds );
-		let rectTop = operToScreen(rectCounter+0.2);
-		let rectBottom = operToScreen(rectCounter+1.0-0.2);
+		let rectTop = operToScreen(rectCounter + ganttRectTopMargin);
+		let rectBottom = operToScreen(rectCounter + 1.0 - ganttRectBottomMargin);
 		let rectWidth = rectEnd - rectStart;
 		let rectHeight = (rectBottom-rectTop);
 		let rectVMiddle = rectTop + (rectBottom-rectTop)/2;
@@ -815,7 +650,8 @@ function drawGantt( init ) {
 				title.textContent += tableColumns[col].name + ": " + content + "\r\n";
 			}
 			g.appendChild(title);
-			text = createText( data.operations[i].name, rectEnd+10, rectVMiddle, { fontSize:10, fill:ganttFontColor, id:'ganttText'+i } );
+			text = createText( data.operations[i].name, rectStart, rectTop - fontSize * 0.25, 
+				{ fontSize:fontSize, fill:ganttFontColor, id:'ganttText'+i } );
 			text.style.cursor = 'pointer';
 			g.appendChild(text);
 			ganttSVG.appendChild(g);			
@@ -823,8 +659,9 @@ function drawGantt( init ) {
 			g = document.getElementById('ganttRectGroup'+i);
 			rect = document.getElementById( 'ganttRect'+i );
 			text = document.getElementById( 'ganttText'+i );
-			text.setAttributeNS(null,'x',rectEnd+10);
-			text.setAttributeNS(null,'y',rectVMiddle);			
+			text.setAttributeNS(null,'x',rectStart);
+			text.setAttributeNS(null,'y',rectTop - fontSize * 0.25);
+			text.setAttributeNS(null,'font-size',fontSize);
 			if( data.operations[i].level === null ) {
 				rect.setAttributeNS(null,'x',rectStart);
 				rect.setAttributeNS(null,'width',rectWidth);
@@ -922,7 +759,7 @@ function drawTableHeader( init ) {
 				{ id:'tableHeaderColumnNameSVG'+i, 'fill':tableHeaderFillColor } );
 			tableHeaderSVG.appendChild( rect );
 			let text = createText( tableColumns[i].name, 2, tableHeaderSVGHeight/2, 
-				{ alignmentBaseline:'baseline', textAnchor:'start', fontSize:12, fill:tableHeaderFontColor } );
+				{ alignmentBaseline:'baseline', textAnchor:'start' , fontSize:12, fill:tableHeaderFontColor } );
 			rect.appendChild( text );
 			left += tableColumns[i].width;
 		}
@@ -1100,8 +937,8 @@ function drawTimeScale() {
 	let displayDays = ( dayRectWidth > minDayWidthOnTimeScale ) ? true : false;
 	let displayWeeks = ( !displayDays && dayRectWidth*7 > minDayWidthOnTimeScale ) ? true : false;
 
-	let minTime = data.startMin * 1000; // screenToTime(0) * 1000;
-	let maxTime = data.displayMax * 1000; // screenToTime( timeSVGWidth ) * 1000;
+	let minTime = data.visibleMin * 1000; // screenToTime(0) * 1000;
+	let maxTime = data.visibleMax * 1000; // screenToTime( timeSVGWidth ) * 1000;
 	let minDT = new Date(minTime);
 	let maxDT = new Date(maxTime);
 	let deltaY = maxDT.getFullYear() - minDT.getFullYear();
@@ -1190,8 +1027,8 @@ function drawTimeScale() {
 		}
 		
 		if( !displayDays && displayWeeks ) {
-			let minW = getWeekNumber(minDT);
-			let maxW = getWeekNumber(maxDT);
+			let minW = (y == minY) ? getWeekNumber(minDT) : 1;
+			let maxW = (y == maxY) ? getWeekNumber(maxDT) : 53;
 			let numSecondsInWeek = 7*numSecondsInDay;
 			let startOfWeekInSeconds = minDT.getTime()/1000;
 			let endOfWeekInSeconds = startOfWeekInSeconds + (8-minDT.getDay())*numSecondsInDay;
@@ -1218,8 +1055,8 @@ function drawTableScroll( init ) {
 	if( !init ) {
 		init = false;
 	}
-	let maxVisibleStart = (tableHeaderOverallWidth > tableScrollSVGWidth) ? (tableHeaderOverallWidth - tableScrollSVGWidth) : 0;
-	let sliderSize = (maxVisibleStart > 0) ? (tableScrollSVGWidth*tableScrollSVGWidth/tableHeaderOverallWidth) : tableScrollSVGWidth;
+	let visibleMaxStart = (tableHeaderOverallWidth > tableScrollSVGWidth) ? (tableHeaderOverallWidth - tableScrollSVGWidth) : 0;
+	let sliderSize = (visibleMaxStart > 0) ? (tableScrollSVGWidth*tableScrollSVGWidth/tableHeaderOverallWidth) : tableScrollSVGWidth;
 	if( sliderSize < scrollSliderSize ) {
 		sliderSize = scrollSliderSize;
 	}
@@ -1251,9 +1088,9 @@ function drawGanttHScroll( init ) {
 	if( !init ) {
 		init = false;
 	}
-	let overallWidth = data.displayMaxWidth;
-	let maxVisibleLeft = (overallWidth > ganttVisibleWidth) ? (data.startMin + overallWidth - ganttVisibleWidth) : data.startMin;
-	let sliderSize = (maxVisibleLeft > data.startMin) ? (ganttHScrollSVGWidth*ganttVisibleWidth/overallWidth) : ganttHScrollSVGWidth;
+	let overallWidth = data.visibleMaxWidth;
+	let visibleMaxLeft = (overallWidth > ganttVisibleWidth) ? (data.visibleMin + overallWidth - ganttVisibleWidth) : data.visibleMin;
+	let sliderSize = (visibleMaxLeft > data.visibleMin) ? (ganttHScrollSVGWidth*ganttVisibleWidth/overallWidth) : ganttHScrollSVGWidth;
 	if( sliderSize < scrollSliderSize ) {
 		sliderSize = scrollSliderSize;
 	}
@@ -1277,8 +1114,8 @@ function drawGanttHScroll( init ) {
 		ganttHScrollSVGBkgr.setAttributeNS(null,'width',ganttHScrollSVGWidth);
 		ganttHScrollSVGSlider.setAttributeNS(null,'width',sliderSize);
 		let sliderPosition=0;
-		if( maxVisibleLeft > data.startMin ) {
-			sliderPosition = (ganttVisibleLeft-data.startMin) * (ganttHScrollSVGWidth-sliderSize) / (maxVisibleLeft-data.startMin);
+		if( visibleMaxLeft > data.visibleMin ) {
+			sliderPosition = (ganttVisibleLeft-data.visibleMin) * (ganttHScrollSVGWidth-sliderSize) / (visibleMaxLeft-data.visibleMin);
 		}
 		ganttHScrollSVGSlider.setAttributeNS(null,'x',sliderPosition);
 	}
@@ -1290,8 +1127,8 @@ function drawVerticalScroll( init ) {
 		init = false;
 	}
 	let overallHeight = data.operations.length;
-	let maxVisibleTop = (overallHeight > ganttVisibleHeight) ? (overallHeight - ganttVisibleHeight) : 0;
-	let sliderSize = (maxVisibleTop > 0) ? (verticalScrollSVGHeight*ganttVisibleHeight/overallHeight) : verticalScrollSVGHeight;
+	let visibleMaxTop = (overallHeight > ganttVisibleHeight) ? (overallHeight - ganttVisibleHeight) : 0;
+	let sliderSize = (visibleMaxTop > 0) ? (verticalScrollSVGHeight*ganttVisibleHeight/overallHeight) : verticalScrollSVGHeight;
 	if( sliderSize < scrollSliderSize ) {
 		sliderSize = scrollSliderSize;
 	}
@@ -1314,8 +1151,8 @@ function drawVerticalScroll( init ) {
 	} else {
 		verticalScrollSVGSlider.setAttributeNS(null,'height',sliderSize);
 		let sliderPosition = 0;
-		if( maxVisibleTop > 0 ) {
-			sliderPosition = ganttVisibleTop * (verticalScrollSVGHeight-sliderSize) / maxVisibleTop;
+		if( visibleMaxTop > 0 ) {
+			sliderPosition = ganttVisibleTop * (verticalScrollSVGHeight-sliderSize) / visibleMaxTop;
 		}
 		verticalScrollSVGSlider.setAttributeNS(null,'y',sliderPosition);
 	}
@@ -1324,25 +1161,25 @@ function drawVerticalScroll( init ) {
 
 function zoomX( zoomFactorChange, zoomPositionChange ) {
 	if( (zoomFactorChange == null || zoomFactorChange == '100%') && zoomPositionChange == null ) {
-		ganttVisibleLeft = data.startMin;
-		ganttVisibleWidth = data.displayMaxWidth;
+		ganttVisibleLeft = data.visibleMin;
+		ganttVisibleWidth = data.visibleMaxWidth;
 		return;
 	} 
 	if( zoomFactorChange != null && zoomPositionChange == null ) {
-		if( ganttVisibleWidth >= data.displayMaxWidth && zoomFactorChange > 1.0 ) {
+		if( ganttVisibleWidth >= data.visibleMaxWidth && zoomFactorChange > 1.0 ) {
 			return;
 		}
-		let currentZoomFactor = ganttVisibleWidth / data.displayMaxWidth;
+		let currentZoomFactor = ganttVisibleWidth / data.visibleMaxWidth;
 		let newZoomFactor = currentZoomFactor * zoomFactorChange;
 		if( !(newZoomFactor > 0) ) {
 			return;
 		}
-		let newWidth = data.displayMaxWidth * newZoomFactor;
+		let newWidth = data.visibleMaxWidth * newZoomFactor;
 		let newLeft = ganttVisibleLeft - (newWidth - ganttVisibleWidth) / 2.0;	
-		if( newLeft < data.startMin ) {
-			newLeft = data.startMin;
-		} else if( newLeft + newWidth > data.displayMax ) {
-			newLeft = data.startMin;
+		if( newLeft < data.visibleMin ) {
+			newLeft = data.visibleMin;
+		} else if( newLeft + newWidth > data.visibleMax ) {
+			newLeft = data.visibleMin;
 		}
 		ganttVisibleLeft = newLeft;
 		ganttVisibleWidth = newWidth;
@@ -1350,10 +1187,10 @@ function zoomX( zoomFactorChange, zoomPositionChange ) {
 	}
 	if( zoomFactorChange == null && zoomPositionChange != null ) {
 		let newLeft = ganttVisibleLeft + zoomPositionChange;
-		if( newLeft < data.startMin ) {
-			newLeft = data.startMin;
-		} else if( newLeft + ganttVisibleWidth > data.displayMax ) {
-			newLeft = data.displayMax - ganttVisibleWidth;
+		if( newLeft < data.visibleMin ) {
+			newLeft = data.visibleMin;
+		} else if( newLeft + ganttVisibleWidth > data.visibleMax ) {
+			newLeft = data.visibleMax - ganttVisibleWidth;
 		}
 		ganttVisibleLeft = newLeft;
 		return;
@@ -1387,7 +1224,6 @@ function zoomY( zoomFactorChange, zoomPositionChange ) {
 		}
 		ganttVisibleTop = newY;
 		ganttVisibleHeight = newHeight;
-		console.log("ganttVisibleTop="+ganttVisibleTop);
 		return;
 	} 
 	if( zoomFactorChange === null && zoomPositionChange !== null ) {
@@ -1501,7 +1337,7 @@ function onGanttCapturedMouseMove(e) {
 
 
 function timeToScreen( timeInSeconds ) {
-	return (timeInSeconds - ganttVisibleLeft) * ganttSVGWidth / ganttVisibleWidth; 
+	return ganttChartLeftMargin + (timeInSeconds - ganttVisibleLeft) * (ganttSVGWidth-ganttChartLeftMargin-ganttChartRightMargin) / ganttVisibleWidth; 
 }
 
 function timeToScreenInt( timeInSeconds ) {
@@ -1684,7 +1520,10 @@ function parseDate( dateString ) {
 	if( dateString == null ) {
 		return null;
 	}
-    var parsed = dateString.match( /([0-9]+)\.([0-9]+)\.([0-9]+) + ([0-9]+)\:([0-9]+)/ );
+    var parsed = dateString.match( /([0-9]+)\.([0-9]+)\.([0-9]+) +([0-9]+)\:([0-9]+)/ );
+    if( parsed == null ) {
+    	return null;
+    }
     if( parsed.length != 6 ) {
     	return null;
     }
@@ -1702,8 +1541,3 @@ function getWeekNumber(d) {
     return weekNumber;
 }
 
-</script>
-
-</body>
-
-</html
