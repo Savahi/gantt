@@ -4,7 +4,7 @@ var NS = "http://www.w3.org/2000/svg";
 var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 var data = {
-	proj: { code:'Project-1', name:'The Project has no Name yet', projVer:'1.0', curTime:'09.02.2007 08:00' },
+	proj: { code:'Project-1', name:'This is the name of the project!', projVer:'1.0', curTime:'09.02.2007 08:00' },
 	factStartMin:-1, factFinMax:-1, asapStartMin:-1, asapFinMax:-1, startMin:-1, finMax:-1, startFin:-1,
 	operations: [
 		{ level:1, code:'1', name:'Phase 1', factStart:'01.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'17.01.2007  08:00', costTotal:100, volSum:1000, durSumD:24 },
@@ -69,13 +69,14 @@ var verticalScrollSVG = null;
 var zoomFactor = 1.25;
 
 var ganttOperationRectColor = '#7f7fff';
-var ganttOperationStrokeColor = '#4f4f7f';
+var ganttOperationStrokeColor = '#7f7fff';
 var ganttOperationActiveColor = '#2f2f5f';
 var ganttOperationOpacity = 0.9;
 var ganttPhaseRectColor = '#afafaf';
 var ganttPhaseStrokeColor = '#7f7f7f';
 var ganttPhaseActiveColor = '#4f4f4f';
 var ganttPhaseOpacity = 0.75;
+var ganttUnfinishedOpacity = 0.5;
 var ganttFontColor = '#4f4f4f';
 var timeScaleFontColor = '#4f4f4f';
 var timeScaleFillColor = '#cfcfdf';
@@ -281,7 +282,6 @@ function drawAll() {
 	}
 }
 
-
 function loadData() {
 	var curTimeParsed = parseDate( data.proj.curTime );
 	if( curTimeParsed != null ) {
@@ -318,7 +318,8 @@ function loadData() {
 		if( data.operations[i].factFin != null ) {
 			d.status = 100; // finished
 			d.displayStartInSeconds = d.factStartInSeconds; 
-			d.displayFinInSeconds = d.factFinInSeconds; 
+			d.displayFinInSeconds = d.factFinInSeconds;
+			d.displayUnfinishedInSeconds = null; 
 			d.start = d.factStart;
 			d.fin = d.factFin;
 		} else {
@@ -326,6 +327,7 @@ function loadData() {
 				d.status = 0; // not started 
 				d.displayStartInSeconds = d.asapStartInSeconds; 
 				d.displayFinInSeconds = d.asapFinInSeconds;
+				d.displayUnfinishedInSeconds = null;
 				d.start = d.asapStart;
 				d.fin = d.asapFin;
 			} else { // started but not finished
@@ -337,6 +339,7 @@ function loadData() {
 				}
 				d.displayStartInSeconds = d.factStartInSeconds; 
 				d.displayFinInSeconds = d.asapFinInSeconds;
+				d.displayUnfinishedInSeconds = d.asapStartInSeconds;
 				d.start = d.factStart;
 				d.fin = d.asapFin;				
 			}
@@ -381,7 +384,20 @@ function loadData() {
 }
 
 function initLayout() {
-	document.getElementById('menuProjectName').innerText = data.proj.name;
+	let menuWidth = parseInt( getComputedStyle(document.getElementById('menu')).width );
+	let menuProjectDetails = document.getElementById('menuProjectDetails');
+	menuProjectDetails.style.width=10*menuWidth/100;
+	menuProjectDetails.innerHTML = data.proj.curTime + "<br/>V. " + data.proj.projVer;
+
+	let menuProjectName = document.getElementById('menuProjectName');
+	menuProjectName.innerText = data.proj.name;
+	menuProjectName.style.width = 70*menuWidth/100;
+
+	let menuMain = document.getElementById('menuMain');
+	menuMain.style.width = 10*menuWidth/100;
+	let menuHelp = document.getElementById('menuHelp');
+	menuHelp.style.width = 10*menuWidth/100;
+
 	let plusColor = "#44AA44";
 	let minusColor = "#AA4444";
 	let zeroColor = "#7f7f7f";
@@ -403,17 +419,6 @@ function initLayout() {
 	containerDiv.addEventListener('selectstart', function() { event.preventDefault(); return false; } );
 	containerDiv.addEventListener('selectend', function() { event.preventDefault(); return false; } );
 
-	// Table Header
-	tableHeaderSVG.style.cursor = "pointer";
-	tableHeaderSVG.onmouseover = function(e) { if( tableHeaderSVGBkgr ) tableHeaderSVGBkgr.setAttributeNS( null, 'stroke-width', 2 ); };
-	tableHeaderSVG.onmouseout = function(e) { if( tableHeaderSVGBkgr ) tableHeaderSVGBkgr.setAttributeNS( null, 'stroke-width', 1 ); };
-
-	// Table Content
-	tableContentSVG.style.cursor = "pointer";
-	tableContentSVG.onmouseover = function(e) { if( tableContentSVGBkgr ) tableContentSVGBkgr.setAttributeNS( null, 'stroke-width', 2 ); };
-	tableContentSVG.onmouseout = function(e) { if( tableContentSVGBkgr ) tableContentSVGBkgr.setAttributeNS( null, 'stroke-width', 1 ); };
-	//addOnMouseWheel( tableContentSVG, zoomYByWheel );
-
 	// Vertical splitter
 	verticalSplitterSVGBkgr = createRect( 0, 0, verticalSplitterSVGWidth, verticalSplitterSVGHeight, 
 			{ stroke:tableContentStrokeColor, strokeWidth:1,  fill:tableContentFillColor } ); 	// backgroud rect
@@ -422,7 +427,6 @@ function initLayout() {
 	verticalSplitterSVG.onmousedown = function(e) { verticalSplitterCaptured=true; verticalSplitterCapturedAtX=e.x; };
 
 	// Gantt chart
-	ganttSVG.style.cursor = "pointer";
 	ganttSVG.onmousedown = function(e) { ganttCaptured = true; ganttCapturedAtY = e.clientY; };
 	ganttSVG.onmousemove = onGanttCapturedMouseMove;
 	addOnMouseWheel( ganttSVG, zoomYByWheel );
@@ -587,7 +591,7 @@ function drawGantt( init ) {
 	let rectCounter = 0;
 	let fontSize = (operToScreen(ganttRectTopMargin) - operToScreen(0)) * 0.7;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
-		let g, rect, bracketHeight, rectCoords, text;
+		let g, rect, rectUnfinished, bracketHeight, rectCoords, text;
 
 		let rectStart = timeToScreen( data.operations[i].displayStartInSeconds );
 		let rectEnd = timeToScreen( data.operations[i].displayFinInSeconds );
@@ -600,6 +604,8 @@ function drawGantt( init ) {
 			bracketHeight = (rectBottom - rectTop) * ganttRectBracketRelHeight;
 			rectCoords = rectStart+" "+rectTop+" "+rectEnd+" "+rectTop+" "+rectEnd+" "+(rectTop+rectHeight)+" "+(rectEnd-ganttRectBracketThick)+" "+(rectTop+bracketHeight)+" "+(rectStart+ganttRectBracketThick)+" "+(rectTop+bracketHeight)+" "+rectStart+" "+(rectTop+rectHeight);
 		}
+		let timeUnfinished = data.operations[i].displayUnfinishedInSeconds;
+		let xUnfinished = ( timeUnfinished != null ) ? timeToScreen(timeUnfinished) : null; 
 
 		if( init ) { // Initializing...
 			g = document.createElementNS( NS, 'g' ); // Container
@@ -607,8 +613,17 @@ function drawGantt( init ) {
 			let rectProperties;
 			if( data.operations[i].level === null ) {
 				let rectProperties = { id:'ganttRect'+i, fill:ganttOperationRectColor, stroke:ganttOperationStrokeColor, strokeWidth:2, opacity:ganttOperationOpacity };
-				rect = createRect( rectStart, rectTop, rectWidth, rectHeight, rectProperties ); // Rectangle
-				g.appendChild(rect);
+				if( !xUnfinished ) {
+					rect = createRect( rectStart, rectTop, rectWidth, rectHeight, rectProperties ); // Rectangle
+					g.appendChild(rect);
+				} else {
+					rect = createRect( rectStart, rectTop, xUnfinished - rectStart, rectHeight, rectProperties ); // Rectangle
+					g.appendChild(rect);
+					rectProperties.id = 'ganttRectUnfinished'+i;
+					rectProperties.opacity = ganttUnfinishedOpacity;
+					rectUnfinished = createRect( xUnfinished, rectTop, rectEnd - xUnfinished , rectHeight, rectProperties );
+					g.appendChild(rectUnfinished);					
+				}
 			} else {
 				//rectProperties = { fill:ganttPhaseRectColor, stroke:ganttPhaseStrokeColor, strokeWidth:1, opacity:ganttPhaseOpacity };
 				rect = document.createElementNS( NS, 'polygon' );
@@ -619,14 +634,7 @@ function drawGantt( init ) {
 				rect.setAttributeNS(null,'points',rectCoords);
 				g.appendChild(rect);
 			}
-			if( data.operations[i].level === null ) {
-				rect.onmouseover = function(e) { rect.setAttributeNS( null, 'stroke', ganttOperationActiveColor ); };
-				rect.onmouseout = function(e) { rect.setAttributeNS( null, 'stroke', ganttOperationStrokeColor ); };
-			} else {
-				rect.onmouseover = function(e) { rect.setAttributeNS( null, 'stroke', ganttPhaseActiveColor ); };
-				rect.onmouseout = function(e) { rect.setAttributeNS( null, 'stroke', ganttPhaseStrokeColor ); };				
-			}
-			rect.style.cursor = 'pointer';
+			g.style.cursor = 'pointer';
 
 			let title = document.createElementNS( NS,'title' ); // Title
 			title.textContent = "Operation: " + data.operations[i].name + "\r\n";
@@ -663,10 +671,22 @@ function drawGantt( init ) {
 			text.setAttributeNS(null,'y',rectTop - fontSize * 0.25);
 			text.setAttributeNS(null,'font-size',fontSize);
 			if( data.operations[i].level === null ) {
-				rect.setAttributeNS(null,'x',rectStart);
-				rect.setAttributeNS(null,'width',rectWidth);
-				rect.setAttributeNS(null,'y',rectTop);
-				rect.setAttributeNS(null,'height',rectHeight);
+				if( !xUnfinished ) {
+					rect.setAttributeNS(null,'x',rectStart);
+					rect.setAttributeNS(null,'width',rectWidth);
+					rect.setAttributeNS(null,'y',rectTop);
+					rect.setAttributeNS(null,'height',rectHeight);
+				} else {
+					rect.setAttributeNS(null,'x', rectStart);
+					rect.setAttributeNS(null,'width', xUnfinished - rectStart);
+					rect.setAttributeNS(null,'y', rectTop);
+					rect.setAttributeNS(null,'height', rectHeight);
+					rectUnfinished = document.getElementById( 'ganttRectUnfinished'+i );
+					rectUnfinished.setAttributeNS(null,'x', xUnfinished);
+					rectUnfinished.setAttributeNS(null,'width', rectEnd - xUnfinished);
+					rectUnfinished.setAttributeNS(null,'y', rectTop);
+					rectUnfinished.setAttributeNS(null,'height', rectHeight);
+				}
 			} else {
 				rect.setAttributeNS(null,'points',rectCoords);
 			}
