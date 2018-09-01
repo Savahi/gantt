@@ -14,12 +14,12 @@
 	}
 	.menu div {
 		height:100%; margin-left:4px; padding:0px 8px 0px 8px; display:table-cell; vertical-align:middle; 
-		font-size:18px; text-align:center;
+		font-size:14px; text-align:center;
 	}
 	.menu div.normal { color:white; }
 	.menu div.active { color:#EFC133; padding-top:4px; border-bottom:4px solid #EFC133; }
 	.menu .project-name {
-		width:60%; height:60px; display:table-cell; font-size:24px; margin:0px; vertical-align:middle; color:white; text-align:center;
+		width:60%; height:60px; display:table-cell; font-size:18px; margin:0px; vertical-align:middle; color:white; text-align:center;
 	}
 	.menu .project-details {
 		width:10%; height:60px; display:table-cell; 
@@ -30,6 +30,7 @@
 	.content {
 		width:100%;
 		position: absolute; top:60px; left:0px;
+		box-sizing:border-box;
 		border-top:0px solid white;
 		margin:0; padding:0;
 		background-color:#ffffff;
@@ -39,9 +40,8 @@
 	.page {
 		display:none;
 		width:100%;
-		margin:0; padding:0;
+		margin:0; padding:0px 0px 10px 0px;
 		background-color:#ffffff;
-		padding-bottom:4%;
 	}
 		
 	h1 { margin:2% 1% 1% 4%; font-size:140%; color:#06446D; font-variant:small-caps; }
