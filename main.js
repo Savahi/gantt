@@ -4,21 +4,50 @@ var NS = "http://www.w3.org/2000/svg";
 var data = {
 	proj: { code:'Project-1', name:'The name of the project may be tha-a-a-a-a-a-a-a-a-a-t long...', 
 		projVer:'1.0', curTime:'09.02.2007 08:00' },
-	factStartMin:-1, factFinMax:-1, asapStartMin:-1, asapFinMax:-1, startMin:-1, finMax:-1, startFin:-1,
+	startMin:-1, finMax:-1, startFin:-1,
 	operations: [
-		{ level:1, code:'1', name:'Phase 1', factStart:'01.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'17.01.2007  08:00', costTotal:100, volSum:1000, durSumD:24 },
-		{ level:null, code:'1-1', name:'Operation 1-1', factStart:'01.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'17.01.2007  10:00', costTotal:100, volSum:1300, durSumD:20 },
-		{ level:null, code:'1-2', name:'Operation 1-2', factStart:'09.01.2007  08:00', factFin:'15.01.2007  16:00', asapStart:'09.01.2007  08:00', asapFin:'15.01.2007  08:00', costTotal:100, volSum:1004, durSumD:23 },
-		{ level:1, code:'2', name:'Phase 2', factStart:'15.01.2007  08:00', factFin:'12.02.2007  16:00', asapStart:'15.01.2007  08:00', asapFin:'12.02.2007  10:00', costTotal:100, volSum:1000, durSumD:23 },
-		{ level:null, code:'2-1', name:'Operation 2-1', factStart:'15.01.2007  08:00', factFin:'20.01.2007  16:00', asapStart:'15.01.2007  08:00', asapFin:'20.01.2007  10:00', costTotal:100, volSum:3400, durSumD:10 },
-		{ level:null, code:'2-2', name:'Operation 2-2', factStart:'20.01.2007  08:00', factFin:null, asapStart:'21.01.2007  08:00', asapFin:'23.01.2007  10:00', costTotal:100, volSum:1540, durSumD:20 },
-		{ level:null, code:'2-3', name:'Operation 2-3', factStart:null, factFin:null, asapStart:'21.01.2007  08:00', asapFin:'12.02.2007  10:00', costTotal:100, volSum:1050, durSumD:21 },
-		{ level:1, code:'3', name:'Phase 3', factStart:'25.01.2007  08:00', factFin:'24.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'24.03.2007  10:00', costTotal:100, volSum:1000, durSumD:23 },
-		{ level:null, code:'3-1', name:'Operation 3-1', factStart:'25.01.2007  08:00', factFin:'10.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'10.01.2007  10:00', costTotal:100, volSum:3400, durSumD:10 },
-		{ level:null, code:'3-2', name:'Operation 3-2', factStart:'02.02.2007  08:00', factFin:null, asapStart:'10.02.2007  08:00', asapFin:'24.03.2007  10:00', costTotal:100, volSum:1540, durSumD:20 },
-		{ level:1, code:'4', name:'Phase 4', factStart:'25.01.2007  08:00', factFin:'24.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'24.03.2007  10:00', costTotal:100, volSum:1000, durSumD:23 },
-		{ level:null, code:'4-1', name:'Operation 4-1', factStart:'25.01.2007  08:00', factFin:'10.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'10.01.2007  10:00', costTotal:100, volSum:3400, durSumD:10 },
-		{ level:null, code:'4-2', name:'Operation 4-2', factStart:'02.02.2007  08:00', factFin:null, asapStart:'10.02.2007  08:00', asapFin:'24.03.2007  10:00', costTotal:100, volSum:1540, durSumD:20 },
+		{ level:1, code:'1', name:'Phase 1', 
+			factStart:'01.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'17.01.2007  08:00', 
+			start_COMP:'01.01.2007  08:00', fin_COMP:'15.01.2007  16:00', // To compare with
+			critical:1, //  asapStart == alapStart means "critical" operation
+			costTotal:100, volSum:1000, durSumD:24 },
+		{ level:null, code:'1-1', name:'Operation 1-1', 
+			factStart:'01.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'17.01.2007  10:00', 
+			start_COMP:'01.01.2007  08:00', fin_COMP:'15.01.2007  16:00', // To compare with
+			critical:1, costTotal:100, volSum:1300, durSumD:20 },
+		{ level:null, code:'1-2', name:'Operation 1-2', 
+			factStart:'09.01.2007  08:00', factFin:'15.01.2007  16:00', asapStart:'09.01.2007  08:00', asapFin:'15.01.2007  08:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1004, durSumD:23 },
+		{ level:1, code:'2', name:'Phase 2', 
+			factStart:'15.01.2007  08:00', factFin:'12.02.2007  16:00', asapStart:'15.01.2007  08:00', asapFin:'12.02.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
+		{ level:null, code:'2-1', name:'Operation 2-1', 
+			factStart:'15.01.2007  08:00', factFin:'20.01.2007  16:00', asapStart:'15.01.2007  08:00', asapFin:'20.01.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
+		{ level:null, code:'2-2', name:'Operation 2-2', 
+			factStart:'20.01.2007  08:00', factFin:null, asapStart:'21.01.2007  08:00', asapFin:'23.01.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:1, costTotal:100, volSum:1540, durSumD:20 },
+		{ level:null, code:'2-3', name:'Operation 2-3', 
+			factStart:null, factFin:null, asapStart:'21.01.2007  08:00', asapFin:'12.02.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:1, costTotal:100, volSum:1050, durSumD:21 },
+		{ level:1, code:'3', name:'Phase 3', 
+			factStart:'25.01.2007  08:00', factFin:'24.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'24.03.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
+		{ level:null, code:'3-1', name:'Operation 3-1', 
+			factStart:'25.01.2007  08:00', factFin:'10.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'10.01.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
+		{ level:null, code:'3-2', name:'Operation 3-2', 
+			factStart:'02.02.2007  08:00', factFin:null, asapStart:'10.02.2007  08:00', asapFin:'24.03.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1540, durSumD:20 },
+		{ level:1, code:'4', name:'Phase 4', 
+			factStart:'25.01.2007  08:00', factFin:'24.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'24.03.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
+		{ level:null, code:'4-1', name:'Operation 4-1', 
+			factStart:'25.01.2007  08:00', factFin:'10.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'10.01.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
+		{ level:null, code:'4-2', name:'Operation 4-2', 
+			factStart:'02.02.2007  08:00', factFin:null, asapStart:'10.02.2007  08:00', asapFin:'24.03.2007  10:00', 
+			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1540, durSumD:20 },
 	],
 	operationsLinks: [
 		{ predCode:'2-1', succCode:'2-2', typeSF:'FS', lagType:'time', lagUnit:'hour', lag:10 },
@@ -54,18 +83,20 @@ var tableColumns = [ { name:'[]', ref:'', width:30 }, { name:'Level', ref:'level
 	{ name:'Cost', ref:'costTotal', width:80 }, { name:'Vol.', ref:'volSum', width:80 }, { name:'Dur.', ref:'durSumD', width:80 } ]; 
 
 var settings = {
-	ganttOperation0RectColor:'#bfbfff', ganttOperation0StrokeColor:'#bfbfff', ganttOperation0Opacity:0.75,
-	ganttOperation100RectColor:'#7f7fff', ganttOperation100StrokeColor:'#7f7fff', ganttOperation100Opacity:0.75,
-	ganttPhaseRectColor:'#afafaf', ganttPhaseStrokeColor:'#7f7f7f', ganttPhaseActiveColor:'#4f4f4f', ganttPhaseOpacity:0.75,
-	ganttUnfinishedOpacity:0.5,
+	ganttOperation0Color:'#2fdf2f', ganttOperation0Opacity:0.75,
+	ganttOperation100Color:'#7f7f7f', ganttOperation100Opacity:0.75,
+	ganttPhaseColor:'#0f7f07f', ganttPhaseOpacity:0.75,
+	ganttCriticalColor:'#df2f2f', 
+	ganttCompareColor:'#cfcfdf', ganttCompareOpacity:0.75,
 	ganttFontColor:'#4f4f4f', timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf',
 	ganttLinkStrokeColor:'#000000',	ganttLinkStrokeWidth:1, ganttLinkStrokeDashArray:'1,4,1,4',
 	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', tableContentFontColor:'#4f4f4f',
 	tableContentFillColor:'#ffffff', tableContentStrokeColor:'#4f4f4f',
 	scrollBkgrColor:'#cfcfcf', scrollRectColor:'#afafaf', scrollSliderColor:'#8f8f8f', scrollSliderActiveColor:'#000000',
 	gridColor:"#bfbfbf", gridStrokeWidth:0.5, gridOpacity:1, gridCurrentTimeColor:"#bf2f2f",
-	ganttChartLeftMargin:8, ganttChartRightMargin:8, ganttRectTopMargin:0.4, ganttRectBottomMargin:0.2,
-	ganttRectBracketRelHeight:0.75,	ganttRectBracketThick:5,
+	ganttChartLeftMargin:8, ganttChartRightMargin:8, ganttRectTopMargin:0.7, ganttRectBottomMargin:0.0,
+	ganttCompareTopMargin:0.5, ganttCompareBottomMargin:0.3,
+	ganttRectBracketRelHeight:0.5,	ganttRectBracketThick:5,
 	minDayWidthOnTimeScale:12,
 	scrollThick:8, scrollSliderSize:10,
 	verticalSplitterInitialPosition:0.25,
@@ -73,14 +104,21 @@ var settings = {
 	containerHPadding:0
 }
 
-var language='en';
+var lang='en';
 
-var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var monthNamesRu = ['Янв','Фев','Мар','Апр','Май','Июнь','Июль','Авг','Сен','Окт','Ноя','Дек'];
-
-var termsDictionary = { 
-	'en': { operation:'Operation', phase:'Phase', gantt:'Gantt', help:'Help', monthNames:monthNames },
-	'ru': { operation:'Операция', phase:'Фаза', gantt:'Гантт', help:'Справка', monthNames:monthNamesRu }
+var terms = { 
+	'en': { operation:'Operation', phase:'Phase', status:'Status', resourse:'Resourse(s)', 
+		level:'Level', code:'Code', start:'Start', fin:'Finish', costTotal:'Cost', volSum:'Volume', durSumD:'Duration', 
+		status0:'Not started', status100:'Finished', statusNotFinished:'Under way',
+		gantt:'Gantt', help:'Help', 
+		monthNames:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+		helpText:'<h1>Help</h1>The Gantt chart has been generated with the Spider Project Professional.' },
+	'ru': { operation:'Операция', phase:'Фаза', status:'Состояние', resourse:'Ресурс(ы)', 
+		level:'Уровень', code:'Код', start:'Старт', fin:'Финиш', costTotal:'Стоимость', volSum:'Объем', durSumD:'Длительность', 
+		status0:'Не начато', status100:'Завершено', statusNotFinished:'Не завершено',
+		gantt:'Гантт', help:'Справка', 
+		monthNames:['Янв','Фев','Мар','Апр','Май','Июнь','Июль','Авг','Сен','Окт','Ноя','Дек'], 
+		helpText:'<h1>Справка</h1>Диаграмма Гантта создана с помощью интегрированной системы управления проектами Spider Project Professional.' },		
 };
 
 var containerDiv = null;
@@ -284,25 +322,55 @@ function loadData() {
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
 		let d = data.operations[i];
 		parsed = parseDate( data.operations[i].asapStart );
-		if( parsed != null ) {
-			data.asapStartMin = reassignBoundaryValue( data.asapStartMin, parsed.timeInSeconds, false );
+		if( parsed !== null ) {
+			data.startMin = reassignBoundaryValue( data.startMin, parsed.timeInSeconds, false );
 			data.operations[i].asapStartInSeconds = parsed.timeInSeconds;
+		} else {
+			data.operations[i].asapStartInSeconds = -1;
 		}
 		parsed = parseDate( data.operations[i].asapFin );
-		if( parsed != null ) {
-			data.asapFinMax = reassignBoundaryValue( data.asapFinMax, parsed.timeInSeconds, true );
+		if( parsed !== null ) {
+			data.finMax = reassignBoundaryValue( data.finMax, parsed.timeInSeconds, true );
 			data.operations[i].asapFinInSeconds = parsed.timeInSeconds;
+		} else {
+			data.operations[i].asapFinInSeconds = -1;
 		}
 		parsed = parseDate( data.operations[i].factStart );
-		if( parsed != null ) {
-			data.factStartMin = reassignBoundaryValue( data.factStartMin, parsed.timeInSeconds, false );
+		if( parsed !== null ) {
+			data.startMin = reassignBoundaryValue( data.startMin, parsed.timeInSeconds, false );
 			data.operations[i].factStartInSeconds = parsed.timeInSeconds;
+		} else {
+			data.operations[i].factStartInSeconds = -1;
 		}
 		parsed = parseDate( data.operations[i].factFin );
-		if( parsed != null ) {
-			data.factFinMax = reassignBoundaryValue( data.factFinMax, parsed.timeInSeconds, true );
+		if( parsed !== null ) {
+			data.finMax = reassignBoundaryValue( data.finMax, parsed.timeInSeconds, true );
 			data.operations[i].factFinInSeconds = parsed.timeInSeconds;
+		} else {
+			data.operations[i].factFinInSeconds = -1;
 		}
+		parsed = parseDate( data.operations[i].start_COMP );
+		if( parsed !== null ) {
+			data.startMin = reassignBoundaryValue( data.startMin, parsed.timeInSeconds, false );			
+			data.operations[i].start_COMPInSeconds = parsed.timeInSeconds;			
+		} else {
+			data.operations[i].start_COMPInSeconds = -1;
+		}
+		parsed = parseDate( data.operations[i].fin_COMP );
+		if( parsed !== null ) {
+			data.finMax = reassignBoundaryValue( data.finMax, parsed.timeInSeconds, true );			
+			data.operations[i].fin_COMPInSeconds = parsed.timeInSeconds;			
+		} else {
+			data.operations[i].fin_COMPInSeconds = -1;
+		}
+		parsed = parseDate( data.operations[i].alapStart );
+		if( parsed !== null ) {
+			data.startMin = reassignBoundaryValue( data.startMin, parsed.timeInSeconds, false );			
+			data.operations[i].alapStartInSeconds = parsed.timeInSeconds;			
+		} else {
+			data.operations[i].alapStartInSeconds = -1;
+		}
+
 		// Start and finish
 		if( data.operations[i].factFin != null ) {
 			d.status = 100; // finished
@@ -334,8 +402,6 @@ function loadData() {
 			}
 		}
 	}
-	data.startMin = (data.asapStartMin > data.factStartMin) ? data.factStartMin : data.asapStartMin;
-	data.finMax = (data.asapFinMax > data.factFinMax) ? data.asapFinMax : data.factFinMax;
 	data.startFin = data.finMax - data.startMin;
 	data.visibleMin = data.startMin; // - (data.finMax-data.startMin)/20.0;
 	data.visibleMax = data.finMax; // + (data.finMax-data.startMin)/20.0;
@@ -373,6 +439,7 @@ function loadData() {
 }
 
 function initLayout() {
+	// Initializing upper & menu area elements
 	let menuWidth = parseInt( getComputedStyle(document.getElementById('menu')).width );
 	let menuProjectDetails = document.getElementById('menuProjectDetails');
 	menuProjectDetails.style.width=10*menuWidth/100;
@@ -384,8 +451,12 @@ function initLayout() {
 
 	let menuMain = document.getElementById('menuMain');
 	menuMain.style.width = 10*menuWidth/100;
+	menuMain.innerText = terms[lang]['gantt'];
 	let menuHelp = document.getElementById('menuHelp');
 	menuHelp.style.width = 10*menuWidth/100;
+	menuHelp.innerText = terms[lang]['help'];
+
+	document.getElementById('helpText').innerHTML = terms[lang].helpText; // Initializing help text
 
 	containerDiv = document.getElementById("containerDiv");
 	containerSVG = document.getElementById("containerSVG");
@@ -575,13 +646,14 @@ function drawGantt( init ) {
 
 	// Drawing gantt visual elements...
 	let rectCounter = 0;
-	let rect0Properties = { fill:settings.ganttOperation0RectColor, stroke:settings.ganttOperation0StrokeColor, 
-		strokeWidth:1, opacity:settings.ganttOperation0Opacity };
-	let rect100Properties = { fill:settings.ganttOperation100RectColor, stroke:settings.ganttOperation100StrokeColor, 
-		strokeWidth:1, opacity:settings.ganttOperation100Opacity };
-	let fontSize = (operToScreen(settings.ganttRectTopMargin) - operToScreen(0)) * 0.7;
+	let rect0Properties = { fill:settings.ganttOperation0Color, stroke:settings.ganttOperation0StrokeColor, 
+		strokeWidth:settings.ganttOperationStrokeWidth, opacity:settings.ganttOperation0Opacity };
+	let rect100Properties = { fill:settings.ganttOperation100Color, stroke:settings.ganttOperation100StrokeColor, 
+		strokeWidth:settings.ganttOperationStrokeWidth, opacity:settings.ganttOperation100Opacity };
+	let rectCompareProperties = { fill:settings.ganttCompareColor, stroke:settings.ganttCompareStrokeColor, 
+		strokeWidth:settings.ganttCompareStrokeWidth, opacity:settings.ganttCompareOpacity };
+	let fontSize = (operToScreen(settings.ganttCompareTopMargin) - operToScreen(0)) * 0.6;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
-
 		let rectStart = timeToScreen( data.operations[i].displayStartInSeconds );
 		let rectEnd = timeToScreen( data.operations[i].displayFinInSeconds );
 		let rectTop = operToScreen(rectCounter + settings.ganttRectTopMargin);
@@ -589,13 +661,33 @@ function drawGantt( init ) {
 		let rectWidth = rectEnd - rectStart;
 		let rectHeight = (rectBottom-rectTop);
 		let rectVMiddle = rectTop + (rectBottom-rectTop)/2;
+		let textY;
+		let rectCompareStart, rectCompareEnd, rectCompareTop, rectCompareBottom;
+		if( data.operations[i].start_COMPInSeconds != -1 && data.operations[i].fin_COMPInSeconds != -1 ) {
+			rectCompareStart = timeToScreen( data.operations[i].start_COMPInSeconds );
+			rectCompareEnd = timeToScreen( data.operations[i].fin_COMPInSeconds );
+			rectCompareTop = operToScreen(rectCounter + settings.ganttCompareTopMargin);
+			rectCompareBottom = operToScreen(rectCounter + 1.0 - settings.ganttCompareBottomMargin);
+			textY = rectCompareTop - 4;
+		} else {
+			rectCompareStart = -1;			
+			textY = rectTop - 4;
+		}
 
 		if( init ) { // Initializing...
 			let group = document.createElementNS( NS, 'g' ); // Container
 			group.setAttributeNS(null,'id','ganttGroup'+i);
+			if( rectCompareStart != -1 ) { // To compare with...
+				rectCompareProperties.id = 'ganttOpCompare' + i;
+				let rectCompare = createRect( rectCompareStart, rectCompareTop, rectCompareEnd - rectCompareStart, 
+					rectCompareBottom - rectCompareTop, rectCompareProperties ); // Rectangle
+				group.appendChild(rectCompare);
+			}			
+
 			if( data.operations[i].level === null ) {
 				if( data.operations[i].status == 0 ) {
 					rect0Properties.id = 'ganttOpNotStarted'+i;
+					rect0Properties.fill = (data.operations[i].critical==1) ? settings.ganttCriticalColor : settings.ganttOperation0Color;
 					let rect0 = createRect( rectStart, rectTop, rectWidth, rectHeight, rect0Properties ); // Rectangle
 					group.appendChild(rect0);
 				} else if( data.operations[i].status == 100 ) {
@@ -608,14 +700,16 @@ function drawGantt( init ) {
 					let rect100 = createRect( rectStart, rectTop, xUnfinished - rectStart, rectHeight, rect100Properties ); // Rectangle
 					group.appendChild(rect100);
 					rect0Properties.id = 'ganttOpNotStarted'+i;
+					rect0Properties.fill = (data.operations[i].critical==1) ? settings.ganttCriticalColor : settings.ganttOperation0Color;
 					let rect0 = createRect( xUnfinished, rectTop, rectEnd - xUnfinished , rectHeight, rect0Properties );
 					group.appendChild(rect0);					
 				}
 			} else {
 				let rectPhase = document.createElementNS( NS, 'polygon' );
 				rectPhase.setAttributeNS(null,'id','ganttPhase'+i);
-				rectPhase.setAttributeNS(null,'fill',settings.ganttPhaseRectColor);
+				rectPhase.setAttributeNS(null,'fill',settings.ganttPhaseColor);
 				rectPhase.setAttributeNS(null,'stroke',settings.ganttPhaseStrokeColor);
+				rectPhase.setAttributeNS(null,'stroke-width',0);
 				rectPhase.setAttributeNS(null,'opacity',settings.ganttPhaseOpacity);
 				rectPhase.setAttributeNS(null,'points',calcPhaseCoords( rectStart, rectEnd, rectTop, rectBottom));
 				group.appendChild(rectPhase);
@@ -623,18 +717,18 @@ function drawGantt( init ) {
 			group.style.cursor = 'pointer';
 
 			let title = document.createElementNS( NS,'title' ); // Title
-			let phaseOrOp = (data.operations[i].level === null ) ? "Operation: " : "Phase: ";
+			let phaseOrOp = (data.operations[i].level === null ) ? terms[lang]['operation']+": " : terms[lang]['phase']+": ";
 			title.textContent = phaseOrOp + data.operations[i].name + "\r\n";
 			if( data.operations[i].status == 0 ) {
-				title.textContent += "Status: not started" + "\r\n";
+				title.textContent += terms[lang]['status']+": " + terms[lang].status0 + "\r\n";
 			} else if( data.operations[i].status < 100 ) {
-				title.textContent += "Status: " + data.operations[i].status + "% done" + "\r\n";
+				title.textContent += terms[lang]['status']+": " + data.operations[i].status + "%" + "\r\n";
 			} else {
-				title.textContent += "Status: done" + "\r\n";				
+				title.textContent += terms[lang]['status']+": " + terms[lang].status100 + "\r\n";				
 			}
 			let res = findResoursesForOperation( i );
 			if( res != null ) {
-				title.textContent += "Resourse: " + res.name + "\r\n";
+				title.textContent += terms[lang]['resourse']+": " + res.name + "\r\n";
 			}
 			for( let col=1 ; col < tableColumns.length ; col++ ) {
 				if( tableColumns[col].name == 'Name' ) {
@@ -642,22 +736,30 @@ function drawGantt( init ) {
 				}
 				let ref = tableColumns[col].ref;
 				let content = data.operations[i][ref];
+				let name = terms[lang][ref];
 				if( content === 'undefined' || content == null ) {
 					continue;
 				}
-				title.textContent += tableColumns[col].name + ": " + content + "\r\n";
+				title.textContent += name + ": " + content + "\r\n";
 			}
 			group.appendChild(title);
-			text = createText( data.operations[i].name, rectStart, rectTop - fontSize * 0.25, 
-				{ fontSize:fontSize, fill:settings.ganttFontColor, id:'ganttText'+i } );
+			text = createText( data.operations[i].name, rectStart, textY, // - fontSize * 0.25, 
+				{ fontSize:fontSize, fill:settings.ganttFontColor, id:'ganttText'+i, textAnchor:'left', alignmentBaseline:'baseline' } );
 			text.style.cursor = 'pointer';
 			group.appendChild(text);
 			ganttSVG.appendChild(group);			
 		} else {
 			text = document.getElementById( 'ganttText'+i );
 			text.setAttributeNS(null,'x',rectStart);
-			text.setAttributeNS(null,'y',rectTop - fontSize * 0.25);
+			text.setAttributeNS(null,'y',textY);
 			text.setAttributeNS(null,'font-size',fontSize);
+			if( rectCompareStart != -1 ) {
+				let rectCompare = document.getElementById('ganttOpCompare' + i);
+				rectCompare.setAttributeNS(null,'x',rectCompareStart);
+				rectCompare.setAttributeNS(null,'width',rectCompareEnd - rectCompareStart);
+				rectCompare.setAttributeNS(null,'y',rectCompareTop);
+				rectCompare.setAttributeNS(null,'height',rectCompareBottom - rectCompareTop);
+			}
 			if( data.operations[i].level === null ) {
 				if( data.operations[i].status == 0 ) {
 					let rect0 = document.getElementById('ganttOpNotStarted'+i);
@@ -761,6 +863,7 @@ function drawGantt( init ) {
 
 function calcPhaseCoords( rectStart, rectEnd, rectTop, rectBottom ) {
 	let phaseBracketHeight = (rectBottom - rectTop) * settings.ganttRectBracketRelHeight;
+	let thick = ((rectEnd - rectStart) > 4) ? phaseBracketHeight * settings.ganttRectBracketRelThick : 1;
 	phaseCoords = rectStart+" "+rectTop+" "+rectEnd+" "+rectTop+" "+rectEnd+" "+rectBottom;
 	phaseCoords += " "+(rectEnd - settings.ganttRectBracketThick)+" "+(rectTop+phaseBracketHeight);
 	phaseCoords += " "+(rectStart + settings.ganttRectBracketThick)+" "+(rectTop+phaseBracketHeight)+" "+rectStart+" "+rectBottom;
@@ -1021,6 +1124,7 @@ function drawTimeScale() {
 
 		let minM = ( y == minY ) ? minDT.getMonth() : 0;
 		let maxM = ( y == maxY ) ? maxDT.getMonth() : 11;
+		let mNames = terms[lang]['monthNames']
 		for( let m = minM ; m <= maxM ; m++ ) {
 			let startOfMonth = new Date(y,m,1,0,0,0,0);
 			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;
@@ -1030,7 +1134,7 @@ function drawTimeScale() {
 			let monthEndX = timeToScreen(endOfMonthInSeconds);
 			let monthRect = createRect( monthStartX, monthY, monthEndX - monthStartX, textRectHeight, textRectProperties );		
 			timeSVG.appendChild(monthRect);
-			let monthString = monthNames[m];
+			let monthString = mNames[m];
 			if( monthWithYear ) { 
 				monthString += ", " + y;
 			}
@@ -1407,6 +1511,28 @@ function createRect( x, y, width, height, properties ) {
 	} 
 	return rect;
 }
+
+function createPolygon( points, properties ) {
+	let polygon = document.createElementNS(NS, 'polygon');
+	polygon.setAttributeNS(null, 'points', points ); 			
+	if( 'id' in properties ) {
+		polygon.setAttributeNS(null, 'id', properties.id ); 		
+	} 
+	if( 'fill' in properties ) {
+		polygon.setAttributeNS(null, 'fill', properties.fill );
+	} 
+	if( 'stroke' in properties ) {
+		polygon.setAttributeNS(null, 'stroke', properties.stroke );
+	}
+	if( 'strokeWidth' in properties ) {
+		polygon.setAttributeNS(null, 'stroke-width', properties.strokeWidth );			
+	}
+	if( 'opacity' in properties ) {
+		polygon.setAttributeNS(null, 'opacity', properties.opacity );
+	} 
+	return polygon;
+}
+
 
 function createText( textString, x, y, properties ) {
 	let text = document.createElementNS(NS, 'text');
