@@ -4,77 +4,54 @@ var NS = "http://www.w3.org/2000/svg";
 var data = {
 	proj: { code:'Project-1', name:'The name of the project may be tha-a-a-a-a-a-a-a-a-a-t long...', 
 		projVer:'1.0', curTime:'09.02.2007 08:00' },
-	startMin:-1, finMax:-1, startFin:-1,
 	operations: [
 		{ level:1, code:'1', name:'Phase 1', 
-			factStart:'01.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'17.01.2007  08:00', 
-			start_COMP:'01.01.2007  08:00', fin_COMP:'15.01.2007  16:00', // To compare with
+			actualStart:'01.01.2007  08:00', actualFinish:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFinish:'17.01.2007  08:00', 
+			compareStart:'01.01.2007  08:00', compareFinish:'15.01.2007  16:00', // To compare with
 			critical:1, //  asapStart == alapStart means "critical" operation
 			costTotal:100, volSum:1000, durSumD:24 },
 		{ level:null, code:'1-1', name:'Operation 1-1', 
-			factStart:'01.01.2007  08:00', factFin:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFin:'17.01.2007  10:00', 
-			start_COMP:'01.01.2007  08:00', fin_COMP:'15.01.2007  16:00', // To compare with
+			actualStart:'01.01.2007  08:00', actualFinish:'17.01.2007  16:00', asapStart:'01.01.2007  08:00', asapFinish:'17.01.2007  10:00', 
+			compareStart:'01.01.2007  08:00', compareFinish:'15.01.2007  16:00', // To compare with
 			critical:1, costTotal:100, volSum:1300, durSumD:20 },
 		{ level:null, code:'1-2', name:'Operation 1-2', 
-			factStart:'09.01.2007  08:00', factFin:'15.01.2007  16:00', asapStart:'09.01.2007  08:00', asapFin:'15.01.2007  08:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1004, durSumD:23 },
+			actualStart:'09.01.2007  08:00', actualFinish:'15.01.2007  16:00', asapStart:'09.01.2007  08:00', asapFinish:'15.01.2007  08:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:1004, durSumD:23 },
 		{ level:1, code:'2', name:'Phase 2', 
-			factStart:'15.01.2007  08:00', factFin:'12.02.2007  16:00', asapStart:'15.01.2007  08:00', asapFin:'12.02.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
+			actualStart:'15.01.2007  08:00', actualFinish:null, asapStart:'21.01.2007  08:00', asapFinish:'12.02.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
 		{ level:null, code:'2-1', name:'Operation 2-1', 
-			factStart:'15.01.2007  08:00', factFin:'20.01.2007  16:00', asapStart:'15.01.2007  08:00', asapFin:'20.01.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
+			actualStart:'15.01.2007  08:00', actualFinish:'20.01.2007  16:00', asapStart:'15.01.2007  08:00', asapFinish:'20.01.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
 		{ level:null, code:'2-2', name:'Operation 2-2', 
-			factStart:'20.01.2007  08:00', factFin:null, asapStart:'21.01.2007  08:00', asapFin:'23.01.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:1, costTotal:100, volSum:1540, durSumD:20 },
+			actualStart:'20.01.2007  08:00', actualFinish:null, asapStart:'21.01.2007  08:00', asapFinish:'23.01.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:1, costTotal:100, volSum:1540, durSumD:20 },
 		{ level:null, code:'2-3', name:'Operation 2-3', 
-			factStart:null, factFin:null, asapStart:'21.01.2007  08:00', asapFin:'12.02.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:1, costTotal:100, volSum:1050, durSumD:21 },
+			actualStart:null, actualFinish:null, asapStart:'21.01.2007  08:00', asapFinish:'12.02.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:1, costTotal:100, volSum:1050, durSumD:21 },
 		{ level:1, code:'3', name:'Phase 3', 
-			factStart:'25.01.2007  08:00', factFin:'24.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'24.03.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
+			actualStart:'25.01.2007  08:00', actualFinish:null, asapStart:'10.02.2007  08:00', asapFinish:'24.03.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
 		{ level:null, code:'3-1', name:'Operation 3-1', 
-			factStart:'25.01.2007  08:00', factFin:'10.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'10.01.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
+			actualStart:'25.01.2007  08:00', actualFinish:'10.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFinish:'10.01.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
 		{ level:null, code:'3-2', name:'Operation 3-2', 
-			factStart:'02.02.2007  08:00', factFin:null, asapStart:'10.02.2007  08:00', asapFin:'24.03.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1540, durSumD:20 },
+			actualStart:'02.02.2007  08:00', actualFinish:null, asapStart:'10.02.2007  08:00', asapFinish:'24.03.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:1540, durSumD:20 },
 		{ level:1, code:'4', name:'Phase 4', 
-			factStart:'25.01.2007  08:00', factFin:'24.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'24.03.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
+			actualStart:'25.01.2007  08:00', actualFinish:'24.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFinish:'24.03.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:1000, durSumD:23 },
 		{ level:null, code:'4-1', name:'Operation 4-1', 
-			factStart:'25.01.2007  08:00', factFin:'10.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFin:'10.01.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
+			actualStart:'25.01.2007  08:00', actualFinish:'10.03.2007  16:00', asapStart:'25.01.2007  08:00', asapFinish:'10.01.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:3400, durSumD:10 },
 		{ level:null, code:'4-2', name:'Operation 4-2', 
-			factStart:'02.02.2007  08:00', factFin:null, asapStart:'10.02.2007  08:00', asapFin:'24.03.2007  10:00', 
-			start_COMP:null, fin_COMP:null, critical:null, costTotal:100, volSum:1540, durSumD:20 },
+			actualStart:'02.02.2007  08:00', actualFinish:null, asapStart:'10.02.2007  08:00', asapFinish:'24.03.2007  10:00', 
+			compareStart:null, compareFinish:null, critical:null, costTotal:100, volSum:1540, durSumD:20 },
 	],
-	operationsLinks: [
+	opLinks: [
 		{ predCode:'2-1', succCode:'2-2', typeSF:'FS', lagType:'time', lagUnit:'hour', lag:10 },
 		{ predCode:'2-2', succCode:'2-3', typeSF:'FF', lagType:'time', lagUnit:'hour', lag:10 }
 	],
-	resourses: [
-		{ level:0, code:'0', name:'Resourse #0', type:'Type #0', number:1 },
-		{ level:1 , code:'1', name:'Resourse #1', type:'Type #1', number:10 },
-		{ level:0 , code:'2', name:'Subresourse of #1', type:'Type #1.1', number:10 },
-		{ level:0 , code:'3', name:'Subresourse of #1', type:'Type #1.2', number:10 }
-	],
-	assignments: [
-		{ operCode:'1', resCode:'1', number:1, prior:10 },
-		{ operCode:'2', resCode:'2', number:1, prior:10 }
-	],
-	cost: [
-		{ code:'0', name:'Name of Cost0' }, { code:'1', name:'Name of Cost1' }, 
-		{ code:'2', name:'Name of Cost2' }, { code:'3', name:'Name of Cost3' }
-	],
-	operCost: [
-		{ operCode:'0', costCode:'0', fix:2 }, { operCode:'1', costCode:'1', fix:4 }, 
-		{ operCode:'2', costCode:'2', fix:10 }, { operCode:'3', costCode:'3', fix:100 }
-	],
-	colors: {
-		level1:'#f8edc9', level2:'#ccffcc', level3:'#e1e1ff', level4:'#dfffff', level5:'#e6e6ff',
-		level6:'#e6e6ff', level7:'#e6e6ff', level8:'#e6e6ff', level9:'#e6e6ff', level10:'#e6e6ff', oper:'#ffffff'
-	}	
 };
 
 var tableColumns = [ { name:'[]', ref:'', width:30 }, { name:'Level', ref:'level', width:40 },
@@ -96,7 +73,7 @@ var settings = {
 	gridColor:"#bfbfbf", gridStrokeWidth:0.5, gridOpacity:1, gridCurrentTimeColor:"#bf2f2f",
 	ganttChartLeftMargin:8, ganttChartRightMargin:8, ganttRectTopMargin:0.7, ganttRectBottomMargin:0.0,
 	ganttCompareTopMargin:0.5, ganttCompareBottomMargin:0.3,
-	ganttRectBracketRelHeight:0.5,	ganttRectBracketThick:5,
+	ganttRectBracketRelHeight:0.25,	ganttRectBracketThick:5,
 	minDayWidthOnTimeScale:12,
 	scrollThick:8, scrollSliderSize:10,
 	verticalSplitterInitialPosition:0.25,
@@ -318,93 +295,97 @@ function loadData() {
 	}
 
 	// Retrieving dates of operations, calculating min. and max. dates.
+	data.startMinInSeconds = -1;
+	data.finMaxInSeconds = -1;
+	data.startFinSeconds = -1
+
 	var parsed;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
 		let d = data.operations[i];
-		parsed = parseDate( data.operations[i].asapStart );
+		parsed = parseDate( d.asapStart );
 		if( parsed !== null ) {
-			data.startMin = reassignBoundaryValue( data.startMin, parsed.timeInSeconds, false );
-			data.operations[i].asapStartInSeconds = parsed.timeInSeconds;
+			data.startMinInSeconds = reassignBoundaryValue( data.startMinInSeconds, parsed.timeInSeconds, false );
+			d.asapStartInSeconds = parsed.timeInSeconds;
 		} else {
-			data.operations[i].asapStartInSeconds = -1;
+			d.asapStartInSeconds = -1;
 		}
-		parsed = parseDate( data.operations[i].asapFin );
+		parsed = parseDate( d.asapFinish );
 		if( parsed !== null ) {
-			data.finMax = reassignBoundaryValue( data.finMax, parsed.timeInSeconds, true );
-			data.operations[i].asapFinInSeconds = parsed.timeInSeconds;
+			data.finMaxInSeconds = reassignBoundaryValue( data.finMaxInSeconds, parsed.timeInSeconds, true );
+			d.asapFinishInSeconds = parsed.timeInSeconds;
 		} else {
-			data.operations[i].asapFinInSeconds = -1;
+			d.asapFinishInSeconds = -1;
 		}
-		parsed = parseDate( data.operations[i].factStart );
+		parsed = parseDate( d.actualStart );
 		if( parsed !== null ) {
-			data.startMin = reassignBoundaryValue( data.startMin, parsed.timeInSeconds, false );
-			data.operations[i].factStartInSeconds = parsed.timeInSeconds;
+			data.startMinInSeconds = reassignBoundaryValue( data.startMinInSeconds, parsed.timeInSeconds, false );
+			d.actualStartInSeconds = parsed.timeInSeconds;
 		} else {
-			data.operations[i].factStartInSeconds = -1;
+			d.actualStartInSeconds = -1;
 		}
-		parsed = parseDate( data.operations[i].factFin );
+		parsed = parseDate( d.actualFinish );
 		if( parsed !== null ) {
-			data.finMax = reassignBoundaryValue( data.finMax, parsed.timeInSeconds, true );
-			data.operations[i].factFinInSeconds = parsed.timeInSeconds;
+			data.finMaxInSeconds = reassignBoundaryValue( data.finMaxInSeconds, parsed.timeInSeconds, true );
+			d.actualFinishInSeconds = parsed.timeInSeconds;
 		} else {
-			data.operations[i].factFinInSeconds = -1;
+			d.actualFinishInSeconds = -1;
 		}
-		parsed = parseDate( data.operations[i].start_COMP );
+		parsed = parseDate( d.compareStart );
 		if( parsed !== null ) {
-			data.startMin = reassignBoundaryValue( data.startMin, parsed.timeInSeconds, false );			
-			data.operations[i].start_COMPInSeconds = parsed.timeInSeconds;			
+			data.startMinInSeconds = reassignBoundaryValue( data.startMinInSeconds, parsed.timeInSeconds, false );			
+			d.compareStartInSeconds = parsed.timeInSeconds;			
 		} else {
-			data.operations[i].start_COMPInSeconds = -1;
+			d.compareStartInSeconds = -1;
 		}
-		parsed = parseDate( data.operations[i].fin_COMP );
+		parsed = parseDate( d.compareFinish );
 		if( parsed !== null ) {
-			data.finMax = reassignBoundaryValue( data.finMax, parsed.timeInSeconds, true );			
-			data.operations[i].fin_COMPInSeconds = parsed.timeInSeconds;			
+			data.finMaxInSeconds = reassignBoundaryValue( data.finMaxInSeconds, parsed.timeInSeconds, true );			
+			d.compareFinishInSeconds = parsed.timeInSeconds;			
 		} else {
-			data.operations[i].fin_COMPInSeconds = -1;
+			d.compareFinishInSeconds = -1;
 		}
-		parsed = parseDate( data.operations[i].alapStart );
+		parsed = parseDate( d.alapStart );
 		if( parsed !== null ) {
-			data.startMin = reassignBoundaryValue( data.startMin, parsed.timeInSeconds, false );			
-			data.operations[i].alapStartInSeconds = parsed.timeInSeconds;			
+			data.startMinInSeconds = reassignBoundaryValue( data.startMinInSeconds, parsed.timeInSeconds, false );			
+			d.alapStartInSeconds = parsed.timeInSeconds;			
 		} else {
-			data.operations[i].alapStartInSeconds = -1;
+			d.alapStartInSeconds = -1;
 		}
 
 		// Start and finish
-		if( data.operations[i].factFin != null ) {
+		if( d.actualFinish ) {
 			d.status = 100; // finished
-			d.displayStartInSeconds = d.factStartInSeconds; 
-			d.displayFinInSeconds = d.factFinInSeconds;
+			d.displayStartInSeconds = d.actualStartInSeconds; 
+			d.displayFinInSeconds = d.actualFinishInSeconds;
 			d.displayUnfinishedInSeconds = null; 
-			d.start = d.factStart;
-			d.fin = d.factFin;
+			d.start = d.actualStart;
+			d.fin = d.actualFinish;
 		} else {
-			if( d.factStart == null ) { // Hasn't been started yet
+			if( !d.actualStart ) { // Hasn't been started yet
 				d.status = 0; // not started 
 				d.displayStartInSeconds = d.asapStartInSeconds; 
-				d.displayFinInSeconds = d.asapFinInSeconds;
+				d.displayFinInSeconds = d.asapFinishInSeconds;
 				d.displayUnfinishedInSeconds = null;
 				d.start = d.asapStart;
-				d.fin = d.asapFin;
+				d.fin = d.asapFinish;
 			} else { // started but not finished
-				let divisor = d.asapFinInSeconds - d.factStartInSeconds;
+				let divisor = d.asapFinishInSeconds - d.actualStartInSeconds;
 				if( divisor > 0 ) {
-					d.status = parseInt( (d.asapStartInSeconds - d.factStartInSeconds) * 100 / divisor); 
+					d.status = parseInt( (d.asapStartInSeconds - d.actualStartInSeconds) * 100 / divisor); 
 				} else {
 					d.status = 50;
 				}
-				d.displayStartInSeconds = d.factStartInSeconds; 
-				d.displayFinInSeconds = d.asapFinInSeconds;
+				d.displayStartInSeconds = d.actualStartInSeconds; 
+				d.displayFinInSeconds = d.asapFinishInSeconds;
 				d.displayUnfinishedInSeconds = d.asapStartInSeconds;
-				d.start = d.factStart;
-				d.fin = d.asapFin;				
+				d.start = d.actualStart;
+				d.fin = d.asapFinish;				
 			}
 		}
 	}
-	data.startFin = data.finMax - data.startMin;
-	data.visibleMin = data.startMin; // - (data.finMax-data.startMin)/20.0;
-	data.visibleMax = data.finMax; // + (data.finMax-data.startMin)/20.0;
+	data.startFinSeconds = data.finMaxInSeconds - data.startMinInSeconds;
+	data.visibleMin = data.startMinInSeconds; // - (data.finMaxInSeconds-data.startMinInSeconds)/20.0;
+	data.visibleMax = data.finMaxInSeconds; // + (data.finMaxInSeconds-data.startMinInSeconds)/20.0;
 	data.visibleMaxWidth = data.visibleMax - data.visibleMin;
 
 	// Initializing the structure 
@@ -415,7 +396,7 @@ function loadData() {
 			if( data.operations[j].level != null ) {
 				let l = data.operations[i].parents.length;
 				if( l == 0 ) {
-					if( data.operations[i].level == null ) {
+					if( !data.operations[i].level ) {
 						data.operations[i].parents.push(j);
 					} else if( data.operations[i].level > data.operations[j].level ) {
 						data.operations[i].parents.push(j);						
@@ -428,7 +409,7 @@ function loadData() {
 				} 
 			} 
 		}
-		if( data.operations[i].level == null ) {
+		if( !data.operations[i].level ) {
 			data.operations[i].expanded = false;
 			data.operations[i].visible = true;
 		} else {
@@ -580,21 +561,6 @@ function initLayoutCoords() {
 	verticalScrollSVG.setAttributeNS(null, 'height', verticalScrollSVGHeight ); 
 }
 
-function findResoursesForOperation( operationIndex ) {
-	let operationCode = data.operations[operationIndex].code;
-	for( let i = 0 ; i < data.assignments.length ; i++ ) {
-		if( data.assignments[i].operCode == operationCode ) {
-			let resourseCode = data.assignments[i].resCode;
-			for( let j = 0 ; j < data.resourses.length ; j++ ) {
-				if( data.resourses[j].code == resourseCode ) {
-					return { code:data.resourses[j].code, name:data.resourses[j].name, number:data.resourses[j].number }
-				}
-			}
-		}
-	}
-	return null;
-}
-
 function calcVisibleOperations() {
 	let numVisible = 0;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
@@ -646,11 +612,11 @@ function drawGantt( init ) {
 
 	// Drawing gantt visual elements...
 	let rectCounter = 0;
-	let rect0Properties = { fill:settings.ganttOperation0Color, stroke:settings.ganttOperation0StrokeColor, 
+	let op0Properties = { fill:settings.ganttOperation0Color, stroke:settings.ganttOperation0StrokeColor, 
 		strokeWidth:settings.ganttOperationStrokeWidth, opacity:settings.ganttOperation0Opacity };
-	let rect100Properties = { fill:settings.ganttOperation100Color, stroke:settings.ganttOperation100StrokeColor, 
+	let op100Properties = { fill:settings.ganttOperation100Color, stroke:settings.ganttOperation100StrokeColor, 
 		strokeWidth:settings.ganttOperationStrokeWidth, opacity:settings.ganttOperation100Opacity };
-	let rectCompareProperties = { fill:settings.ganttCompareColor, stroke:settings.ganttCompareStrokeColor, 
+	let opCompareProperties = { fill:settings.ganttCompareColor, stroke:settings.ganttCompareStrokeColor, 
 		strokeWidth:settings.ganttCompareStrokeWidth, opacity:settings.ganttCompareOpacity };
 	let fontSize = (operToScreen(settings.ganttCompareTopMargin) - operToScreen(0)) * 0.6;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
@@ -662,62 +628,73 @@ function drawGantt( init ) {
 		let rectHeight = (rectBottom-rectTop);
 		let rectVMiddle = rectTop + (rectBottom-rectTop)/2;
 		let textY;
-		let rectCompareStart, rectCompareEnd, rectCompareTop, rectCompareBottom;
-		if( data.operations[i].start_COMPInSeconds != -1 && data.operations[i].fin_COMPInSeconds != -1 ) {
-			rectCompareStart = timeToScreen( data.operations[i].start_COMPInSeconds );
-			rectCompareEnd = timeToScreen( data.operations[i].fin_COMPInSeconds );
+		let displayCompare, rectCompareStart, rectCompareEnd, rectCompareTop, rectCompareBottom;
+		if( data.operations[i].compareStartInSeconds != -1 && data.operations[i].compareFinishInSeconds != -1 ) {
+			rectCompareStart = timeToScreen( data.operations[i].compareStartInSeconds );
+			rectCompareEnd = timeToScreen( data.operations[i].compareFinishInSeconds );
 			rectCompareTop = operToScreen(rectCounter + settings.ganttCompareTopMargin);
 			rectCompareBottom = operToScreen(rectCounter + 1.0 - settings.ganttCompareBottomMargin);
 			textY = rectCompareTop - 4;
+			displayCompare = true;
 		} else {
-			rectCompareStart = -1;			
+			displayCompare = false;
 			textY = rectTop - 4;
 		}
 
 		if( init ) { // Initializing...
 			let group = document.createElementNS( NS, 'g' ); // Container
 			group.setAttributeNS(null,'id','ganttGroup'+i);
-			if( rectCompareStart != -1 ) { // To compare with...
-				rectCompareProperties.id = 'ganttOpCompare' + i;
+			if( displayCompare ) { // To compare with...
+				opCompareProperties.id = 'ganttOpCompare' + i;
 				let rectCompare = createRect( rectCompareStart, rectCompareTop, rectCompareEnd - rectCompareStart, 
-					rectCompareBottom - rectCompareTop, rectCompareProperties ); // Rectangle
+					rectCompareBottom - rectCompareTop, opCompareProperties ); // Rectangle
 				group.appendChild(rectCompare);
 			}			
 
-			if( data.operations[i].level === null ) {
-				if( data.operations[i].status == 0 ) {
-					rect0Properties.id = 'ganttOpNotStarted'+i;
-					rect0Properties.fill = (data.operations[i].critical==1) ? settings.ganttCriticalColor : settings.ganttOperation0Color;
-					let rect0 = createRect( rectStart, rectTop, rectWidth, rectHeight, rect0Properties ); // Rectangle
-					group.appendChild(rect0);
-				} else if( data.operations[i].status == 100 ) {
-					rect100Properties.id = 'ganttOpFinished'+i;
-					let rect100 = createRect( rectStart, rectTop, rectWidth, rectHeight, rect100Properties ); // Rectangle
-					group.appendChild(rect100);
+			if( data.operations[i].status == 0 ) {
+				let op0;
+				op0Properties.id = 'ganttOpNotStarted'+i;
+				op0Properties.fill = (data.operations[i].critical==1) ? settings.ganttCriticalColor : settings.ganttOperation0Color;
+				if( !data.operations[i].level ) {
+					op0 = createRect( rectStart, rectTop, rectWidth, rectHeight, op0Properties ); // Rectangle
 				} else {
-					let xUnfinished = timeToScreen( data.operations[i].displayUnfinishedInSeconds );
-					rect100Properties.id = 'ganttOpFinished'+i;
-					let rect100 = createRect( rectStart, rectTop, xUnfinished - rectStart, rectHeight, rect100Properties ); // Rectangle
-					group.appendChild(rect100);
-					rect0Properties.id = 'ganttOpNotStarted'+i;
-					rect0Properties.fill = (data.operations[i].critical==1) ? settings.ganttCriticalColor : settings.ganttOperation0Color;
-					let rect0 = createRect( xUnfinished, rectTop, rectEnd - xUnfinished , rectHeight, rect0Properties );
-					group.appendChild(rect0);					
+					op0 = createPolygon( calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight), op0Properties );
 				}
+				group.appendChild(op0);
+			} else if( data.operations[i].status == 100 ) {
+				let op100;
+				op100Properties.id = 'ganttOpFinished'+i;
+				if( !data.operations[i].level ) {
+					op100 = createRect( rectStart, rectTop, rectWidth, rectHeight, op100Properties ); // Rectangle
+				} else {
+					op100 = createPolygon( calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight), op100Properties );
+				}
+				group.appendChild(op100);
 			} else {
-				let rectPhase = document.createElementNS( NS, 'polygon' );
-				rectPhase.setAttributeNS(null,'id','ganttPhase'+i);
-				rectPhase.setAttributeNS(null,'fill',settings.ganttPhaseColor);
-				rectPhase.setAttributeNS(null,'stroke',settings.ganttPhaseStrokeColor);
-				rectPhase.setAttributeNS(null,'stroke-width',0);
-				rectPhase.setAttributeNS(null,'opacity',settings.ganttPhaseOpacity);
-				rectPhase.setAttributeNS(null,'points',calcPhaseCoords( rectStart, rectEnd, rectTop, rectBottom));
-				group.appendChild(rectPhase);
+				let xUnfinished = timeToScreen( data.operations[i].displayUnfinishedInSeconds );
+				op100Properties.id = 'ganttOpFinished'+i;
+				let op100;
+				if( !data.operations[i].level ) {
+					op100 = createRect( rectStart, rectTop, xUnfinished - rectStart, rectHeight, op100Properties  ); // Rectangle
+				} else {
+					op100 = createPolygon( calcPhaseCoords(rectStart, rectTop, xUnfinished - rectStart, rectHeight,-1), op100Properties );
+				}
+				group.appendChild(op100);
+				
+				op0Properties.id = 'ganttOpNotStarted'+i;
+				op0Properties.fill = (data.operations[i].critical==1) ? settings.ganttCriticalColor : settings.ganttOperation0Color;
+				let op0;
+				if( data.operations[i].level === null ) {
+					op0 = createRect( xUnfinished, rectTop, rectEnd - xUnfinished , rectHeight, op0Properties  ); // Rectangle
+				} else {
+					op0 = createPolygon( calcPhaseCoords(xUnfinished, rectTop, rectEnd - xUnfinished , rectHeight,1), op0Properties );
+				}
+				group.appendChild(op0);
 			}
 			group.style.cursor = 'pointer';
 
 			let title = document.createElementNS( NS,'title' ); // Title
-			let phaseOrOp = (data.operations[i].level === null ) ? terms[lang]['operation']+": " : terms[lang]['phase']+": ";
+			let phaseOrOp = (!data.operations[i].level) ? terms[lang]['operation']+": " : terms[lang]['phase']+": ";
 			title.textContent = phaseOrOp + data.operations[i].name + "\r\n";
 			if( data.operations[i].status == 0 ) {
 				title.textContent += terms[lang]['status']+": " + terms[lang].status0 + "\r\n";
@@ -725,10 +702,6 @@ function drawGantt( init ) {
 				title.textContent += terms[lang]['status']+": " + data.operations[i].status + "%" + "\r\n";
 			} else {
 				title.textContent += terms[lang]['status']+": " + terms[lang].status100 + "\r\n";				
-			}
-			let res = findResoursesForOperation( i );
-			if( res != null ) {
-				title.textContent += terms[lang]['resourse']+": " + res.name + "\r\n";
 			}
 			for( let col=1 ; col < tableColumns.length ; col++ ) {
 				if( tableColumns[col].name == 'Name' ) {
@@ -753,42 +726,35 @@ function drawGantt( init ) {
 			text.setAttributeNS(null,'x',rectStart);
 			text.setAttributeNS(null,'y',textY);
 			text.setAttributeNS(null,'font-size',fontSize);
-			if( rectCompareStart != -1 ) {
-				let rectCompare = document.getElementById('ganttOpCompare' + i);
-				rectCompare.setAttributeNS(null,'x',rectCompareStart);
-				rectCompare.setAttributeNS(null,'width',rectCompareEnd - rectCompareStart);
-				rectCompare.setAttributeNS(null,'y',rectCompareTop);
-				rectCompare.setAttributeNS(null,'height',rectCompareBottom - rectCompareTop);
+			if( displayCompare ) {
+				setRectCoords( document.getElementById('ganttOpCompare' + i), 
+					rectCompareStart, rectCompareTop, rectCompareEnd - rectCompareStart, rectCompareBottom - rectCompareTop );
 			}
-			if( data.operations[i].level === null ) {
-				if( data.operations[i].status == 0 ) {
-					let rect0 = document.getElementById('ganttOpNotStarted'+i);
-					rect0.setAttributeNS(null,'x',rectStart);
-					rect0.setAttributeNS(null,'width',rectWidth);
-					rect0.setAttributeNS(null,'y',rectTop);
-					rect0.setAttributeNS(null,'height',rectHeight);
-				} else if( data.operations[i].status == 100 ) {
-					let rect100 = document.getElementById('ganttOpFinished'+i);
-					rect100.setAttributeNS(null,'x',rectStart);
-					rect100.setAttributeNS(null,'width',rectWidth);
-					rect100.setAttributeNS(null,'y',rectTop);
-					rect100.setAttributeNS(null,'height',rectHeight);
+			if( data.operations[i].status == 0 ) {
+				let el = document.getElementById('ganttOpNotStarted'+i);
+				if( !data.operations[i].level ) {
+					setRectCoords( el, rectStart, rectTop, rectWidth, rectHeight );
 				} else {
-					let xUnfinished = timeToScreen( data.operations[i].displayUnfinishedInSeconds );
-					let rect100 = document.getElementById('ganttOpFinished'+i);
-					let rect0 = document.getElementById('ganttOpNotStarted'+i);
-					rect100.setAttributeNS(null,'x', rectStart);
-					rect100.setAttributeNS(null,'width', xUnfinished - rectStart);
-					rect100.setAttributeNS(null,'y', rectTop);
-					rect100.setAttributeNS(null,'height', rectHeight);
-					rect0.setAttributeNS(null,'x', xUnfinished);
-					rect0.setAttributeNS(null,'width', rectEnd - xUnfinished);
-					rect0.setAttributeNS(null,'y', rectTop);
-					rect0.setAttributeNS(null,'height', rectHeight);
-				}
+					el.setAttributeNS( null,'points', calcPhaseCoords(rectStart, rectTop, rectWidth, rectHeight) );
+				} 
+			} else if( data.operations[i].status == 100 ) {
+				let el = document.getElementById('ganttOpFinished'+i);
+				if( !data.operations[i].level ) {
+					setRectCoords( el, rectStart, rectTop, rectWidth, rectHeight );
+				} else {
+					el.setAttributeNS( null,'points', calcPhaseCoords(rectStart, rectTop, rectWidth, rectHeight) );
+				} 
 			} else {
-				rectPhase = document.getElementById('ganttPhase'+i);
-				rectPhase.setAttributeNS(null,'points',calcPhaseCoords( rectStart, rectEnd, rectTop, rectBottom));
+				let xUnfinished = timeToScreen( data.operations[i].displayUnfinishedInSeconds );
+				let el100 = document.getElementById('ganttOpFinished'+i);
+				let el0 = document.getElementById('ganttOpNotStarted'+i);
+				if( !data.operations[i].level ) {
+					setRectCoords( el100, rectStart, rectTop, xUnfinished - rectStart, rectHeight );
+					setRectCoords( el0, xUnfinished, rectTop, rectEnd - xUnfinished, rectHeight );
+				} else {
+					el100.setAttributeNS( null,'points', calcPhaseCoords(rectStart, rectTop, xUnfinished - rectStart, rectHeight,-1) );
+					el0.setAttributeNS( null,'points', calcPhaseCoords(xUnfinished, rectTop, rectEnd - xUnfinished, rectHeight,1) );
+				} 
 			}
 		}
 
@@ -809,10 +775,10 @@ function drawGantt( init ) {
 	// Gantt links
 	let lineProperties = { stroke:settings.ganttLinkStrokeColor, strokeWidth:settings.ganttLinkStrokeWidth, 
 		strokeDasharray:settings.ganttLinkStrokeDashArray, endingArrow:true };
-	for( let i = 0 ; i < data.operationsLinks.length ; i++ ) {
+	for( let i = 0 ; i < data.opLinks.length ; i++ ) {
 
-		let predCode = data.operationsLinks[i].predCode;
-		let succCode = data.operationsLinks[i].succCode;
+		let predCode = data.opLinks[i].predCode;
+		let succCode = data.opLinks[i].succCode;
 		let predOp = null;
 		let succOp = null;
 		for( let op = 0 ; op < data.operations.length ; op++ ) {
@@ -829,13 +795,13 @@ function drawGantt( init ) {
 
 		if( predOp && succOp ) {
 			let line, lineX1, lineY1, lineX2, lineY2;
-			if( data.operationsLinks[i].typeSF == 'SS' || data.operationsLinks[i].typeSF == 'SF' ) {
+			if( data.opLinks[i].typeSF == 'SS' || data.opLinks[i].typeSF == 'SF' ) {
 				lineX1 = data.operations[predOp].left;
 			} else {
 				lineX1 = data.operations[predOp].right;				
 			}
 			lineY1 = data.operations[predOp].top + (data.operations[predOp].bottom - data.operations[predOp].top) / 2.0;
-			if( data.operationsLinks[i].typeSF == 'SF' || data.operationsLinks[i].typeSF == 'FF' ) {
+			if( data.opLinks[i].typeSF == 'SF' || data.opLinks[i].typeSF == 'FF' ) {
 				lineX2 = data.operations[succOp].left;
 			} else {
 				lineX2 = data.operations[succOp].right;				
@@ -861,12 +827,24 @@ function drawGantt( init ) {
 	}	
 }
 
-function calcPhaseCoords( rectStart, rectEnd, rectTop, rectBottom ) {
-	let phaseBracketHeight = (rectBottom - rectTop) * settings.ganttRectBracketRelHeight;
-	let thick = ((rectEnd - rectStart) > 4) ? phaseBracketHeight * settings.ganttRectBracketRelThick : 1;
-	phaseCoords = rectStart+" "+rectTop+" "+rectEnd+" "+rectTop+" "+rectEnd+" "+rectBottom;
-	phaseCoords += " "+(rectEnd - settings.ganttRectBracketThick)+" "+(rectTop+phaseBracketHeight);
-	phaseCoords += " "+(rectStart + settings.ganttRectBracketThick)+" "+(rectTop+phaseBracketHeight)+" "+rectStart+" "+rectBottom;
+function calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight, brackets=0 ) {
+	let phaseBracketHeight = rectHeight * settings.ganttRectBracketRelHeight;
+	let thick = (rectWidth+rectWidth > settings.ganttRectBracketThick) ? settings.ganttRectBracketThick : 1;
+	let rectEnd = rectStart + rectWidth;
+	let rectBottom = rectTop + rectHeight;
+	let phaseCoords;
+	if( brackets == 0 ) { // Both brackets
+		phaseCoords = rectStart+" "+rectTop+" "+rectEnd+" "+rectTop+" "+rectEnd+" "+rectBottom;
+		phaseCoords += " "+(rectEnd - thick)+" "+(rectBottom-phaseBracketHeight);
+		phaseCoords += " "+(rectStart + thick)+" "+(rectBottom-phaseBracketHeight)+" "+rectStart+" "+rectBottom;		
+	} else if( brackets == 1 ) {  // Only right bracket
+		phaseCoords = rectStart+" "+rectTop+" "+rectEnd+" "+rectTop+" "+rectEnd+" "+rectBottom;
+		phaseCoords += " "+(rectEnd - thick)+" "+(rectBottom-phaseBracketHeight);
+		phaseCoords += " "+rectStart+" "+(rectBottom-phaseBracketHeight);				
+	} else { // Only left bracket
+		phaseCoords = rectStart+" "+rectTop+" "+rectEnd+" "+rectTop+" "+rectEnd+" "+(rectBottom- phaseBracketHeight);
+		phaseCoords += " "+(rectStart + thick)+" "+(rectBottom-phaseBracketHeight)+" "+rectStart+" "+rectBottom;		
+	}
 	return phaseCoords;
 }
 
@@ -933,7 +911,8 @@ function drawTableContent( init ) {
 
 		for( let col = 0, left=0 ; col < tableColumns.length ; col++  ) { // Creating splitters
 			left += tableColumns[col].width;
-			let splitter = createRect( left-tableVisibleLeft, 0, 1, operToScreen(data.operations.length), {id:'tableSplitter'+col, fill:'#dfdfdf'} );
+			let splitter = createRect( left-tableVisibleLeft, 0, 1, operToScreen(data.operations.length), 
+				{id:'tableSplitter'+col, fill:'#dfdfdf'} );
 			splitter._columnNumber = col;
 			splitter.setAttributeNS(null,'cursor','col-resize');
 			tableContentSVG.appendChild(splitter);
@@ -958,11 +937,12 @@ function drawTableContent( init ) {
 		let lineTop = operToScreen(rectCounter);
 		let lineBottom = operToScreen(rectCounter+1.0);
 		let lineHeight = lineBottom - lineTop;
-		let lineMiddle = lineTop + lineHeight/2;
+		let fontSize = 11;
+		let lineMiddle = lineBottom - lineHeight/3;
 		let lineId = 'ganttTableLine' + i;
 
 		let expand='[]';
-		if( data.operations[i].level != null ) {
+		if( data.operations[i].level ) {
 			if( data.operations[i].expanded ) {
 				expand='[-]';
 			} else {
@@ -974,10 +954,10 @@ function drawTableContent( init ) {
 
 		if( init ) {			
 			expandText = createText( expand, tableColumns[0].width/2.0, lineMiddle, 
-				{ id:expandTextId, fontSize:12, textAnchor:'middle', alignmentBaseline:'baseline' } );
+				{ id:expandTextId, fontSize:fontSize, textAnchor:'middle', alignmentBaseline:'baseline' } );
 	 		document.getElementById('tableColumnSVG0').appendChild(expandText);
 	 		expandText._operationNumber=i;
-	 		if( data.operations[i].level != null ) {
+	 		if( data.operations[i].level ) {
 	 			expandText.style.cursor = 'pointer';
 		 		expandText.onmousedown = function(e) {
 		 			if( data.operations[this._operationNumber].expanded == true ) {
@@ -1016,7 +996,7 @@ function drawTableContent( init ) {
 				}
 
 				let text = createText(content, 2, lineMiddle, 
-					{ id:('tableColumn'+col+'Row'+i), fill:settings.tableContentStrokeColor, textAnchor:'start', fontSize:10 } );
+					{ id:('tableColumn'+col+'Row'+i), fill:settings.tableContentStrokeColor, textAnchor:'start', fontSize:fontSize } );
 				document.getElementById('tableColumnSVG'+col).appendChild( text );
 			}
 
@@ -1032,6 +1012,7 @@ function drawTableContent( init ) {
 				let el = document.getElementById(id);
 				el.setAttributeNS(null,'x',2);
 				el.setAttributeNS(null,'y',lineMiddle);
+				el.setAttributeNS(null,'font-size',fontSize);
 			}
 		}
 
@@ -1510,6 +1491,13 @@ function createRect( x, y, width, height, properties ) {
 		rect.setAttributeNS(null, 'opacity', properties.opacity );
 	} 
 	return rect;
+}
+
+function setRectCoords( rect, x, y, width, height ) {
+	rect.setAttributeNS(null,'x',x);
+	rect.setAttributeNS(null,'y',y);
+	rect.setAttributeNS(null,'width',width);
+	rect.setAttributeNS(null,'height',height);	
 }
 
 function createPolygon( points, properties ) {
