@@ -5,6 +5,10 @@
 		margin:0; padding:0;
 	}
 	
+	div { box-sizing: border-box; margin:0px; padding:0px; }
+	table { box-sizing: border-box; margin:0px; padding:0px; }
+	td { padding:0px; }
+
 	.header {
 		position:fixed; left:0; top:0; z-index:999; height:60px; width:100%; margin:0; padding:0; display:block;
 		border-bottom:0px solid #06446D; background-color:#06446D;

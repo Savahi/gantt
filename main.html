@@ -2,7 +2,7 @@
 <html>
 <head>
 
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
 
 	<link href="main.css" rel="stylesheet">
 	
@@ -53,7 +53,6 @@
 			}
 			sMenuActiveId = sId;
 		}
-						
 	</script>
 	
 </head>
@@ -90,6 +89,41 @@
 	<div data-pageid='help'>
 		<div id='helpText'>
 		</div>
+	</div>
+</div>
+
+<div id='blackOutBox' style='position:absolute; display:none; left:0; top:0; min-width:100%; min-height:100%; background-color:#4f4f4f; opacity:0.75;'></div>
+
+<div id='messageBox' style='position:absolute; display:none; left:30%; top:30%; width:40%; height:40%;'>
+	<div id='messageBoxText' style='position:relative; display:table-cell; min-width:100%; min-height:100%; background-color:#ffffff; text-align:center; vertical-align:middle;'>
+	</div>
+</div>
+
+<div id='editBox' style='position:absolute; display:none; left:20%; top:30%; width:60%; height:40%;'>
+	<div id='editBoxContent' style='position:relative; display:table-cell; min-width:100%; min-height:100%; background-color:#ffffff; text-align:center; vertical-align:middle;'>
+		<table style='width:100%' cellspacing=0 cellpadding=0>
+			<tr style='vertical-align::top;'>
+				<td style='width:50%; padding:12px;'>
+					<div id='editBoxDetails' style='padding:4px; text-align:left; overflow:auto; font-size:12px;'></div>
+				</td>
+				<td style='width:50%; padding:12px;'>
+					<div style='font-size:14px;'>Enter new user data here:</div>
+					<textarea id='editBoxInputNotes' style='width:100%; font-size:12px; box-sizing: border-box;' rows=4>
+					</textarea>
+					<div id='editBoxMessage' style='font-size:12px; font-style:italic; color:#4f4f4f;'></div>
+					<input id='editBoxOperationCode' type='hidden' value=''>
+					<input id='editBoxOperationIndex' type='hidden' value=''>
+					<table style='width:100%;' cellspacing=0 cellpadding=0><tr>
+						<td style='width:50%; padding:24px; text-align:right;'>
+							<button style='width:100%;' onclick="saveUserDataFromEditBox();">Ok</button>
+						</td>
+						<td style='width:50%; padding:24px; text-align:left;'>
+							<button style='width:100%;' onclick="hideEditBox();">Cancel</button>
+						</td>
+					</tr></table>
+				</td>
+			</tr>
+		</table>
 	</div>
 </div>
 
