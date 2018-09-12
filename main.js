@@ -64,10 +64,10 @@ var dataSrc = {
 		{ 'PredCode':'2-1', 'SuccCode':'2-2', 'TypeSF':'FS', 'LagType':'time', 'LagUnit':'hour', 'Lag':10 },
 		{ 'PredCode':'2-2', 'SuccCode':'2-3', 'TypeSF':'FF', 'LagType':'time', 'LagUnit':'hour', 'Lag':10 }
 	],
-	'editable': [ { ref:'Notes', type:'text' } ]
+	'editable': [ { 'ref':'Notes', 'type':'text' }, { 'ref':'CostTotal', 'type':'float' }, { 'ref':'VolSum', 'type':'float' } ]
 };
 
-var tableColumns = [ { name:'[]', ref:'', width:30 }, { name:'Level', ref:'Level', width:40 },
+var tableColumns = [ { name:'[]', ref:'expandColumn', width:30 }, { name:'Level', ref:'Level', width:40 },
 	{ name:'Name', ref:'Name', width:80 }, { name:'Code', ref:'Code', width:80 }, 
 	{ name:'Start', ref:'Start', width:80 }, { name:'Finish', ref:'Fin', width:80 }, 
 	{ name:'Cost', ref:'CostTotal', width:80 }, { name:'Vol.', ref:'VolSum', width:80 }, 
@@ -80,7 +80,8 @@ var settings = {
 	ganttCriticalColor:'#df2f2f', 
 	ganttCompareColor:'#cfcfdf', ganttCompareOpacity:0.75,
 	ganttFontColor:'#4f4f4f', timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf',
-	ganttLinkStrokeColor:'#000000',	ganttLinkStrokeWidth:1, ganttLinkStrokeDashArray:'1,4,1,4',
+	ganttLinkStrokeColor:'#000000',	ganttLinkStrokeWidth:1, ganttLinkStrokeDashArray:null, 
+	ganttLinkOpacity:0.4, ganttLinkArrowWidth:10, ganttLinkArrowHeight:10,
 	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', tableContentFontColor:'#4f4f4f',
 	tableContentFillColor:'#ffffff', tableContentStrokeColor:'#4f4f4f',
 	scrollBkgrColor:'#cfcfcf', scrollRectColor:'#afafaf', scrollSliderColor:'#8f8f8f', scrollSliderActiveColor:'#000000',
@@ -99,7 +100,8 @@ var lang='ru';
 
 var terms = { 
 	'en': { operation:'Operation', phase:'Phase', status:'Status', resourse:'Resourse(s)', 
-		Level:'Level', Code:'Code', Start:'Start', Fin:'Finish', CostTotal:'Cost', VolSum:'Volume', DurSumD:'Duration', 
+		expandColumn:'[]', Level:'Level', Name:'Name', Code:'Code', Start:'Start', Fin:'Finish', 
+		CostTotal:'Cost', VolSum:'Volume', DurSumD:'Duration', 
 		Notes:'Notes',status0:'Not started', status100:'Finished', statusNotFinished:'Under way',
 		gantt:'Gantt', help:'Help', 
 		monthNames:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
@@ -112,7 +114,8 @@ var terms = {
 		enterUserDataMessage: 'ENTER USER DATA HERE',
 		unsynchronizedMessage: 'The data you entered has not been uploaded into Spider yet!' },
 	'ru': { operation:'Операция', phase:'Фаза', status:'Состояние', resourse:'Ресурс(ы)', 
-		Level:'Уровень', Code:'Код', Start:'Старт', Fin:'Финиш', CostTotal:'Стоимость', VolSum:'Объем', DurSumD:'Длительность', 
+		expandColumn:'[]', Level:'Уровень', Name:'Название', Code:'Код', Start:'Старт', Fin:'Финиш', 
+		CostTotal:'Стоимость', VolSum:'Объем', DurSumD:'Длительность', 
 		Notes:'Комментарий', status0:'Не начато', status100:'Завершено', statusNotFinished:'Не завершено',
 		gantt:'Гантт', help:'Справка', 
 		monthNames:['Янв','Фев','Мар','Апр','Май','Июнь','Июль','Авг','Сен','Окт','Ноя','Дек'], 
@@ -328,10 +331,11 @@ function loadData() {
 						calcData();
 						displayData();		 
 			        } else {
+			        	createEditBoxInputs();
 				        var xmlhttpUserData = new XMLHttpRequest();
 						xmlhttpUserData.onreadystatechange = function() {
 				    		if (this.readyState == 4 ) {
-				    			if( this.status == 200) {
+				    			if( this.status == 200) {		    				
 				    				let errorParsingUserData = false;
 				    				let userData;
 				    				try {
@@ -368,6 +372,7 @@ function loadData() {
 		displayMessageBox( terms[lang].waitDataText ); 
 	} else {
 		data = dataSrc;
+		createEditBoxInputs();
 		let userData = [ { operationCode:'1', data: { 'Notes':'USER DATA FOR OPERATION WITH CODE "1"' } } ];
 		setUserData( userData );
 		calcData();
@@ -717,8 +722,99 @@ function drawGantt( init ) {
 	ganttSVG.appendChild(gridLine);
 	// ...the grid is done.
 
-	// Drawing gantt visual elements...
+	// Calculating the coordinates...
 	let rectCounter = 0;
+	data.operationDims = {}; // To store recalculated values such as : rectangle width and height etc
+	data.operationDims.height = operToScreen(1) - operToScreen(0);
+	data.operationDims.rectHeight = operToScreen(1.0 - settings.ganttRectBottomMargin) - operToScreen(settings.ganttRectTopMargin);
+	for( let i = 0 ; i < data.operations.length ; i++ ) {
+		if( !data.operations[i].visible ) {
+			continue;
+		}
+		data.operations[i].left = timeToScreen( data.operations[i].displayStartInSeconds );
+		data.operations[i].right = timeToScreen( data.operations[i].displayFinInSeconds );
+		data.operations[i].width = data.operations[i].right - data.operations[i].left;
+		data.operations[i].top = operToScreen(rectCounter);
+		data.operations[i].bottom = operToScreen(rectCounter + 1);
+		data.operations[i].rectTop = operToScreen(rectCounter + settings.ganttRectTopMargin);
+		data.operations[i].rectBottom = operToScreen(rectCounter + 1.0 - settings.ganttRectBottomMargin);
+		data.operations[i].rectVMiddle = data.operations[i].rectTop + data.operations[i].rectHeight/2;
+		rectCounter++;
+	}
+
+	// Drawing gantt links...
+	let lineProperties = { stroke:settings.ganttLinkStrokeColor, strokeWidth:settings.ganttLinkStrokeWidth, 
+		opacity:settings.ganttLinkOpacity };
+	let arrowLineProperties = { stroke:settings.ganttLinkStrokeColor, 
+		strokeWidth:1, opacity:settings.ganttLinkOpacity, endingArrow:true };
+	for( let i = 0 ; i < data.opLinks.length ; i++ ) {
+
+		let PredCode = data.opLinks[i].PredCode;
+		let SuccCode = data.opLinks[i].SuccCode;
+		let predOp = null;
+		let succOp = null;
+		for( let op = 0 ; op < data.operations.length ; op++ ) {
+			if( !predOp ) { 
+				if( data.operations[op].Code == PredCode ) { predOp = op; }
+			}
+			if( !succOp ) {
+				if( data.operations[op].Code == SuccCode ) { succOp = op; }
+			}
+			if( predOp && succOp ) {
+				break;
+			}
+		}
+
+		if( predOp && succOp ) {
+			let line, arrowLine, lineX1, lineY1, lineX2, lineY2, arrowY, lineArrowY;
+			if( data.opLinks[i].TypeSF == 'SS' || data.opLinks[i].TypeSF == 'SF' ) {
+				lineX1 = data.operations[predOp].left;
+			} else {
+				lineX1 = data.operations[predOp].right;				
+			}
+			if( data.operations[predOp].top < data.operations[succOp].top ) {
+				lineY1 = data.operations[predOp].rectBottom;
+				lineY2 = data.operations[succOp].rectTop - settings.ganttLinkArrowHeight;
+				arrowY = data.operations[succOp].rectTop;
+			} else {
+				lineY1 = data.operations[predOp].rectTop;
+				lineY2 = data.operations[succOp].rectBottom + settings.ganttLinkArrowHeight;
+				arrowY = data.operations[succOp].rectBottom;
+			}
+			if( data.opLinks[i].TypeSF == 'SF' || data.opLinks[i].TypeSF == 'FF' ) {
+				lineX2 = data.operations[succOp].left;
+			} else {
+				lineX2 = data.operations[succOp].right;				
+			}
+
+			if( init ) {
+				lineProperties.id = 'ganttLine'+i;
+				line = createLine( lineX1, lineY1, lineX2, lineY2, lineProperties );
+				arrowLineProperties.id = 'ganttLineArrow'+i;
+				arrowLine = createLine( lineX2, lineY2, lineX2, arrowY, arrowLineProperties );
+				ganttSVG.appendChild(line);				
+				ganttSVG.appendChild(arrowLine);				
+			} else {
+				line = document.getElementById( 'ganttLine'+i );
+				line.setAttributeNS(null,'x1',lineX1);
+				line.setAttributeNS(null,'x2',lineX2);
+				line.setAttributeNS(null,'y1',lineY1);
+				line.setAttributeNS(null,'y2',lineY2);
+				arrowLine = document.getElementById( 'ganttLineArrow'+i );
+				arrowLine.setAttributeNS(null,'x1',lineX2);
+				arrowLine.setAttributeNS(null,'x2',lineX2);
+				arrowLine.setAttributeNS(null,'y1',lineY2);
+				arrowLine.setAttributeNS(null,'y2',arrowY);
+			}
+			if( !data.operations[predOp].visible || !data.operations[succOp].visible ) {
+				line.setAttributeNS(null,'display','none');
+			} else {
+				line.setAttributeNS(null,'display','block');				
+			}
+		}
+	}	
+
+	// Drawing main gantt visual elements...
 	let op0Properties = { fill:settings.ganttOperation0Color, stroke:settings.ganttOperation0StrokeColor, 
 		strokeWidth:settings.ganttOperationStrokeWidth, opacity:settings.ganttOperation0Opacity };
 	let op100Properties = { fill:settings.ganttOperation100Color, stroke:settings.ganttOperation100StrokeColor, 
@@ -727,20 +823,23 @@ function drawGantt( init ) {
 		strokeWidth:settings.ganttCompareStrokeWidth, opacity:settings.ganttCompareOpacity };
 	let fontSize = (operToScreen(settings.ganttCompareTopMargin) - operToScreen(0)) * 0.6;
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
-		let rectStart = timeToScreen( data.operations[i].displayStartInSeconds );
-		let rectEnd = timeToScreen( data.operations[i].displayFinInSeconds );
-		let rectTop = operToScreen(rectCounter + settings.ganttRectTopMargin);
-		let rectBottom = operToScreen(rectCounter + 1.0 - settings.ganttRectBottomMargin);
-		let rectWidth = rectEnd - rectStart;
-		let rectHeight = (rectBottom-rectTop);
-		let rectVMiddle = rectTop + (rectBottom-rectTop)/2;
+		if( !data.operations[i].visible ) {
+			continue;
+		}		
+		let rectStart = data.operations[i].left;
+		let rectEnd = data.operations[i].right;
+		let rectTop = data.operations[i].rectTop;
+		let rectBottom = data.operations[i].rectBottom;
+		let rectWidth = data.operations[i].width;
+		let rectHeight = data.operationDims.rectHeight;
+		let rectVMiddle = data.operations[i].rectVMiddle;
 		let textY;
 		let displayCompare, rectCompareStart, rectCompareEnd, rectCompareTop, rectCompareBottom;
 		if( data.operations[i].Start_COMPInSeconds != -1 && data.operations[i].Fin_COMPInSeconds != -1 ) {
 			rectCompareStart = timeToScreen( data.operations[i].Start_COMPInSeconds );
 			rectCompareEnd = timeToScreen( data.operations[i].Fin_COMPInSeconds );
-			rectCompareTop = operToScreen(rectCounter + settings.ganttCompareTopMargin);
-			rectCompareBottom = operToScreen(rectCounter + 1.0 - settings.ganttCompareBottomMargin);
+			rectCompareTop = data.operations[i].top + data.operationDims.height * settings.ganttCompareTopMargin;
+			rectCompareBottom = data.operations[i].bottom - data.operationDims.height * settings.ganttCompareBottomMargin;
 			textY = rectCompareTop - 4;
 			displayCompare = true;
 		} else {
@@ -754,7 +853,7 @@ function drawGantt( init ) {
 			if( displayCompare ) { // To compare with...
 				opCompareProperties.id = 'ganttOpCompare' + i;
 				let rectCompare = createRect( rectCompareStart, rectCompareTop, rectCompareEnd - rectCompareStart, 
-					rectCompareBottom - rectCompareTop, opCompareProperties ); // Rectangle
+					rectCompareBottom - rectCompareTop, opCompareProperties ); // Compare rectangle
 				group.appendChild(rectCompare);
 			}			
 
@@ -774,7 +873,7 @@ function drawGantt( init ) {
 				if( !data.operations[i].Level ) {
 					op100 = createRect( rectStart, rectTop, rectWidth, rectHeight, op100Properties ); // Rectangle
 				} else {
-					op100 = createPolygon( calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight), op100Properties );
+					op100 = createPolygon( calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight ), op100Properties );
 				}
 				group.appendChild(op100);
 			} else {
@@ -802,7 +901,7 @@ function drawGantt( init ) {
 
 			let title = document.createElementNS( NS,'title' ); // Title
 			title.setAttributeNS(null, 'id', 'ganttGroupTitle'+i);
-			setTitleTextContent(title, i);
+			title.textContent = formatTitleTextContent(i);
 			group.appendChild(title);
 
 			group.setAttributeNS( null, 'data-i', i );
@@ -862,75 +961,32 @@ function drawGantt( init ) {
 			data.operations[i].top = rectTop;
 			data.operations[i].bottom = rectBottom;			
 			group.setAttributeNS(null,'display','block');
-			rectCounter += 1;		
 		}
 	}
-
-	// Gantt links
-	let lineProperties = { stroke:settings.ganttLinkStrokeColor, strokeWidth:settings.ganttLinkStrokeWidth, 
-		strokeDasharray:settings.ganttLinkStrokeDashArray, endingArrow:true };
-	for( let i = 0 ; i < data.opLinks.length ; i++ ) {
-
-		let PredCode = data.opLinks[i].PredCode;
-		let SuccCode = data.opLinks[i].SuccCode;
-		let predOp = null;
-		let succOp = null;
-		for( let op = 0 ; op < data.operations.length ; op++ ) {
-			if( !predOp ) { 
-				if( data.operations[op].Code == PredCode ) { predOp = op; }
-			}
-			if( !succOp ) {
-				if( data.operations[op].Code == SuccCode ) { succOp = op; }
-			}
-			if( predOp && succOp ) {
-				break;
-			}
-		}
-
-		if( predOp && succOp ) {
-			let line, lineX1, lineY1, lineX2, lineY2;
-			if( data.opLinks[i].TypeSF == 'SS' || data.opLinks[i].TypeSF == 'SF' ) {
-				lineX1 = data.operations[predOp].left;
-			} else {
-				lineX1 = data.operations[predOp].right;				
-			}
-			lineY1 = data.operations[predOp].top + (data.operations[predOp].bottom - data.operations[predOp].top) / 2.0;
-			if( data.opLinks[i].TypeSF == 'SF' || data.opLinks[i].TypeSF == 'FF' ) {
-				lineX2 = data.operations[succOp].left;
-			} else {
-				lineX2 = data.operations[succOp].right;				
-			}
-			lineY2 = data.operations[succOp].top + (data.operations[succOp].bottom - data.operations[succOp].top) / 2.0;
-			if( init ) {
-				lineProperties.id='ganttLine'+i;
-				line = createLine( lineX1, lineY1, lineX2, lineY2, lineProperties );
-				ganttSVG.appendChild(line);				
-			} else {
-				line = document.getElementById( 'ganttLine'+i );
-				line.setAttributeNS(null,'x1',lineX1);
-				line.setAttributeNS(null,'x2',lineX2);
-				line.setAttributeNS(null,'y1',lineY1);
-				line.setAttributeNS(null,'y2',lineY2);
-			}
-			if( !data.operations[predOp].visible || !data.operations[succOp].visible ) {
-				line.setAttributeNS(null,'display','none');
-			} else {
-				line.setAttributeNS(null,'display','block');				
-			}
-		}
-	}	
 }
 
-function setTitleTextContent( title, i ) {
-	let phaseOrOp = (!data.operations[i].Level) ? terms[lang]['operation']+": " : terms[lang]['phase']+": ";
-	title.textContent = phaseOrOp + data.operations[i].Name + "\r\n";
-	if( data.operations[i].status == 0 ) {
-		title.textContent += terms[lang]['status']+": " + terms[lang].status0 + "\r\n";
-	} else if( data.operations[i].status < 100 ) {
-		title.textContent += terms[lang]['status']+": " + data.operations[i].status + "%" + "\r\n";
+function formatTitleTextContent( i, html=false ) {
+	let textContent = "";
+	let endl = ( !html ) ? "\r\n" : "<br/>";
+
+	let op = data.operations[i].Name;
+	if( html ) {
+		op = "<b>" + op + "</b>" + endl;
 	} else {
-		title.textContent += terms[lang]['status']+": " + terms[lang].status100 + "\r\n";				
+		op = op + endl + "---------------------------------------" + endl;
 	}
+	textContent = op;
+
+	let statusText;
+	if( data.operations[i].status == 0 ) {
+		statusText = terms[lang].status0;
+	} else if( data.operations[i].status < 100 ) {
+		statusText = data.operations[i].status + "%";
+	} else {
+		statusText = terms[lang].status100;				
+	}
+	textContent += "[ " + statusText + " ]" + endl + endl;
+
 	for( let col=1 ; col < tableColumns.length ; col++ ) {
 		if( tableColumns[col].ref == 'Name' ) {
 			continue;
@@ -940,16 +996,26 @@ function setTitleTextContent( title, i ) {
 		let content = data.operations[i][ref];
 		if( 'userData' in data.operations[i] ) {
 			if( ref in data.operations[i].userData ) {
-				if( data.operations[i].userData[ref] != data.operations[i][ref] )
-				content += " => " + data.operations[i].userData[ref];
+				if( data.operations[i].userData[ref] != data.operations[i][ref] ) {
+					let newValue = data.operations[i].userData[ref];
+					if( html ) {
+						content = "<span style='color:#5f5f5f; text-decoration:line-through;'>"+content+"</span>"
+						newValue = "<span style='color:#af2f2f;'>"+newValue+"</span>";
+					}
+					content += " => " + newValue;
+				}
 			}
 		}
 		let name = terms[lang][ref];
+		if( html ) {
+			name = "<span style='color:#5f5f5f; font-style:italic;'>" + name + "</span>";
+		}
 		if( content === 'undefined' || content == null ) {
 			continue;
 		}
-		title.textContent += name + ": " + content + "\r\n";
+		textContent += name + ": " + content + endl;
 	}	
+	return textContent;
 }
 
 function calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight, brackets=0 ) {
@@ -973,22 +1039,58 @@ function calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight, brackets=0 
 	return phaseCoords;
 }
 
-function setUserData( userData ) {
-	for( let i = 0 ; i < data.operations.length ; i++ ) {
-		for( let iU = 0 ; iU < userData.length ; iU++ ) {
-			if( data.operations[i].Code == userData[iU].operationCode ) {
-				data.operations[i].userData = {};				
-				for( let iE=0 ; iE < data.editable.length ; iE++ ) {
-					let ref = data.editable[iE].ref;
-					if( ref in userData[iU].data ) {
-						data.operations[i].userData[ ref ] = userData[iU].data[ ref ];
-					} else {
-						data.operations[i].userData[ ref ] = data.operations[i][ ref ];						
+function setUserData( userData ) { // Sets user data read from a file
+	let ok = true;
+	try {
+		for( let i = 0 ; i < data.operations.length ; i++ ) { // For all operations...
+			for( let iU = 0 ; iU < userData.length ; iU++ ) { // For all userData items...
+				if( data.operations[i].Code == userData[iU].operationCode ) { // If the codes are the same...
+					data.operations[i].userData = {};
+					for( let iE=0 ; iE < data.editable.length ; iE++ ) {
+						let ref = data.editable[iE].ref;
+						if( ref in userData[iU].data ) {
+							data.operations[i].userData[ ref ] = userData[iU].data[ ref ];
+						} else {
+							data.operations[i].userData[ ref ] = data.operations[i][ ref ];						
+						}
 					}
+					break;
 				}
-				break;
 			}
 		}
+	} catch(e) {
+		ok = false;
+	}
+	return ok;
+}
+
+
+function createEditBoxInputs() {
+	let container = document.getElementById('editBoxInputs');
+	if( !container ) {
+		return;
+	}
+	container.style.height = '50vh';
+	for( let iE = 0 ; iE < data.editable.length ; iE++ ) {
+		let ref = data.editable[iE].ref;
+		let promptDiv = document.createElement('div');
+		promptDiv.id = 'editBoxInputPrompt' + ref;
+		promptDiv.innerText = terms[lang][ref];
+		promptDiv.className = 'editBoxPrompt';
+
+		let input;
+		if( data.editable[iE].type == 'text' ) {
+			input = document.createElement('textarea');
+			input.rows = 4;
+		} else {
+			input = document.createElement('input');			
+		}
+
+		input.className = 'editBoxInput';
+		input.id = 'editBoxInput' + ref;
+
+		container.appendChild(promptDiv);
+		container.appendChild(input);
 	}
 }
 
@@ -1763,12 +1865,12 @@ function createDefs() {
     marker.setAttribute('refX', '5');
     marker.setAttribute('refY', '5');
     marker.setAttribute('markerUnits', 'strokeWidth');
-    marker.setAttribute('markerWidth', 10 ); //ganttSVGWidth*2 / ganttVisibleWidth );
-    marker.setAttribute('markerHeight', 10 ); //ganttSVGWidth*2 / ganttVisibleWidth );
+    marker.setAttribute('markerWidth', settings.ganttLinkArrowWidth ); //ganttSVGWidth*2 / ganttVisibleWidth );
+    marker.setAttribute('markerHeight', settings.ganttLinkArrowHeight ); //ganttSVGWidth*2 / ganttVisibleWidth );
     marker.setAttribute('orient', 'auto');
     let path = document.createElementNS(NS, 'path');
     path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-    path.setAttribute('fill', 'url(#blackToGrayGradient)');
+    path.setAttribute('fill', '#2f2f2f'/*'url(#blackToGrayGradient)'*/);
     marker.appendChild(path);
     defs.appendChild(marker);	
 
@@ -1849,7 +1951,7 @@ function hideEditBox() {
 
 function displayDataInEditBox( id ) {
 	let i = id.getAttributeNS(null, 'data-i');
-	editBoxDetailsElem.innerText = document.getElementById('ganttGroupTitle'+i).textContent;
+	editBoxDetailsElem.innerHTML = formatTitleTextContent(i,true);
 	editBoxOperationIndexElem.value = i;
 	editBoxOperationCodeElem.value = data.operations[i].Code;
 	for( let iE = 0 ; iE < data.editable.length ; iE++ ) {
@@ -1872,12 +1974,14 @@ function displayDataInEditBox( id ) {
 }
 
 function saveUserDataFromEditBox() {
+
 	if( document.location.host ) {
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.onreadystatechange = function() {
 		    if (this.readyState == 4 ) {
 		    	if( this.status == 200 ) {
 			        if( this.responseText == "ok" ) {
+			        	let i = editBoxOperationIndexElem.value;
 			    		if( !('userData' in data.operations[i]) ) {
 							data.operations[i].userData = {};
 						}
@@ -1886,11 +1990,11 @@ function saveUserDataFromEditBox() {
 							let elem = document.getElementById( 'editBoxInput' + ref );
 							data.operations[i].userData[ ref ] = elem.value;
 						}
-			        	setTitleTextContent( document.getElementById( 'ganttGroupTitle'+i), i ); 
+			        	document.getElementById( 'ganttGroupTitle'+i). textContent = formatTitleTextContent(i); 
 			        	document.getElementById('editBoxMessage').innerText = '';
 				        hideEditBox();
 			        } else {
-			        	alert("Error" + this.responseText); // this.responseText contains the error message. 
+			        	alert("Error: " + this.responseText); // this.responseText contains the error message. 
 			        	document.getElementById('editBoxMessage').innerText = terms[lang].errorLoadingData + ": " + this.responseText;
 			        }
 			    }
@@ -1898,26 +2002,33 @@ function saveUserDataFromEditBox() {
 		};
 
 		let operationIndexValue = editBoxOperationIndexElem.value;
-		let bEdited = false;
-		if( !('userData' in data.operations[operationIndexValue]) ) { // To confirm the data have been edited
-			for( let iE = 0 ; iE < data.editable.length ; iE++ ) {
-				let ref = data.editable[iE].ref;
-				let elem = document.getElementById( 'editBoxInput' + ref );
-				if( elem ) {
+
+		let bEdited = false; // The following is to confirm something has been edited...
+		for( let iE = 0 ; iE < data.editable.length ; iE++ ) {
+			let ref = data.editable[iE].ref;
+			let elem = document.getElementById( 'editBoxInput' + ref );
+			if( elem ) {
+				if( !('userData' in data.operations[operationIndexValue]) )	{
 					if( elem.value != data.operations[operationIndexValue][ref] ) {
 						bEdited = true;
 						break;
-					} 
+					}
+				} else {
+					if( elem.value != data.operations[operationIndexValue].userData[ref] ) {
+						bEdited = true;
+						break;
+					}
 				}
 			}
-		}
-		if( !bEdited ) { // If not edited
+		}		
+		if( !bEdited ) {
+			hideEditBox();
 			return;
-		}
+		} 
 
-		let userData = [];
+		let userData = []; // Creating userData object with all the data entered but not synchronized
 		for( let i = 0 ; i < data.operations.length ; i++ ) {
-			if( 'userData' in data.operations[i] || i == editBoxOperationIndexElem.value ) {
+			if( 'userData' in data.operations[i] || i == operationIndexValue ) {
 				let userDataOfOperation = {};
 				for( let iE = 0 ; iE < data.editable.length ; iE++ ) {
 					let ref = data.editable[iE].ref;
@@ -1950,7 +2061,7 @@ function saveUserDataFromEditBox() {
 			let elem = document.getElementById( 'editBoxInput' + ref );
 			data.operations[i].userData[ ref ] = elem.value;
 		}
-    	setTitleTextContent( document.getElementById( 'ganttGroupTitle'+i), i ); 
+    	document.getElementById( 'ganttGroupTitle'+i).textContent = formatTitleTextContent(i); 
 		hideEditBox();
 	}
 }

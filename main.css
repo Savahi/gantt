@@ -47,6 +47,16 @@
 		margin:0; padding:0px 0px 10px 0px;
 		background-color:#ffffff;
 	}
+
+	textarea.editBoxInput {
+		width:100%; font-size:12px; box-sizing: border-box;
+	}
+	input.editBoxInput {
+		width:100%; font-size:12px; box-sizing: border-box;		
+	}
+	div.editBoxPrompt {
+		margin:8px 0px 2px 0px; text-align:left; font-size:11px;
+	}
 		
 	h1 { margin:2% 1% 1% 4%; font-size:140%; color:#06446D; font-variant:small-caps; }
 
