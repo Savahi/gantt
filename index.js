@@ -4,8 +4,9 @@ var NS = "http://www.w3.org/2000/svg";
 var data;
 
 var dataSrc = {
-	'proj': { 'Code':'Project-1', 'Name':'The name of the project may be tha-a-a-a-a-a-a-a-a-a-t long...', 
-		'projVer':'1.0', 'curTime':'09.02.2007 08:00' },
+	'lang':'ru',
+	'proj': { 'Code':'Project-1', 'Name':'The name of the project may be tha-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-t long...', 
+		'ProjVer':'1.0', 'CurTime':'09.02.2007 08:00' },
 	'operations': [
 		{ 'Level':1, 'Code':'1', 'Name':'Phase 1', 
 			'Start':'01.01.2007  08:00', 'Fin':'17.01.2007  16:00',
@@ -61,15 +62,15 @@ var dataSrc = {
 			'Start_COMP':null, 'Fin_COMP':null, 'f_Critical':null, 'CostTotal':100, 'VolSum':1540, 'DurSumD':20, 'Notes':'' },
 	],
 	'links': [
-		{ 'PredCode':'2-1', 'SuccCode':'2-2', 'TypeSF':'FS', 'LagType':'time', 'LagUnit':'hour', 'Lag':10 },
-		{ 'PredCode':'2-2', 'SuccCode':'2-3', 'TypeSF':'FF', 'LagType':'time', 'LagUnit':'hour', 'Lag':10 }
+		{ 'PredCode':'2-1', 'SuccCode':'2-2', 'TypeSF2':'FS' },
+		{ 'PredCode':'2-2', 'SuccCode':'2-3', 'TypeSF2':'FF' }
 	],
 	'table': [ 
-		{ 'name':'[]', 'ref':'expandColumn', 'width':30 }, { 'name':'Level', 'ref':'Level', 'width':40 },
-		{ 'name':'Name', 'ref':'Name', 'width':80 }, { 'name':'Code', 'ref':'Code', 'width':80 }, 
-		{ 'name':'Start', 'ref':'Start', 'width':80 }, { 'name':'Finish', 'ref':'Fin', 'width':80 }, 
-		{ 'name':'Cost', 'ref':'CostTotal', 'width':80 }, { 'name':'Vol.', 'ref':'VolSum', 'width':80 }, 
-		{ 'name':'Dur.', 'ref':'DurSumD', 'width':80 }, { 'name':'Notes', 'ref':'Notes', 'width':80 } 
+		{ 'name':'[]', 'ref':'expandColumn', 'width':30, 'visible':true }, { 'name':'Level', 'ref':'Level', 'width':40, 'visible':true },
+		{ 'name':'Name', 'ref':'Name', 'width':80, 'visible':true }, { 'name':'Code', 'ref':'Code', 'width':80, 'visible':true }, 
+		{ 'name':'Start', 'ref':'Start', 'width':80, 'visible':true }, { 'name':'Finish', 'ref':'Fin', 'width':80, 'visible':true }, 
+		{ 'name':'Cost', 'ref':'CostTotal', 'width':80, 'visible':true }, { 'name':'Vol.', 'ref':'VolSum', 'width':80, 'visible':true }, 
+		{ 'name':'Dur.', 'ref':'DurSumD', 'width':80, 'visible':true }, { 'name':'Notes', 'ref':'Notes', 'width':80, 'visible':true } 
 	], 
 
 	'editables': [ { 'name':'Notes', 'ref':'Notes', 'type':'text' }, { 'name':'Cost', 'ref':'CostTotal', 'type':'float' } ]
@@ -98,10 +99,8 @@ var settings = {
 	containerHPadding:0
 }
 
-var lang='ru';
-
 var terms = { 
-	'en': { operation:'Operation', phase:'Phase', status:'Status', resourse:'Resourse(s)', 
+	'en': { operation:'Operation', phase:'Phase', status:'Status', resourse:'Resourse(s)', version: 'Version',
 		expandColumn:'[]', Level:'Level', Name:'Name', Code:'Code', Start:'Start', Fin:'Finish', 
 		CostTotal:'Cost', VolSum:'Volume', DurSumD:'Duration', 
 		Notes:'Notes',status0:'Not started', status100:'Finished', statusNotFinished:'Under way',
@@ -115,20 +114,20 @@ var terms = {
 		errorParsingUserData:'DATA LOADED ARE INVALID...', 
 		enterUserDataMessage: 'ENTER USER DATA HERE',
 		unsynchronizedMessage: 'The data you entered has not been uploaded into Spider yet!' },
-	'ru': { operation:'Îïåğàöèÿ', phase:'Ôàçà', status:'Ñîñòîÿíèå', resourse:'Ğåñóğñ(û)', 
-		expandColumn:'[]', Level:'Óğîâåíü', Name:'Íàçâàíèå', Code:'Êîä', Start:'Ñòàğò', Fin:'Ôèíèø', 
-		CostTotal:'Ñòîèìîñòü', VolSum:'Îáúåì', DurSumD:'Äëèòåëüíîñòü', 
-		Notes:'Êîììåíòàğèé', status0:'Íå íà÷àòî', status100:'Çàâåğøåíî', statusNotFinished:'Íå çàâåğøåíî',
-		gantt:'Ãàíòò', help:'Ñïğàâêà', 
-		monthNames:['ßíâ','Ôåâ','Ìàğ','Àïğ','Ìàé','Èşíü','Èşëü','Àâã','Ñåí','Îêò','Íîÿ','Äåê'], 
-		helpText:'<h1>Ñïğàâêà</h1>Äèàãğàììà Ãàíòòà ñîçäàíà ñ ïîìîùüş èíòåãğèğîâàííîé ñèñòåìû óïğàâëåíèÿ ïğîåêòàìè Spider Project Professional.',
-		waitDataText:'ÏÎÆÀËÓÉÑÒÀ ÏÎÄÎÆÄÈÒÅ, ÏÎÊÀ ÇÀÃĞÓÆÀŞÒÑß ÄÀÍÍÛÅ...',
-		waitSaveUserDataText:'ÏÎÆÀËÓÉÑÒÀ, ÏÎÄÎÆÄÈÒÅ ÏÎÊÀ ÑÎÕĞÀÍßŞÒÑß ÄÀÍÍÛÅ...',
-		errorLoadingData:'ÎØÈÁÊÀ ÏĞÈ ÇÀÃĞÓÇÊÅ ÄÀÍÍÛÕ...',
-		errorParsingData:'ÇÀÃĞÓÆÅÍÍÛÅ ÄÀÍÍÛÅ ÈÑÊÀÆÅÍÛ...',
-		errorParsingUserData:'ÇÀÃĞÓÆÅÍÍÛÅ ÄÀÍÍÛÅ ÈÑÊÀÆÅÍÛ...',
-		enterUserDataMessage: 'USER DATA ÂÂÎÄßÒÑß ÑŞÄÀ',
-		unsynchronizedMessage: 'Äàííûå, êîòîğûå âû ââåëè åùå íå áûëè çàãğóæåíû â Spider!' }
+	'ru': { operation:'ĞĞ¿ĞµÑ€Ğ°Ñ†Ğ¸Ñ', phase:'Ğ¤Ğ°Ğ·Ğ°', status:'Ğ¡Ğ¾ÑÑ‚Ğ¾ÑĞ½Ğ¸Ğµ', resourse:'Ğ ĞµÑÑƒÑ€Ñ(Ñ‹)', version: 'Ğ’ĞµÑ€ÑĞ¸Ñ',
+		expandColumn:'[]', Level:'Ğ£Ñ€Ğ¾Ğ²ĞµĞ½ÑŒ', Name:'ĞĞ°Ğ·Ğ²Ğ°Ğ½Ğ¸Ğµ', Code:'ĞšĞ¾Ğ´', Start:'Ğ¡Ñ‚Ğ°Ñ€Ñ‚', Fin:'Ğ¤Ğ¸Ğ½Ğ¸Ñˆ', 
+		CostTotal:'Ğ¡Ñ‚Ğ¾Ğ¸Ğ¼Ğ¾ÑÑ‚ÑŒ', VolSum:'ĞĞ±ÑŠĞµĞ¼', DurSumD:'Ğ”Ğ»Ğ¸Ñ‚ĞµĞ»ÑŒĞ½Ğ¾ÑÑ‚ÑŒ', 
+		Notes:'ĞšĞ¾Ğ¼Ğ¼ĞµĞ½Ñ‚Ğ°Ñ€Ğ¸Ğ¹', status0:'ĞĞµ Ğ½Ğ°Ñ‡Ğ°Ñ‚Ğ¾', status100:'Ğ—Ğ°Ğ²ĞµÑ€ÑˆĞµĞ½Ğ¾', statusNotFinished:'ĞĞµ Ğ·Ğ°Ğ²ĞµÑ€ÑˆĞµĞ½Ğ¾',
+		gantt:'Ğ“Ğ°Ğ½Ñ‚Ñ‚', help:'Ğ¡Ğ¿Ñ€Ğ°Ğ²ĞºĞ°', 
+		monthNames:['Ğ¯Ğ½Ğ²','Ğ¤ĞµĞ²','ĞœĞ°Ñ€','ĞĞ¿Ñ€','ĞœĞ°Ğ¹','Ğ˜ÑĞ½ÑŒ','Ğ˜ÑĞ»ÑŒ','ĞĞ²Ğ³','Ğ¡ĞµĞ½','ĞĞºÑ‚','ĞĞ¾Ñ','Ğ”ĞµĞº'], 
+		helpText:'<h1>Ğ¡Ğ¿Ñ€Ğ°Ğ²ĞºĞ°</h1>Ğ”Ğ¸Ğ°Ğ³Ñ€Ğ°Ğ¼Ğ¼Ğ° Ğ“Ğ°Ğ½Ñ‚Ñ‚Ğ° ÑĞ¾Ğ·Ğ´Ğ°Ğ½Ğ° Ñ Ğ¿Ğ¾Ğ¼Ğ¾Ñ‰ÑŒÑ Ğ¸Ğ½Ñ‚ĞµĞ³Ñ€Ğ¸Ñ€Ğ¾Ğ²Ğ°Ğ½Ğ½Ğ¾Ğ¹ ÑĞ¸ÑÑ‚ĞµĞ¼Ñ‹ ÑƒĞ¿Ñ€Ğ°Ğ²Ğ»ĞµĞ½Ğ¸Ñ Ğ¿Ñ€Ğ¾ĞµĞºÑ‚Ğ°Ğ¼Ğ¸ Spider Project Professional.',
+		waitDataText:'ĞŸĞĞ–ĞĞ›Ğ£Ğ™Ğ¡Ğ¢Ğ ĞŸĞĞ”ĞĞ–Ğ”Ğ˜Ğ¢Ğ•, ĞŸĞĞšĞ Ğ—ĞĞ“Ğ Ğ£Ğ–ĞĞ®Ğ¢Ğ¡Ğ¯ Ğ”ĞĞĞĞ«Ğ•...',
+		waitSaveUserDataText:'ĞŸĞĞ–ĞĞ›Ğ£Ğ™Ğ¡Ğ¢Ğ, ĞŸĞĞ”ĞĞ–Ğ”Ğ˜Ğ¢Ğ• ĞŸĞĞšĞ Ğ¡ĞĞ¥Ğ ĞĞĞ¯Ğ®Ğ¢Ğ¡Ğ¯ Ğ”ĞĞĞĞ«Ğ•...',
+		errorLoadingData:'ĞĞ¨Ğ˜Ğ‘ĞšĞ ĞŸĞ Ğ˜ Ğ—ĞĞ“Ğ Ğ£Ğ—ĞšĞ• Ğ”ĞĞĞĞ«Ğ¥...',
+		errorParsingData:'Ğ—ĞĞ“Ğ Ğ£Ğ–Ğ•ĞĞĞ«Ğ• Ğ”ĞĞĞĞ«Ğ• Ğ˜Ğ¡ĞšĞĞ–Ğ•ĞĞ«...',
+		errorParsingUserData:'Ğ—ĞĞ“Ğ Ğ£Ğ–Ğ•ĞĞĞ«Ğ• Ğ”ĞĞĞĞ«Ğ• Ğ˜Ğ¡ĞšĞĞ–Ğ•ĞĞ«...',
+		enterUserDataMessage: 'USER DATA Ğ’Ğ’ĞĞ”Ğ¯Ğ¢Ğ¡Ğ¯ Ğ¡Ğ®Ğ”Ğ',
+		unsynchronizedMessage: 'Ğ”Ğ°Ğ½Ğ½Ñ‹Ğµ, ĞºĞ¾Ñ‚Ğ¾Ñ€Ñ‹Ğµ Ğ²Ñ‹ Ğ²Ğ²ĞµĞ»Ğ¸ ĞµÑ‰Ğµ Ğ½Ğµ Ğ±Ñ‹Ğ»Ğ¸ Ğ·Ğ°Ğ³Ñ€ÑƒĞ¶ĞµĞ½Ñ‹ Ğ² Spider!' }
 };
 
 var userDataFile = "gantt_user_data.json";
@@ -223,6 +222,12 @@ var ganttScrollSVGWidth, ganttScrollSVGHeight;
 var verticalScrollSVGWidth, verticalScrollSVGHeight;
 
 var zoomFactor = 1.25;
+
+window.addEventListener( "wheel", function(e) {
+	if( e.ctrlKey ) {
+		event.preventDefault();//prevent zoom
+	}
+});
 
 window.addEventListener( 'mouseup', function(e) { 
 	if( timeCaptured ) { timeCaptured = false; } 
@@ -330,7 +335,7 @@ function loadData() {
 			    		errorParsingData = true;
 			    	}
 			    	if( errorParsingData ) {
-						displayMessageBox( terms[lang].errorParsingData ); 
+						displayMessageBox( terms[data.lang].errorParsingData ); 
 			    	} else if( !('editables' in data) ) {
 					    hideMessageBox();		    
 						calcData();
@@ -367,14 +372,14 @@ function loadData() {
 						xmlhttpUserData.send();
 				    }
 				} else {
-					displayMessageBox( terms[lang].errorLoadingData ); 
+					displayMessageBox( terms[data.lang].errorLoadingData ); 
 				}
 		    }
 		};
 		xmlhttp.open("GET", "gantt.json", true);
 		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
 		xmlhttp.send();
-		displayMessageBox( terms[lang].waitDataText ); 
+		displayMessageBox( terms[data.lang].waitDataText ); 
 	} else {
 		data = dataSrc;
 		createEditBoxInputs();
@@ -399,7 +404,7 @@ function displayData() {
 }
 
 function calcData() {
-	var curTimeParsed = parseDate( data.proj.curTime );
+	var curTimeParsed = parseDate( data.proj.CurTime );
 	if( curTimeParsed != null ) {
 		data.proj.curTimeInSeconds = curTimeParsed.timeInSeconds;
 	} else {
@@ -497,9 +502,11 @@ function calcData() {
 	// Initializing the structure 
 	for( let i = 0 ; i < data.operations.length ; i++ ) {
 		data.operations[i].id = 'ganttRect' + i; // Id
+		initParents(i);
+		/*
 		data.operations[i].parents = []; // Initializing "parents"
 		for( let j = i-1 ; j >= 0 ; j-- ) {
-			if( data.operations[j].Level != null ) {
+			if( data.operations[j].Level !== null ) { // 
 				let l = data.operations[i].parents.length;
 				if( l == 0 ) {
 					if( !data.operations[i].Level ) {
@@ -515,15 +522,67 @@ function calcData() {
 				} 
 			} 
 		}
-		if( !data.operations[i].Level ) {
-			data.operations[i].expanded = false;
-			data.operations[i].visible = true;
+		*/
+	}
+
+	for( let i = 0 ; i < data.operations.length ; i++ ) {
+		let hasChild = false;
+		for( let j = i+1 ; j < data.operations.length ; j++ ) {
+			for( let k = 0 ; k < data.operations[j].parents.length ; k++ ) {
+				if( data.operations[j].parents[k] == i ) { // If i is a parent of j
+					hasChild = true;
+					break;
+				}
+			}
+			if( hasChild ) {
+				break;
+			}
+		}
+		if( hasChild ) {
+			data.operations[i].expanded = true;
+			data.operations[i].expandable = true;
 		} else {
 			data.operations[i].expanded = true;			
-			data.operations[i].visible = true;
+			data.operations[i].expandable = false;
+		}
+		data.operations[i].visible = true;
+	}	
+}
+
+
+function initParents( iOperation ) {
+	data.operations[iOperation].parents = []; // Initializing "parents"
+	for( let i = iOperation-1 ; i >= 0 ; i-- ) {
+		let l = data.operations[iOperation].parents.length;
+		let currentLevel;
+		if( l == 0 ) {
+			currentLevel = data.operations[iOperation].Level;
+		} else {
+			let lastPushedIndex = data.operations[iOperation].parents[l-1];
+			currentLevel = data.operations[lastPushedIndex].Level;
+		}
+		if( currentLevel === null ) { // Current level is an operation
+			if( typeof(data.operations[i].Level) === 'number' ) {
+				data.operations[iOperation].parents.push(i);
+			}
+		} else if( typeof(currentLevel) === 'number' ) { // Current level is a phase
+			if( typeof(data.operations[i].Level) === 'number' ) {
+				if( data.operations[i].Level < data.operations[iOperation].Level ) {
+					data.operations[iOperation].parents.push(i);
+				}
+			}
+		} else if( typeof(currentLevel) === 'string' ) { // Current level is a team or resourse
+			if( data.operations[i].Level === null ) { // The upper level element is an operation
+				data.operations[iOperation].parents.push(i);
+			} else if( currentLevel == 'R' ) {
+				if( data.operations[i].Level === 'T' ) { // The upper level element is an operation
+					data.operations[iOperation].parents.push(i);
+				}
+			}
 		}
 	}	
 }
+
 
 function initLayout() {
 	blackOutBoxDiv = document.getElementById("blackOutBox");
@@ -660,10 +719,10 @@ function displayLayoutHeader() {
 	let menuWidth = parseInt( getComputedStyle(document.getElementById('menu')).width );
 	let menuProjectDetails = document.getElementById('menuProjectDetails');
 	//menuProjectDetails.style.width=15*menuWidth/100;
-	document.getElementById('menuProjectDetailsTime').innerText = data.proj.curTime;
-	document.getElementById('menuProjectDetailsVersion').innerText = data.proj.projVer;
+	document.getElementById('menuProjectDetailsTime').innerText = data.proj.CurTime;
+	document.getElementById('menuProjectDetailsVersion').innerText = terms[data.lang].version + ": " + data.proj.ProjVer;
 	if( userName !== null ) {
-		document.getElementById('menuProjectDetailsLogout').innerHTML = "<a href='logout.php'>" + userName + " [&rarr;]</a>";
+		document.getElementById('menuProjectDetailsLogout').innerHTML = "<a href='logout.php' title='Logout'>" + userName + " [&rarr;]</a>";
 	}
 
 	let menuProjectName = document.getElementById('menuProjectName');
@@ -672,12 +731,12 @@ function displayLayoutHeader() {
 
 	let menuMain = document.getElementById('menuMain');
 	//menuMain.style.width = 10*menuWidth/100;
-	menuMain.innerText = terms[lang]['gantt'];
+	menuMain.innerText = terms[data.lang]['gantt'];
 	let menuHelp = document.getElementById('menuHelp');
 	//menuHelp.style.width = 10*menuWidth/100;
-	menuHelp.innerText = terms[lang]['help'];
+	menuHelp.innerText = terms[data.lang]['help'];
 
-	document.getElementById('helpText').innerHTML = terms[lang].helpText; // Initializing help text	
+	document.getElementById('helpText').innerHTML = terms[data.lang].helpText; // Initializing help text	
 }
 
 
@@ -775,7 +834,7 @@ function drawGantt( init ) {
 
 		if( predOp && succOp ) {
 			let line, arrowLine, lineX1, lineY1, lineX2, lineY2, arrowY, lineArrowY;
-			if( data.links[i].TypeSF == 'SS' || data.links[i].TypeSF == 'SF' ) {
+			if( data.links[i].TypeSF2 == 'SS' || data.links[i].TypeSF2 == 'SF' ) {
 				lineX1 = data.operations[predOp].left;
 			} else {
 				lineX1 = data.operations[predOp].right;				
@@ -789,7 +848,7 @@ function drawGantt( init ) {
 				lineY2 = data.operations[succOp].rectBottom + settings.ganttLinkArrowHeight;
 				arrowY = data.operations[succOp].rectBottom;
 			}
-			if( data.links[i].TypeSF == 'SF' || data.links[i].TypeSF == 'FF' ) {
+			if( data.links[i].TypeSF2 == 'SF' || data.links[i].TypeSF2 == 'FF' ) {
 				lineX2 = data.operations[succOp].left;
 			} else {
 				lineX2 = data.operations[succOp].right;				
@@ -991,15 +1050,18 @@ function formatTitleTextContent( i, html=false ) {
 
 	let statusText;
 	if( data.operations[i].status == 0 ) {
-		statusText = terms[lang].status0;
+		statusText = terms[data.lang].status0;
 	} else if( data.operations[i].status < 100 ) {
 		statusText = data.operations[i].status + "%";
 	} else {
-		statusText = terms[lang].status100;				
+		statusText = terms[data.lang].status100;				
 	}
 	textContent += "[ " + statusText + " ]" + endl + endl;
 
 	for( let col=1 ; col < data.table.length ; col++ ) {
+		if( !data.table[col].visible ) {
+			continue;
+		}		
 		if( data.table[col].ref == 'Name' ) {
 			continue;
 		}
@@ -1018,7 +1080,7 @@ function formatTitleTextContent( i, html=false ) {
 				}
 			}
 		}
-		// let name = terms[lang][ref];
+		// let name = terms[data.lang][ref];
 		let name = data.table[col].name;
 		if( html ) {
 			name = "<span style='color:#5f5f5f; font-style:italic;'>" + name + "</span>";
@@ -1088,7 +1150,7 @@ function createEditBoxInputs() {
 		let ref = data.editables[iE].ref;
 		let promptDiv = document.createElement('div');
 		promptDiv.id = 'editBoxInputPrompt' + ref;
-		promptDiv.innerText = data.editables[iE].name; // terms[lang][ref];
+		promptDiv.innerText = data.editables[iE].name; // terms[data.lang][ref];
 		promptDiv.className = 'editBoxPrompt';
 
 		let input;
@@ -1122,24 +1184,30 @@ function drawTableHeader( init ) {
 		tableHeaderSVG.appendChild( tableHeaderSVGBkgr );			
 
 		let left = 0;
-		for( let i = 0 ; i < data.table.length ; i++ ) {
-			let rect = createSVG(left+1-tableVisibleLeft, 0, data.table[i].width-2, tableHeaderSVGHeight, 
-				{ id:'tableHeaderColumnNameSVG'+i, 'fill':settings.tableHeaderFillColor } );
+		for( let col = 0 ; col < data.table.length ; col++ ) {
+			if( !data.table[col].visible ) {
+				continue;
+			}
+			let rect = createSVG(left+1-tableVisibleLeft, 0, data.table[col].width-2, tableHeaderSVGHeight, 
+				{ id:'tableHeaderColumnNameSVG'+col, 'fill':settings.tableHeaderFillColor } );
 			tableHeaderSVG.appendChild( rect );
-			let text = createText( data.table[i].name, 2, tableHeaderSVGHeight/2, 
+			let text = createText( data.table[col].name, 2, tableHeaderSVGHeight/2, 
 				{ alignmentBaseline:'baseline', textAnchor:'start', fontSize:12, fill:settings.tableHeaderFontColor } );
 			rect.appendChild( text );
-			left += data.table[i].width;
+			left += data.table[col].width;
 		}
 		tableHeaderOverallWidth = left;
 	} else {
 		tableHeaderSVGBkgr.setAttributeNS(null,'x',-tableVisibleLeft);
 		let left = 0;
-		for( let i = 0 ; i < data.table.length ; i++ ) {
-			let rect = document.getElementById('tableHeaderColumnNameSVG'+i);
+		for( let col = 0 ; col < data.table.length ; col++ ) {
+			if( !data.table[col].visible ) {
+				continue;
+			}
+			let rect = document.getElementById('tableHeaderColumnNameSVG'+col);
 			rect.setAttributeNS(null,'x',left+1-tableVisibleLeft);
-			rect.setAttributeNS(null,'width',data.table[i].width-2);			
-			left += data.table[i].width;
+			rect.setAttributeNS(null,'width',data.table[col].width-2);			
+			left += data.table[col].width;
 		}
 		tableHeaderOverallWidth = left;		
 	}
@@ -1162,6 +1230,9 @@ function drawTableContent( init ) {
 		
 		let left = 0;
 		for( let col = 0 ; col < data.table.length ; col++ ) {
+			if( !data.table[col].visible ) {
+				continue;
+			}			
 			let rect = createSVG( left+2-tableVisibleLeft, 0, data.table[col].width-4, height, 
 				{ id:('tableColumnSVG'+col), fill:settings.tableContentStrokeColor } );
 			tableContentSVG.appendChild( rect );
@@ -1169,6 +1240,9 @@ function drawTableContent( init ) {
 		}
 
 		for( let col = 0, left=0 ; col < data.table.length ; col++  ) { // Creating splitters
+			if( !data.table[col].visible ) {
+				continue;
+			}			
 			left += data.table[col].width;
 			let splitter = createRect( left-tableVisibleLeft, 0, 1, operToScreen(data.operations.length), 
 				{id:'tableSplitter'+col, fill:'#dfdfdf'} );
@@ -1181,6 +1255,9 @@ function drawTableContent( init ) {
 		tableContentSVGBkgr.setAttributeNS(null,'x',-tableVisibleLeft);
 		let left = 0;
 		for( let col = 0 ; col < data.table.length ; col++ ) {
+			if( !data.table[col].visible ) {
+				continue;
+			}			
 			let rect = document.getElementById('tableColumnSVG'+col);
 			rect.setAttributeNS(null,'x',left+2-tableVisibleLeft);
 			rect.setAttributeNS(null,'width',data.table[col].width-4);
@@ -1201,7 +1278,7 @@ function drawTableContent( init ) {
 		let lineId = 'ganttTableLine' + i;
 
 		let expand='[]';
-		if( data.operations[i].Level ) {
+		if( data.operations[i].expandable ) {
 			if( data.operations[i].expanded ) {
 				expand='[-]';
 			} else {
@@ -1216,7 +1293,7 @@ function drawTableContent( init ) {
 				{ id:expandTextId, fontSize:fontSize, textAnchor:'middle', alignmentBaseline:'baseline' } );
 	 		document.getElementById('tableColumnSVG0').appendChild(expandText);
 	 		expandText._operationNumber=i;
-	 		if( data.operations[i].Level ) {
+	 		if( data.operations[i].expandable ) {
 	 			expandText.style.cursor = 'pointer';
 		 		expandText.onmousedown = function(e) {
 		 			if( data.operations[this._operationNumber].expanded == true ) {
@@ -1248,12 +1325,14 @@ function drawTableContent( init ) {
 
 			let left = data.table[0].width;
 			for( let col = 1 ; col < data.table.length ; col++ ) {
+				if( !data.table[col].visible ) {
+					continue;
+				}
 				let ref = data.table[col].ref;
 				let content = data.operations[i][ref];
 				if( content === 'undefined' || content == null ) {
 					content = '-';
 				}
-
 				let text = createText(content, 2, lineMiddle, 
 					{ id:('tableColumn'+col+'Row'+i), fill:settings.tableContentStrokeColor, textAnchor:'start', fontSize:fontSize } );
 				document.getElementById('tableColumnSVG'+col).appendChild( text );
@@ -1267,6 +1346,9 @@ function drawTableContent( init ) {
 
 			let left = data.table[0].width;
 			for( let col = 1 ; col < data.table.length ; col++ ) {
+				if( !data.table[col].visible ) {
+					continue;
+				}
 				let id = 'tableColumn'+col+'Row'+i;
 				let el = document.getElementById(id);
 				el.setAttributeNS(null,'x',2);
@@ -1279,12 +1361,18 @@ function drawTableContent( init ) {
 
 		if( data.operations[i].visible /*&& document.getElementById(expandTextId).style.visibility == 'hidden'*/ ) {
 			for( let col = 0 ; col < data.table.length ; col++ ) {
+				if( !data.table[col].visible ) {
+					continue;
+				}				
 				let id = 'tableColumn'+col+'Row'+i;
 				let el = document.getElementById(id);
 				el.setAttributeNS(null,'display','block');
 			}
 		} else if( !data.operations[i].visible /*&& document.getElementById(expandTextId).style.visibility != 'hidden'*/ ) {
 			for( let col = 0 ; col < data.table.length ; col++ ) {
+				if( !data.table[col].visible ) {
+					continue;
+				}				
 				let id = 'tableColumn'+col+'Row'+i;
 				let el = document.getElementById(id);
 				el.setAttributeNS(null,'display','none');
@@ -1364,7 +1452,7 @@ function drawTimeScale() {
 
 		let minM = ( y == minY ) ? minDT.getMonth() : 0;
 		let maxM = ( y == maxY ) ? maxDT.getMonth() : 11;
-		let mNames = terms[lang]['monthNames']
+		let mNames = terms[data.lang]['monthNames']
 		for( let m = minM ; m <= maxM ; m++ ) {
 			let startOfMonth = new Date(y,m,1,0,0,0,0);
 			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;
@@ -2008,7 +2096,7 @@ function saveUserDataFromEditBox() {
 				        hideEditBox();
 			        } else {
 			        	alert("Error: " + this.responseText); // this.responseText contains the error message. 
-			        	document.getElementById('editBoxMessage').innerText = terms[lang].errorLoadingData + ": " + this.responseText;
+			        	document.getElementById('editBoxMessage').innerText = terms[data.lang].errorLoadingData + ": " + this.responseText;
 			        }
 			    }
 		    }
@@ -2062,7 +2150,7 @@ function saveUserDataFromEditBox() {
 			xmlhttp.setRequestHeader("Cache-Control", "no-cache");
 			xmlhttp.setRequestHeader("Content-type", "plain/text" ); //"application/x-www-form-urlencoded");
 			xmlhttp.send( JSON.stringify(userData) );		
-			document.getElementById('editBoxMessage').innerText = terms[lang].waitSaveUserDataText;			
+			document.getElementById('editBoxMessage').innerText = terms[data.lang].waitSaveUserDataText;			
 		}
 	} else {
     	let i = editBoxOperationIndexElem.value;
