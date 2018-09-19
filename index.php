@@ -2,7 +2,8 @@
 require('auth.php');
 
 if( isAuthRequired() ) {
-	auth(false);
+	$userName = auth(false);
+	echo "<script>var userName = '" . $userName + "';</script>";
 }
 ?>
 
@@ -10,7 +11,7 @@ if( isAuthRequired() ) {
 <html>
 <head>
 
-	<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 	<link href="index.css" rel="stylesheet">
 	
@@ -70,12 +71,14 @@ if( isAuthRequired() ) {
 <!-- Header -->
 <div class='header'>
 	<div class='menu' id='menu'>
-		<div id='menuProjectInfo'>
-			<div class='project-details' id='menuProjectDetails'></div>
-			<div class='project-name' id='menuProjectName'>SPIDER PROJECT</div>
-		</div>
 		<div data-menuid='main' id='menuMain'>&nbsp;GANTT&nbsp;</div>
 		<div data-menuid='help' id='menuHelp'>&nbsp;HELP&nbsp;</div>
+		<div class='project-name' id='menuProjectName'>SPIDER PROJECT</div>
+		<div class='project-details' id='menuProjectDetails'>
+			<div class='time' id='menuProjectDetailsTime'></div>
+			<div class='version' id='menuProjectDetailsVersion'></div>
+			<div class='logout' id='menuProjectDetailsLogout'></div>
+		</div>
 	</div>
 </div>
 
