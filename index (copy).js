@@ -12,9 +12,8 @@ var _settings = {
 	ganttFontColor:'#4f4f4f', timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf',
 	ganttLinkStrokeColor:'#000000',	ganttLinkStrokeWidth:1, ganttLinkStrokeDashArray:null, 
 	ganttLinkOpacity:0.4, ganttLinkArrowWidth:10, ganttLinkArrowHeight:10,
-	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', tableHeaderLinkColor:'#0f0f0f', 
-	tableContentFontColor:'#4f4f4f', tableContentFillColor:'#ffffff', tableContentStrokeColor:'#4f4f4f', 
-	tableMaxFontSize:12, expandMaxFontSize:32,
+	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', tableContentFontColor:'#4f4f4f',
+	tableContentFillColor:'#ffffff', tableContentStrokeColor:'#4f4f4f', tableMaxFontSize:12,
 	scrollBkgrColor:'#cfcfcf', scrollRectColor:'#afafaf', scrollSliderColor:'#8f8f8f', scrollSliderActiveColor:'#000000',
 	gridColor:"#bfbfbf", gridStrokeWidth:0.5, gridOpacity:1, gridStrokeDashArray:'2,2', gridCurrentTimeColor:"#bf2f2f",
 	editedColor:"#bf2f2f",
@@ -24,7 +23,6 @@ var _settings = {
 	ganttRectBracketRelHeight:0.25,	ganttRectBracketThick:5,
 	minDayWidthOnTimeScale:12,
 	scrollThick:8, scrollSliderSize:10,
-	timeScaleScrollStep:0.01,
 	verticalSplitterInitialPosition:0.25,
 	initialZoomFactor:1.25,
 	containerHPadding:0,
@@ -52,7 +50,7 @@ var _terms = {
 		Notes:'Комментарий', status0:'Не начато', status100:'Завершено', statusNotFinished:'Не завершено',
 		gantt:'Гантт', help:'Справка', 
 		monthNames:['Янв','Фев','Мар','Апр','Май','Июнь','Июль','Авг','Сен','Окт','Ноя','Дек'], 
-		helpText:'<h1>Справка</h1>Эта диаграмма Гантта является частью интегрированной системы управления проектами Spider Project Professional.',
+		helpText:'<h1>Справка</h1>Диаграмма Гантта создана с помощью интегрированной системы управления проектами Spider Project Professional.',
 		waitDataText:'ПОЖАЛУЙСТА ПОДОЖДИТЕ, ПОКА ЗАГРУЖАЮТСЯ ДАННЫЕ...',
 		waitSaveUserDataText:'ПОЖАЛУЙСТА, ПОДОЖДИТЕ ПОКА СОХРАНЯЮТСЯ ДАННЫЕ...',
 		errorLoadingData:'ОШИБКА ПРИ ЗАГРУЗКЕ ДАННЫХ...',
@@ -122,7 +120,7 @@ var verticalSplitterSVGHeight;
 var verticalSplitterSVGBkgr=null;
 var verticalSplitterCaptured=false;
 var verticalSplitterCapturedAtX;
-var verticalSplitterPosition = null;
+var verticalSplitterPosition = 0.25;
 
 var tableSplitterCaptured = -1;
 var tableSplitterCapturedAtX = -1;
@@ -155,11 +153,6 @@ var verticalScrollSVGWidth, verticalScrollSVGHeight;
 
 var zoomFactor = 1.25;
 
-window.onload = function() {
-	initLayout();
-	loadData();
-};
-
 window.addEventListener( "contextmenu", function(event) { event.preventDefault(); return(false); } );
 
 window.addEventListener( "wheel", function(event) {
@@ -171,13 +164,13 @@ window.addEventListener( "wheel", function(event) {
 window.addEventListener( 'mouseup', function(e) { 
 	if( timeCaptured ) { timeCaptured = false; } 
 	if( ganttCaptured ) { ganttCaptured = false; } 
-	if( ganttSVG.style.cursor != "default" ) {
-		ganttSVG.style.cursor = "default";
-	}
 	if( verticalSplitterCaptured ) { verticalSplitterCaptured = false; } 
 	if( tableScrollCaptured ) { tableScrollCaptured = false; }
 	if( ganttHScrollCaptured ) { ganttHScrollCaptured = false; }
 	if( verticalScrollCaptured ) { verticalScrollCaptured = false; }
+	if( ganttSVG.style.cursor != "zoom-in" ) {
+		ganttSVG.style.cursor = "zoom-in";
+	}
  	
 	if( tableSplitterCaptured >= 0 ) {
 		let el = document.getElementById('tableSplitter'+tableSplitterCaptured);
@@ -186,7 +179,6 @@ window.addEventListener( 'mouseup', function(e) {
 			newWidth = 4;
 		}
 		_data.table[tableSplitterCaptured].width = newWidth;
-		setCookie( _data.table[tableSplitterCaptured].ref + "Width", _data.table[tableSplitterCaptured].width );
 		tableSplitterCaptured = -1;
 		drawTableContent();
 		drawTableHeader();
@@ -203,7 +195,6 @@ window.addEventListener( 'mousemove', function(e) {
 		drawTableScroll();
 		drawGanttHScroll();
 		ganttVisibleWidth *= (ganttSVGWidth / oldGanttSVGWidth);
-		setCookie("verticalSplitterPosition",verticalSplitterPosition);
 		return;
 	}
 	if( tableSplitterCaptured >= 0 ) {
@@ -262,6 +253,9 @@ window.addEventListener( 'mousemove', function(e) {
 	}
 } );
 
+initLayout();
+
+loadData();
 
 function loadData() {
 	if( document.location.host ) {
@@ -464,15 +458,7 @@ function initData() {
 			_data.operations[i].expandable = false;
 		}
 		_data.operations[i].visible = true;
-	}
-
-	// Reading cookies to init interface elements. 
-	for( let col = 0 ; col < _data.table.length ; col++ ) {
-		let value = getCookie( _data.table[col].ref+"Width", 'int' );
-		if( value ) {
-			_data.table[col].width = value;
-		}
-	}
+	}	
 }
 
 
@@ -532,15 +518,7 @@ function initLayout() {
 	verticalScrollSVG = document.getElementById("verticalScrollSVG");
 
 	zoomFactor = _settings.initialZoomFactor;
-
-	let value = getCookie( "verticalSplitterPosition", 'float' );
-	if( value ) {
-		if( value > 0.0 && value < 1.0 ) {
-			_settings.verticalSplitterInitialPosition = value;
-		}
-	}	
 	verticalSplitterPosition = _settings.verticalSplitterInitialPosition;
-
 	initLayoutCoords();
 
 	containerDiv.addEventListener('selectstart', function() { event.preventDefault(); return false; } );
@@ -556,26 +534,39 @@ function initLayout() {
 	// Gantt chart
 	//ganttSVG.onmousedown = function(e) { ganttCaptured = true; ganttCapturedAtY = e.clientY; };
 	ganttSVG.addEventListener( "mousemove", onGanttCapturedMouseMove );
-
-	ganttSVG.addEventListener( "dblclick", onGanttDblClick );
 	
+	ganttSVG.addEventListener( "mouseup", function(e) { 
+		if( e.button == 2 ) { 
+			zoomXY(e,false); 
+			ganttSVG.style.cursor = "zoom-in";
+		} else { 
+			if( (e.clientX == ganttCapturedAtX) && (e.clientY == ganttCapturedAtY) ) {
+				zoomXY(e,true); 
+			}
+		} 
+		ganttCapturedAtX = -1;			
+		ganttCapturedAtY = -1;			
+	} );
 	ganttSVG.addEventListener( "mousedown", function(e) { 
-		// For right key use: "if( e.button == 2 )" 
-		ganttCaptured = true; 
-		ganttCapturedAtX = e.clientX;			
-		ganttCapturedAtY = e.clientY;			
-		ganttSVG.style.cursor = "hand";
-	} );	
+		if( e.button == 2 ) { 
+			ganttSVG.style.cursor = "zoom-out";
+		} else {
+			ganttCaptured = true; 
+			ganttCapturedAtX = e.clientX;			
+			ganttCapturedAtY = e.clientY;			
+			ganttSVG.style.cursor = "hand";
+		}
+	} );
 	addOnMouseWheel( ganttSVG, onGanttWheel );
-	ganttSVG.style.cursor = "default";
+	ganttSVG.style.cursor = "zoom-in";
 
 	// Time scale
 	timeSVG.style.cursor = "pointer";
 	timeSVG.onmousedown = function(e) { timeCaptured = true; timeCapturedAtX = e.clientX; };
 	timeSVG.onmousemove = onTimeCapturedMouseMove;
-	addOnMouseWheel( timeSVG, onTimeWheel );	
+	addOnMouseWheel( timeSVG, zoomXByWheel );	
 
-	createDefs( containerSVG );
+	createDefs();
 	return true;
 }
 
@@ -587,7 +578,7 @@ function initLayoutCoords() {
 
 	containerDiv.style.width = window.innerWidth;
 	containerDivWidth = window.innerWidth - _settings.containerHPadding*2;
-	containerDiv.style.padding=`0px ${_settings.containerHPadding}px 0px ${_settings.containerHPadding}px`;
+	containerDiv.style.padding='0px ' + _settings.containerHPadding + 'px 0px ' + _settings.containerHPadding + 'px';
 
 	containerSVG.setAttributeNS(null, 'x', 0 );
 	containerSVG.setAttributeNS(null, 'y', 0 ); 
@@ -1155,20 +1146,10 @@ function drawTableHeader( init ) {
 			let rect = createSVG(left+1-tableVisibleLeft, 0, _data.table[col].width-2, tableHeaderSVGHeight, 
 				{ id:'tableHeaderColumnNameSVG'+col, 'fill':_settings.tableHeaderFillColor } );
 			tableHeaderSVG.appendChild( rect );
-			let name = (col == 0) ? "⚙" : _data.table[col].name;
-			let fontSize = (col == 0) ? _settings.expandMaxFontSize : _settings.tableMaxFontSize;
-			let align = (col == 0) ? 'hanging' : 'baseline';
-			let anchor = (col == 0) ? 'middle' : 'start';
-			let x = (col == 0) ? _data.table[0].width/2 : 2;
-			let y = (col == 0) ? 2 : tableHeaderSVGHeight/2;
-			let color = (col == 0) ? _settings.tableHeaderLinkColor : _settings.tableHeaderFontColor
-			let text = createText( name, x, y, { alignmentBaseline:align, textAnchor:anchor, fontSize:fontSize, fill:color } );
+			let text = createText( _data.table[col].name, 2, tableHeaderSVGHeight/2, 
+				{ alignmentBaseline:'baseline', textAnchor:'start', fontSize:12, fill:_settings.tableHeaderFontColor } );
 			rect.appendChild( text );
 			left += _data.table[col].width;
-
-			if( col == 0 ) {
-				text.style.cursor='hand';
-			}
 		}
 		tableHeaderOverallWidth = left;
 	} else {
@@ -1245,7 +1226,6 @@ function drawTableContent( init ) {
 	let rectCounter = 0;
 	let rectHeight = (operToScreen(1) - operToScreen(0));
 	let fontSize = (rectHeight < 16) ? rectHeight * 0.75 : _settings.tableMaxFontSize;
-	let expandFontSize = (rectHeight < 32) ? rectHeight*1.2 : _settings.expandMaxFontSize;
 	for( let i = 0 ; i < _data.operations.length ; i++ ) {
 		let lineTop = operToScreen(rectCounter);
 		let lineBottom = lineTop + rectHeight;
@@ -1257,9 +1237,9 @@ function drawTableContent( init ) {
 		let expand='';
 		if( _data.operations[i].expandable ) {
 			if( _data.operations[i].expanded ) {
-				expand='⊟';
+				expand='[-]';
 			} else {
-				expand= '⊞';				
+				expand= '[+]';				
 			}
 		}
 		let expandText;
@@ -1267,7 +1247,7 @@ function drawTableContent( init ) {
 
 		if( init ) {			
 			expandText = createText( expand, _data.table[0].width/2.0, lineMiddle, 
-				{ id:expandTextId, fontSize:expandFontSize, textAnchor:'middle', alignmentBaseline:'baseline' } );
+				{ id:expandTextId, fontSize:fontSize, textAnchor:'middle', alignmentBaseline:'baseline' } );
 	 		document.getElementById('tableColumnSVG0').appendChild(expandText);
 	 		expandText._operationNumber=i;
 	 		if( _data.operations[i].expandable ) {
@@ -1334,7 +1314,7 @@ function drawTableContent( init ) {
 			expandText.setAttributeNS(null,'x',_data.table[0].width/2.0);
 			expandText.setAttributeNS(null,'y',lineMiddle);
 			expandText.firstChild.nodeValue = expand;
-			expandText.setAttributeNS(null,'font-size',expandFontSize);
+			expandText.setAttributeNS(null,'font-size',fontSize);
 
 			let left = _data.table[0].width;
 			for( let col = 1 ; col < _data.table.length ; col++ ) {
@@ -1525,7 +1505,6 @@ function drawTableScroll( init ) {
 		tableScrollSVGSlider.onmouseover = function(e) { this.setAttributeNS(null,'fill',_settings.scrollSliderActiveColor) };
 		tableScrollSVGSlider.onmouseout = function(e) { this.setAttributeNS(null,'fill',_settings.scrollSliderColor) };
 		tableScrollSVGSlider.onmousedown = function(e) {
-			e.stopPropagation();
 			tableScrollCaptured = true;
 			tableScrollCapturedAtX = e.x;
 			tableScrollXAtCapture = this.getBBox().x;
@@ -1626,11 +1605,6 @@ function zoomX( zoomFactorChange, zoomPositionChange, centerOfZoom=0.5 ) {
 		if( !(newZoomFactor > 0) ) {
 			return;
 		}
-		if( centerOfZoom < 0.1 ) {
-			centerOfZoom = 0.0;
-		} else if( centerOfZoom > 0.9 ) {
-			centerOfZoom = 1.0;
-		}
 		let newWidth = _data.visibleMaxWidth * newZoomFactor;
 		let newLeft = ganttVisibleLeft - (newWidth - ganttVisibleWidth) * centerOfZoom;				
 		if( newLeft < _data.visibleMin ) {
@@ -1673,11 +1647,6 @@ function zoomY( zoomFactorChange, zoomPositionChange, centerOfZoom=0.5 ) {
 		if( newHeight < 1 && zoomFactorChange < 1.0 ) {
 			return;
 		}
-		if( centerOfZoom < 0.1 ) {
-			centerOfZoom = 0.0;
-		} else if ( centerOfZoom > 0.9 ) {
-			centerOfZoom = 1.0;
-		} 
 		let newY = ganttVisibleTop - (newHeight - ganttVisibleHeight) * centerOfZoom;	
 		if( newY < 0 ) {
 			newY = 0;
@@ -1744,23 +1713,15 @@ function addOnMouseWheel(elem, handler) {
 	}
 }
 
-function onTimeWheel(e) {
+function zoomXByWheel(e) {
 	let delta = e.deltaY || e.detail || e.wheelDelta;
 	let zoomFactorChange;
-	if( e.shiftKey ) {
-		if( delta > 0 ) {
-			zoomFactorChange = zoomFactor;
-		} else {
-			zoomFactorChange = 1.0/zoomFactor;
-		}
-		zoomX( zoomFactorChange, null, (e.clientX - ganttSVG.getAttributeNS(null,'x')) / ganttSVGWidth );
+	if( delta > 0 ) {
+		zoomFactorChange = zoomFactor;
 	} else {
-		let change = ganttVisibleWidth * _settings.timeScaleScrollStep;
-		if( delta < 0 ) {
-			change = -change;
-		}
-		zoomX( null, change );		
+		zoomFactorChange = 1.0/zoomFactor;
 	}
+	zoomX( zoomFactorChange, null );
 	drawTimeScale();
 	drawGantt();
 	drawGanttHScroll();
@@ -1788,8 +1749,7 @@ function onGanttWheel(e) {
 		} else {
 			zoomFactorChange = 1.0 / zoomFactor;
 		}		
-		let y = e.clientY - getElementPosition(containerDiv).y - ganttSVG.getAttributeNS(null,'y');
-		zoomY( zoomFactorChange, null, y / ganttSVGHeight );
+		zoomY( zoomFactorChange, null );
 	} else {
 		let positionChange;
 		if( delta > 0 ) {
@@ -1809,20 +1769,10 @@ function onGanttCapturedMouseMove(e) {
 	if( !ganttCaptured ) {
 		return;
 	}
-	//let deltaX = ganttVisibleWidth * (e.clientX - ganttCapturedAtX) / ganttSVGWidth;
+	let deltaX = ganttVisibleWidth * (e.clientX - ganttCapturedAtX) / ganttSVGWidth;
 	let deltaY = ganttVisibleHeight * (e.clientY - ganttCapturedAtY) / ganttSVGHeight;
-	//zoomX(null,-deltaX);
+	zoomX(null,-deltaX);
 	zoomY(null,-deltaY);
-	drawGantt();
-	//drawTimeScale();
-	//drawGanttHScroll();
-	drawTableContent();
-	drawVerticalScroll();
-}
-
-function onGanttDblClick(e) {
-	zoomX( null, null );
-	zoomY( null, null );
 	drawGantt();
 	drawTimeScale();
 	drawGanttHScroll();
@@ -1830,6 +1780,17 @@ function onGanttDblClick(e) {
 	drawVerticalScroll();
 }
 
+
+function zoomXY( e, increase ) {
+	let z = (increase) ? 1.0 / zoomFactor : zoomFactor;
+	zoomX( z, null, e.clientX / ganttSVG.clientWidth );
+	zoomY( z, null, e.clientY / ganttSVG.clientHeight );
+	drawGantt();
+	drawTimeScale();
+	drawGanttHScroll();
+	drawTableContent();
+	drawVerticalScroll();
+}
 
 function timeToScreen( timeInSeconds ) {
 	let availableSVGWidth = ganttSVGWidth - _settings.ganttChartLeftMargin - _settings.ganttChartRightMargin;
@@ -1851,6 +1812,229 @@ function operToScreen( n ) {
 	return ( n - ganttVisibleTop) * ganttSVGHeight / (ganttVisibleHeight+0.5); 
 } 
 
+
+function createRect( x, y, width, height, properties ) {
+	let rect = document.createElementNS(NS, 'rect');
+	if( 'id' in properties ) {
+		rect.setAttributeNS(null, 'id', properties.id ); 		
+	} 
+	rect.setAttributeNS(null, 'x', x ); 
+	rect.setAttributeNS(null, 'width', width ); 
+	rect.setAttributeNS(null, 'y', y ); 
+	rect.setAttributeNS(null, 'height', height );
+	if( 'fill' in properties ) {
+		rect.setAttributeNS(null, 'fill', properties.fill );
+	} 
+	if( 'stroke' in properties ) {
+		rect.setAttributeNS(null, 'stroke', properties.stroke );
+	}
+	if( 'strokeWidth' in properties ) {
+		rect.setAttributeNS(null, 'stroke-width', properties.strokeWidth );			
+	}
+	if( 'opacity' in properties ) {
+		rect.setAttributeNS(null, 'opacity', properties.opacity );
+	} 
+	return rect;
+}
+
+function setRectCoords( rect, x, y, width, height ) {
+	rect.setAttributeNS(null,'x',x);
+	rect.setAttributeNS(null,'y',y);
+	rect.setAttributeNS(null,'width',width);
+	rect.setAttributeNS(null,'height',height);	
+}
+
+function createPolygon( points, properties ) {
+	let polygon = document.createElementNS(NS, 'polygon');
+	polygon.setAttributeNS(null, 'points', points ); 			
+	if( 'id' in properties ) {
+		polygon.setAttributeNS(null, 'id', properties.id ); 		
+	} 
+	if( 'fill' in properties ) {
+		polygon.setAttributeNS(null, 'fill', properties.fill );
+	} 
+	if( 'stroke' in properties ) {
+		polygon.setAttributeNS(null, 'stroke', properties.stroke );
+	}
+	if( 'strokeWidth' in properties ) {
+		polygon.setAttributeNS(null, 'stroke-width', properties.strokeWidth );			
+	}
+	if( 'opacity' in properties ) {
+		polygon.setAttributeNS(null, 'opacity', properties.opacity );
+	} 
+	return polygon;
+}
+
+
+function createText( textString, x, y, properties ) {
+	let text = document.createElementNS(NS, 'text');
+	text.setAttributeNS(null,'x', x );
+	text.setAttributeNS(null,'y', y );
+	if( 'id' in properties ) {
+		text.setAttributeNS(null, 'id', properties.id ); 		
+	} 
+	if( 'fontSize' in properties ) {
+		text.setAttributeNS(null,'font-size', properties.fontSize );
+	}
+	if( 'textAnchor' in properties ) {
+		text.setAttributeNS(null,'text-anchor', properties.textAnchor );
+	}
+	if( 'textLength' in properties ) {
+		if( properties.textLength ) {
+			text.setAttributeNS(null,'textLength', properties.textLength );			
+		}
+	}
+	if( 'lengthAdjust' in properties ) {
+		text.setAttributeNS(null,'lengthAdjust', properties.lengthAdjust );
+	}
+	if( 'alignmentBaseline' in properties ) {
+		text.setAttributeNS(null,'alignment-baseline', properties.alignmentBaseline );
+	}
+	if( 'preserveAspectRatio' in properties ){
+		text.setAttributeNS(null,'preserveAspectRatio', properties.preserveAspectRatio );
+	}
+	if( 'stroke' in properties ) {
+		text.setAttributeNS(null,'stroke', properties.stroke );
+	}
+	if( 'fill' in properties ) {
+		text.setAttributeNS(null,'fill', properties.fill );
+	}
+	if( 'clipPath' in properties ) {
+		text.setAttributeNS(null,'clip-path', properties.clipPath );
+	}
+	text.appendChild( document.createTextNode( textString ) );
+	return text;
+}
+
+function createLine( x1, y1, x2, y2, properties ) {
+	let line = document.createElementNS(NS, 'line');
+	if( 'id' in properties ) {
+		line.setAttributeNS(null, 'id', properties.id ); 		
+	} 
+	if( 'endingArrow' in properties ) {
+		if( properties.endingArrow ) {
+			line.setAttributeNS(null,'marker-end', 'url(#arrow)');
+		}
+	}
+	line.setAttributeNS(null, 'x1', x1 ); 
+	line.setAttributeNS(null, 'y1', y1 ); 
+	line.setAttributeNS(null, 'x2', x2 ); 
+	line.setAttributeNS(null, 'y2', y2 );
+	if( 'fill' in properties ) {
+		line.setAttributeNS(null, 'fill', properties.fill );
+	} 
+	if( 'stroke' in properties ) {
+		line.setAttributeNS(null, 'stroke', properties.stroke );
+	}
+	if( 'strokeWidth' in properties ) {
+		line.setAttributeNS(null, 'stroke-width', properties.strokeWidth );			
+	}
+	if( 'strokeDasharray' in properties ) {
+		line.setAttributeNS(null, 'stroke-dasharray', properties.strokeDasharray );					
+	}
+	if( 'opacity' in properties ) {
+		line.setAttributeNS(null, 'opacity', properties.opacity );
+	} 
+	return line;
+}
+
+function createSVG( x, y, width, height, properties ) {
+	let svg = document.createElementNS(NS,'svg');
+	svg.setAttributeNS(null,'x',x);
+	svg.setAttributeNS(null,'y',y);
+	svg.setAttributeNS(null,'width', width );
+	svg.setAttributeNS(null,'height', height );
+	if( 'fill' in properties ) {
+		svg.setAttributeNS(null, 'fill', properties.fill);		
+	}
+	if( 'id' in properties ) {
+		svg.setAttributeNS(null, 'id', properties.id);		
+	}
+	return svg;	
+}
+
+
+function createDefs() {
+	let defs = document.createElementNS(NS, 'defs');
+
+    let marker = document.createElementNS(NS, 'marker');
+    marker.setAttribute('id', 'arrow');
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '5');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerUnits', 'strokeWidth');
+    marker.setAttribute('markerWidth', _settings.ganttLinkArrowWidth ); //ganttSVGWidth*2 / ganttVisibleWidth );
+    marker.setAttribute('markerHeight', _settings.ganttLinkArrowHeight ); //ganttSVGWidth*2 / ganttVisibleWidth );
+    marker.setAttribute('orient', 'auto');
+    let path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    path.setAttribute('fill', '#2f2f2f'/*'url(#blackToGrayGradient)'*/);
+    marker.appendChild(path);
+    defs.appendChild(marker);	
+
+	let gradient1 = initLinearGradient( [{"color":"#cfcfdf","offset":"0%"},{"color":"#ffffff","offset":"100%"}], 'timeScaleGradient' );
+	defs.appendChild(gradient1);
+
+	let gradient2 = initLinearGradient( [{"color":"#f7f7f7","offset":"0%"},{"color":"#ffffff","offset":"100%"}], 'ganttGradient' );
+	defs.appendChild(gradient2);
+
+	let gradient3 = initLinearGradient( [{"color":"#2f2f2f","offset":"0%"},{"color":"#afafaf","offset":"100%"}], 'blackToGrayGradient' );
+	defs.appendChild(gradient3);
+
+    containerSVG.appendChild(defs);
+}
+
+
+function initLinearGradient( stops, name ) {
+	let gradient = document.createElementNS(NS, 'linearGradient');
+	for( let i = 0 ; i < stops.length; i++ ) {
+	    let stop = document.createElementNS(NS, 'stop');
+	    stop.setAttribute('offset', stops[i].offset);
+	    stop.setAttribute('stop-color', stops[i].color);
+    	gradient.appendChild(stop);
+    }
+	gradient.id = name;
+	gradient.setAttribute('x1', '0');
+	gradient.setAttribute('x2', '1');
+	gradient.setAttribute('y1', '0');
+	gradient.setAttribute('y2', '0');
+	return gradient;
+}
+
+
+function parseDate( dateString ) {
+	if( dateString == null ) {
+		return null;
+	}
+	let date = null;
+    let parsedFull = dateString.match( /([0-9]+)\.([0-9]+)\.([0-9]+) +([0-9]+)\:([0-9]+)/ );
+    if( parsedFull !== null ) {
+	    if( parsedFull.length == 6 ) {
+		    date = new Date(parsedFull[3], parsedFull[2]-1, parsedFull[1], parsedFull[4], parsedFull[5], 0, 0);
+		}
+    } else {
+	    let parsedShort = dateString.match( /([0-9]+)\.([0-9]+)\.([0-9]+)/ );
+	    if( parsedShort !== null ) {
+		    if( parsedShort.length == 4 ) {
+			    date = new Date(parsedShort[3], parsedShort[2]-1, parsedShort[1], 0, 0, 0, 0);
+			}
+	    }
+    }
+    if( date === null ) {
+    	return null;
+    }
+    let timeInSeconds = date.getTime();
+    return( { 'date':date, 'timeInSeconds':timeInSeconds/1000 } ); 
+}
+
+// Returns the number of week of the year
+function getWeekNumber(d) {
+    d = new Date( Date.UTC( d.getFullYear(), d.getMonth(), d.getDate() ) );
+    d.setUTCDate( d.getUTCDate() + 4 - (d.getUTCDay() || 7) );
+    var startOfYear = new Date( Date.UTC( d.getUTCFullYear(), 0,1 ) );
+    var weekNumber = Math.ceil( ( ( (d - startOfYear) / 86400000 ) + 1 ) / 7 );
+    return weekNumber;
+}
 
 function displayMessageBox( message ) {
 	blackOutBoxDiv.style.display='block';	

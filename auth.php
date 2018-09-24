@@ -1,8 +1,9 @@
 <?php
 
-$s_AuthUsersFile = "users.txt";
+$s_AuthUsersFile = "users.php";
 
-$s_AuthorizationFailed = "<html><body><h1>Authentification failed!</h1></body></html>";
+$s_AuthorizationFailedHTML = "<html><body><h1>Authentification failed!</h1></body></html>";
+$s_AuthorizationFailed = "Authentification failed!";
 
 function isAuthRequired() {
 	global $s_AuthUsersFile;
@@ -26,12 +27,12 @@ function isAuthRequired() {
 
 function auth( $bAjax=false ) {
 	global $s_AuthUsersFile;
-	global $s_AuthorizationFailed;
+	global $s_AuthorizationFailedHTML, $s_AuthorizationFailed;
 
 	if( !isset( $_SERVER['PHP_AUTH_USER'] ) ) {
 	  header("WWW-Authenticate: Basic realm=\"Passwords\"");
 	  header("HTTP/1.0 401 Unauthorized");
-	  echo $s_AuthorizationFailed;
+	  echo $s_AuthorizationFailedHML;
 	  exit();
 	} 
 	$status = isAuthUserAndPasswordCorrect( $_SERVER["PHP_AUTH_USER"], $_SERVER['PHP_AUTH_PW'] );
@@ -40,7 +41,7 @@ function auth( $bAjax=false ) {
 		  header("WWW-Authenticate: Basic realm=\"Passwords\"");
 		  header("HTTP/1.0 401 Unauthorized");
 		} else {
-			echo "Authentification error";
+			echo $s_AuthorizationFailed;
 		}
 		exit();
 	}
@@ -88,6 +89,7 @@ function isAuthUserAndPasswordCorrect( $sUser, $sPassword ) {
 				}
 				
 				$sUserName = $aExploded[ $iUserNamePos ];
+				$sUserName = trim( $sUserName, "\r\n" );
 				$bAuthorized = true;
 				break;
 			}

@@ -3,7 +3,6 @@ require('auth.php');
 
 if( isAuthRequired() ) {
 	$userName = auth(false);
-	echo "<script>var userName = '" . $userName + "';</script>";
 }
 ?>
 
@@ -14,55 +13,6 @@ if( isAuthRequired() ) {
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 	<link href="index.css" rel="stylesheet">
-	
-	<script type='text/javascript'>
-		
-		var aPages;
-		var aMenuIds;
-		var sMenuActiveId="";
-				
-		window.onload = function() {
-			aPages = document.querySelectorAll('[data-pageid]');
-			for( var i = 0 ; i < aPages.length ; i++ ) {
-				aPages[i].className='page';
-			}
-			
-			aMenuIds = document.querySelectorAll('[data-menuid]');
-			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
-				aMenuIds[i].style.cursor = 'pointer';
-				aMenuIds[i].className = 'normal';
-				aMenuIds[i].onclick = function() {
-					menuGoTo( this.getAttribute("data-menuid") );
-				}
-			}
-
-			menuGoTo( "main" );
-		}	
-		
-		function menuGoTo( sId ) {		
-			
-			for( var i = 0 ; i < aPages.length ; i++ ) {
-				sPageId = aPages[i].getAttribute("data-pageid");
-				if( sPageId == sId ) {
-					aPages[i].style.display = 'block';
-				} else {
-					aPages[i].style.display = 'none';
-				}
-			}
-			menuHighlight( sId );			
-		}
-		
-		function menuHighlight( sId ) {
-			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
-				if( sId == aMenuIds[i].getAttribute( "data-menuid") ) {
-					aMenuIds[i].className='active';
-				} else {
-					aMenuIds[i].className='normal';
-				}
-			}
-			sMenuActiveId = sId;
-		}
-	</script>
 	
 </head>
 
@@ -125,10 +75,10 @@ if( isAuthRequired() ) {
 					<input id='editBoxOperationIndex' type='hidden' value=''>
 					<table style='width:100%;' cellspacing=0 cellpadding=0><tr>
 						<td style='width:50%; padding:24px; text-align:right;'>
-							<button style='width:100%;' onclick="saveUserDataFromEditBox();">Ok</button>
+							<button style='width:100%;' onclick="saveUserDataFromEditBox();" class='btn success'>Ok</button>
 						</td>
 						<td style='width:50%; padding:24px; text-align:left;'>
-							<button style='width:100%;' onclick="hideEditBox();">Cancel</button>
+							<button style='width:100%;' onclick="hideEditBox();" class='btn danger'>Cancel</button>
 						</td>
 					</tr></table>
 				</td>
@@ -136,6 +86,59 @@ if( isAuthRequired() ) {
 		</table>
 	</div>
 </div>
+
+	<?php echo "<script>var userName = '" . $userName . "';</script>"; ?>
+	
+	<script type='text/javascript'>
+		
+		var aPages;
+		var aMenuIds;
+		var sMenuActiveId="";
+				
+		aPages = document.querySelectorAll('[data-pageid]');
+		for( var i = 0 ; i < aPages.length ; i++ ) {
+			aPages[i].className='page';
+		}
+		
+		aMenuIds = document.querySelectorAll('[data-menuid]');
+		for( var i = 0 ; i < aMenuIds.length ; i++ ) {
+			aMenuIds[i].style.cursor = 'pointer';
+			aMenuIds[i].className = 'normal';
+			aMenuIds[i].onclick = function() {
+				menuGoTo( this.getAttribute("data-menuid") );
+			}
+		}
+
+		menuGoTo( "main" );
+		
+		function menuGoTo( sId ) {		
+			
+			for( var i = 0 ; i < aPages.length ; i++ ) {
+				sPageId = aPages[i].getAttribute("data-pageid");
+				if( sPageId == sId ) {
+					aPages[i].style.display = 'block';
+				} else {
+					aPages[i].style.display = 'none';
+				}
+			}
+			menuHighlight( sId );			
+		}
+		
+		function menuHighlight( sId ) {
+			for( var i = 0 ; i < aMenuIds.length ; i++ ) {
+				if( sId == aMenuIds[i].getAttribute( "data-menuid") ) {
+					aMenuIds[i].className='active';
+				} else {
+					aMenuIds[i].className='normal';
+				}
+			}
+			sMenuActiveId = sId;
+		}
+	</script>
+
+
+<script type="text/javascript" src="utils.js">
+</script>
 
 <script type="text/javascript" src="index.js">
 </script>
