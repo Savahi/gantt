@@ -1,47 +1,18 @@
 <head>
-      <script type = "text/javascript" src = "https://d3js.org/d3.v4.min.js"></script>
       <style>
          body { font-family: Arial; }
       </style>
 </head>
 
 <body>
-<svg width=50>    
-<svg id='svg'>
- <g id='container' style='display:true';>
-    <text x="10" y="20" clip-path="url(#clip1)">Orangewerwerew</text>       
-    <text x="10" y="35" clip-path="url(#clip1)">Pear</text>     
-    <text x="10" y="50" clip-path="url(#clip1)">Banana</text>       
-    <text x="10" y="65" clip-path="url(#clip1)">Pomegranate</text>
 
-    <text x="70" y="20">12</text>
-    <text x="70" y="35">7</text>
-    <text x="70" y="50">9</text>
-    <text x="70" y="65">2</text>
-
-    <line x1="67" y1="5" x2="67" y2="75" style="stroke:rgb(100,100,100)"/>
-
-    </g>
-</svg>
-</svg>
+P: <div id='d1'></div>
 
 <script>
-var NS = "http://www.w3.org/2000/svg";
+var x = { 'p':100 };
 
-    let g = document.getElementById('svg');
-
-    let defs = document.createElementNS(NS, 'defs');
-    let clip = document.createElementNS(NS, 'clipPath');
-    clip.setAttributeNS(null, 'id', 'clip1');
-    let clipRect = document.createElementNS(NS, 'rect');
-    clipRect.setAttributeNS(null, 'x', 0);
-    clipRect.setAttributeNS(null, 'y', 0);
-    clipRect.setAttributeNS(null, 'width', 57);
-    clipRect.setAttributeNS(null, 'height', 90);
-    clip.appendChild(clipRect);
-    defs.appendChild(clip);  
-    g.appendChild(defs);
-
+document.getElementById('d1').innerText = typeof(x.p);
+document.getElementById('d1').style.color= "#b000";
 </script>
 
 </body>

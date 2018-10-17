@@ -1,0 +1,92 @@
+
+<head>
+
+	<style>
+	.btn {
+		border: 2px solid black; background-color: white; padding: 7px 14px;
+		color: black; font-size: 14px; cursor: pointer;
+	}
+
+	.ok { border-color: #2f8f2f; color:#2f8f2f; }
+	.ok:hover { background-color: #2f8f2f; color: white; }
+
+	.info { border-color: #2196F3; color: dodgerblue; }
+	.info:hover { background: #2196F3; color: white; }
+
+	.warning { border-color: #ff9800; color: orange; }
+	.warning:hover { background: #ff9800; color: white; }
+
+	.cancel { border-color: #bf2f2f; color: red }
+	.cancel:hover { background: #bf2f2f; color: white; }
+
+	.default { border-color: #e7e7e7; color: black;	}
+	.default:hover { background: #e7e7e7; }
+
+	.dim { border-color: #afafaf; color: #afafaf; }
+
+	.settings-table-title { width:100%; font-size:14px; }
+	.settings-table { width:100%; height:50vh; overflow:auto; border:1px solid gray; }
+	.settings-table div { display:block; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; border:1px solid white; }
+	.settings-table div div { 
+		display:block; float:left; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; padding:2px; 
+		font-size:14px; 
+	}
+	.settings-table div .settings-table-name { width:50%; }
+	.settings-table div .settings-table-visible { width:20px; }
+	.settings-table div .settings-table-width { width:40px; font-size:12px;}
+	.settings-table div .settings-table-width input { width:100%; font-size:12px; }
+	}
+	</style>
+
+</head>
+
+<body>
+
+<div style='width:50%;'>
+	<div class='settings-table-title' id='settingsTableTitle'></div>
+	<div class='settings-table' id='settingsTable'></div>
+	<table style='width:100%;' cellspacing=0 cellpadding=0><tr>
+		<td style='width:50%; padding:24px; text-align:right;'>
+			<button style='width:100%;' id='settingsApply' onclick="settingsApply();" disabled class='btn dim'>APPLY</button>
+		</td>
+		<td style='width:50%; padding:24px; text-align:left;'>
+			<button style='width:100%;' id='settingsRestore' onclick="settingsRestore();" disabled class='btn dim'>Restore</button>
+		</td>
+	</tr></table>
+</div>
+
+<script type="text/javascript" src="settings.js">
+</script>
+
+<script>
+
+table = [
+	{ "name":"[]", "ref":"expandColumn", "width":32, "visible":true },
+	{"name":"Уровень","ref":"Level","visible":true,"width":40},
+	{"name":"Код","ref":"Code","visible":true,"width":40},
+	{"name":"Название","ref":"Name","visible":true,"width":40},
+	{"name":"Тип","ref":"Type","visible":true,"width":40},
+	{"name":"Комментарии","ref":"Notes","visible":true,"width":40},
+	{"name":"Ссылки на документы, сайты, папки (URL)","ref":"Folder","visible":true,"width":40},
+	{"name":"Критическая","ref":"f_Critical","visible":true,"width":40},
+	{"name":"Начало","ref":"Start","visible":true,"width":40},
+	{"name":"Окончание","ref":"Fin","visible":true,"width":40},
+	{"name":"Начало [КМР]","ref":"AsapStart","visible":true,"width":40},
+	{"name":"Окончание [КМР]","ref":"AsapFin","visible":true,"width":40},
+	{"name":"Начало [Факт]","ref":"FactStart","visible":true,"width":40},
+	{"name":"Окончание [Факт]","ref":"FactFin","visible":true,"width":40},
+	{"name":"БАЗОВОЕ - Начало","ref":"Start_COMP","visible":true,"width":40},
+	{"name":"БАЗОВОЕ - Окончание","ref":"Fin_COMP","visible":true,"width":40},
+	{"name":"Длительность, Часы [План]","ref":"DurPlan","visible":true,"width":40},
+	{"name":"Длительность, Дни [План]","ref":"DurPlanD","visible":true,"width":40},
+	{"name":"Объём [План]","ref":"VolPlan","visible":true,"width":40},
+	{"name":"Объём [Факт]","ref":"VolFact","visible":true,"width":40},
+	{"name":"Единица объёма","ref":"Unit","visible":true,"width":40},
+	{"name":"Общая стоимость [План]","ref":"CostPlan","visible":true,"width":40}
+];
+
+settingsDisplay( table );
+
+</script>
+
+</body>

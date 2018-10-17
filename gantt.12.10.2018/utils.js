@@ -21,43 +21,11 @@ function displaySynchronizedStatus( synchronized ) {
 } 
 
 
-function createForeignObjectWithText( text, x, y, width, height, properties ) {
-    let foreignObject = createForeignObject( text, x, y, width, height, properties );
-    foreignObject.appendChild( document.createTextNode(text) );
-    return foreignObject;
-}
-
-
-function createForeignObject( text, x, y, width, height, properties ) {
-    let foreignObject = document.createElementNS(NS, 'foreignObject'); 
-    foreignObject.setAttribute("x",0); 
-    foreignObject.setAttribute("y",0); 
-    foreignObject.setAttribute("width",width); 
-    foreignObject.setAttribute("height",height); 
-    if( 'id' in properties ) {
-        foreignObject.setAttributeNS(null, 'id', properties.id );        
-    } 
-    if( 'fontSize' in properties ) {
-        foreignObject.setAttributeNS(null,'font-size', properties.fontSize );
-    }
-    if( 'textAlign' in properties ) {
-        foreignObject.setAttributeNS(null,'text-align', properties.textAlign );
-    }
-    if( 'color' in properties ) {
-        foreignObject.setAttributeNS(null,'color', properties.color );
-    }    
-    return foreignObject;
-}
-
-
 function createRhomb( x, top, height, properties ) {
     return createPolygon( calcRhombCoords(x, top, height), properties );
 }
 
 function calcRhombCoords( x, top, height ) {
-    let inc = 2;
-    top -= inc;
-    height += inc*2;
     let halfWidth = Math.floor(height / 2.0);
     let halfHeight = halfWidth;
     let points = (x - halfWidth) + " " + (top + halfHeight) + " " + x + " " + top;
@@ -418,12 +386,4 @@ function isEditable( name ) {
         }
     }
     return false;
-}
-
-function padWithNChars( n, char ) {
-    let s = '';
-    for( let i = 0 ; i < n ; i++ ) {
-        s += char;
-    }
-    return s;
 }

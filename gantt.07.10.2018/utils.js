@@ -21,50 +21,6 @@ function displaySynchronizedStatus( synchronized ) {
 } 
 
 
-function createForeignObjectWithText( text, x, y, width, height, properties ) {
-    let foreignObject = createForeignObject( text, x, y, width, height, properties );
-    foreignObject.appendChild( document.createTextNode(text) );
-    return foreignObject;
-}
-
-
-function createForeignObject( text, x, y, width, height, properties ) {
-    let foreignObject = document.createElementNS(NS, 'foreignObject'); 
-    foreignObject.setAttribute("x",0); 
-    foreignObject.setAttribute("y",0); 
-    foreignObject.setAttribute("width",width); 
-    foreignObject.setAttribute("height",height); 
-    if( 'id' in properties ) {
-        foreignObject.setAttributeNS(null, 'id', properties.id );        
-    } 
-    if( 'fontSize' in properties ) {
-        foreignObject.setAttributeNS(null,'font-size', properties.fontSize );
-    }
-    if( 'textAlign' in properties ) {
-        foreignObject.setAttributeNS(null,'text-align', properties.textAlign );
-    }
-    if( 'color' in properties ) {
-        foreignObject.setAttributeNS(null,'color', properties.color );
-    }    
-    return foreignObject;
-}
-
-
-function createRhomb( x, top, height, properties ) {
-    return createPolygon( calcRhombCoords(x, top, height), properties );
-}
-
-function calcRhombCoords( x, top, height ) {
-    let inc = 2;
-    top -= inc;
-    height += inc*2;
-    let halfWidth = Math.floor(height / 2.0);
-    let halfHeight = halfWidth;
-    let points = (x - halfWidth) + " " + (top + halfHeight) + " " + x + " " + top;
-    points += " " + (x + halfWidth) + " " + (top + halfHeight) + " " + x + " " + (top + height);
-    return points;
-}
-
 
 function createRect( x, y, width, height, properties ) {
     let rect = document.createElementNS(NS, 'rect');
@@ -266,9 +222,6 @@ function getWeekNumber(d) {
 
 
 function parseDate( dateString ) {
-    if( typeof(dateString) === 'undefined' ) {
-        return null;
-    }
     if( dateString == null ) {
         return null;
     }
@@ -380,50 +333,4 @@ function moveElementInsideArray( arr, from, to ) {
     for( let key in elToMove ) {
         arr[to][key] = elToMove[key];
     }
-}
-
-
-function decColorToString( decColor, defaultColor=null ) {
-    if( typeof(decColor) !== 'undefined' ) {        
-        if( decColor ) {
-            if( digitsOnly(decColor) ) {
-                let c1 = (decColor & 0xFF0000) >> 16;
-                let c1text = c1.toString(16);
-                if( c1text.length == 1 ) {
-                    c1text = "0" + c1text;
-                }
-                let c2 = (decColor & 0x00FF00) >> 8;
-                c2text = c2.toString(16);
-                if( c2text.length == 1 ) {
-                    c2text = "0" + c2text;
-                }
-                let c3 = (decColor & 0x0000FF);      
-                c3text = c3.toString(16);
-                if( c3text.length == 1 ) {
-                    c3text = "0" + c3text;
-                }
-                return '#' + c3text + c2text + c1text;
-            }
-        }
-    }
-    return defaultColor;
-}
-
-
-function isEditable( name ) {
-    for( let iE=0 ; iE < _data.editables.length ; iE++ ) {
-        let ref = _data.editables[iE].ref;
-        if( ref == name ) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function padWithNChars( n, char ) {
-    let s = '';
-    for( let i = 0 ; i < n ; i++ ) {
-        s += char;
-    }
-    return s;
 }
