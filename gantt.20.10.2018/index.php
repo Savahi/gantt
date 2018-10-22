@@ -47,15 +47,17 @@ if( isAuthRequired() ) {
 				<svg id='verticalScrollSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
 			</svg>
 		</div>
-		<table cellspacing="0" cellpadding="0" class='toolbox'><tr valign="top">
+		<table cellspacing=0 cellpadding=0 class='toolbox'><tr>
 			<td class='toolbox-left'>
 				<div id='synchronized'></div>
 			</td><td class='toolbox-right'>
 				<div>
-					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxHScale'/>&nbsp;&nbsp;<label for='toolboxHScale'>↔</label> 
+					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxHScale'/>
+					&nbsp;&nbsp;<label for='toolboxHScale'>↔</label> 
 				</div>
 				<div>
-					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxVScale'/>&nbsp;&nbsp;<label for='toolboxHScale'>↕</label> 					
+					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxVScale'/> 
+					&nbsp;&nbsp;<label for='toolboxHScale'>↕</label> 					
 				</div>
 				<div style='margin-right:12px;'>
 					<input id='toolboxDisplayLinks' type='checkbox'>
@@ -164,9 +166,6 @@ if( isAuthRequired() ) {
 
 
 <script type="text/javascript" src="utils.js">
-</script>
-
-<script type="text/javascript" src="drawtimescale.js">
 </script>
 
 <script type="text/javascript" src="index.js">

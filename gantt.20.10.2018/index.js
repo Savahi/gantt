@@ -748,7 +748,7 @@ function initLayoutCoords() {
 	_tableHeaderSVG.setAttributeNS(null, 'y', 0 ); 
 	_tableHeaderSVGWidth = _containerDivWidth * _verticalSplitterPosition;
 	_tableHeaderSVG.setAttributeNS(null, 'width', _tableHeaderSVGWidth ); // window.innerWidth * 0.1 );
-	_tableHeaderSVGHeight = _containerDivHeight * 0.1;
+	_tableHeaderSVGHeight = _containerDivHeight * 0.07;
 	_tableHeaderSVG.setAttributeNS(null, 'height', _tableHeaderSVGHeight ); 
 
 	// Table Content
@@ -1620,9 +1620,9 @@ function drawTimeScale() {
 		dayFontSize = (dayRectWidth*7 > _timeSVGHeight*0.25) ? _timeSVGHeight*0.22 : (dayRectWidth*7) * 0.8;
 	}
 	let dayProperties = { fontSize:dayFontSize, fill:_settings.timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline' };
-	let textRectHeight = _timeSVGHeight/3;
-	let monthY = textRectHeight;
-	let dayY = 2*textRectHeight;
+	let textRectHeight = _timeSVGHeight/2;
+	let monthY = 0;
+	let dayY = textRectHeight;
 	let dayTextY = dayY+textRectHeight-3;
 	let numSecondsInDay = 24*60*60;
 
@@ -1685,6 +1685,13 @@ function drawTimeScale() {
 			let minW = (y == minY) ? getWeekNumber(minDT) : 1;
 			let maxW = (y == maxY) ? getWeekNumber(maxDT) : 53;
 			let numSecondsInWeek = 7*numSecondsInDay;
+			let firstDay = minDT.getDay(); // To adjust to the beginning of a week.
+			if( firstDay == 0 ) { // If Sunday... 
+				firstDay = 7; // ... making it 7 instead of 0
+			}
+			if( firstDay > 1 ) { // If not monday...
+				minDT = new Date(minDT.getTime() - numSecondsInDay*1000*(firstDay-1)); // ... making it Monday
+			}
 			let startOfWeekInSeconds = minDT.getTime()/1000;
 			let endOfWeekInSeconds = startOfWeekInSeconds + (8-minDT.getDay())*numSecondsInDay;
 			for( let w = minW ; w <= maxW ; w++ ) {
@@ -1692,7 +1699,8 @@ function drawTimeScale() {
 				let weekEndX = timeToScreen(endOfWeekInSeconds);
 				let weekRect = createRect( weekStartX, dayY, weekEndX - weekStartX, textRectHeight, textRectProperties );		
 				_timeSVG.appendChild(weekRect);
-				let weekText = createText( w.toString(), weekStartX + (weekEndX - weekStartX)/2, dayTextY, dayProperties );
+				let startOfWeekDate = new Date(startOfWeekInSeconds*1000);
+				let weekText = createText( (startOfWeekDate.getDate()).toString(), weekStartX + (weekEndX - weekStartX)/2, dayTextY, dayProperties );
 				_timeSVG.appendChild(weekText);
 				_timeScaleToGrid.push(startOfWeekInSeconds); // To draw a grid later on the Gantt chart...
 				startOfWeekInSeconds = endOfWeekInSeconds;
@@ -1835,11 +1843,11 @@ function zoomX( zoomFactorChange, zoomPositionChange, centerOfZoom=0.5 ) {
 		return;
 	} 
 	if( zoomFactorChange != null && zoomPositionChange == null ) {
-		if( _ganttVisibleWidth >= _data.visibleMaxWidth && zoomFactorChange > 1.0 ) {
-			return;
-		}
+		//if( _ganttVisibleWidth >= _data.visibleMaxWidth && zoomFactorChange < 0.0 ) {
+		//	return;
+		//}
 		let currentZoomFactor = _data.visibleMaxWidth / _ganttVisibleWidth;
-		let newZoomFactor = currentZoomFactor + zoomFactorChange; 
+		let newZoomFactor = currentZoomFactor + zoomFactorChange;
 		if( !(newZoomFactor > 0) ) {
 			return;
 		}

@@ -69,39 +69,47 @@
 	}
 
 	table.toolbox {
-		width:100%; margin:0; padding:0; height:18px; font-size:12px;		
+		width:100%; margin:0; padding:0; height:16px; font-size:12px;		
 	}
 	table.toolbox td.toolbox-left {
-		width:50%; height:18px; padding:0px 0px 0px 24px; text-align:left;
+		width:50%; height:16px; padding:0px 0px 0px 24px; text-align:left;
 	}
 	table.toolbox td.toolbox-left div {
-		float:left; height:18px; box-sizing:border-box; 
-		margin:0px 2px 0px 2px; padding:0px; border:0;
-		cursor:default; text-align:center; font-size:16px;
+		float:left; height:16px; box-sizing:border-box; 
+		margin:0px 2px 0px 2px; padding:0px; border:0px solid gray;
+		cursor:default; text-align:center; font-size:14px;
+	}
+	table.toolbox td.toolbox-left div input {
+		float:left; height:16px; box-sizing:border-box; 
+		margin:0px 2px 0px 2px; padding:0px; border:0px solid gray;
+		text-align:center;
+	}
+	table.toolbox td.toolbox-left div label {
+		float:left; font-size:14px;
 	}
 	table.toolbox td.toolbox-right {
-		width:50%; height:18px; padding:0px 24px 0px 0px; text-align:right;
+		width:50%; height:16px; padding:0px 24px 0px 0px; text-align:right;
 	}
 	table.toolbox td.toolbox-right div {
 		float:right; box-sizing:border-box; 
-		margin:0px 2px 0px 2px; height:18px; padding:0px;
+		margin:0px 2px 0px 2px; padding:0px;
 		text-align:center;
 	}
 	table.toolbox td.toolbox-right div input[type=number] {
-		float:right; width:44px; height:18px; box-sizing:border-box; font-size:16px; 
+		float:right; width:44px; height:16px; box-sizing:border-box; font-size:12px; 
 		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:#2f2f2f; color:white;
 		text-align:center;
 	}
 	table.toolbox td.toolbox-right div input[type=checkbox] {
-		float:right; width:20px; height:18px; box-sizing:border-box; 
+		float:right; width:20px; height:16px; box-sizing:border-box; 
 		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:#2f2f2f; color:white;
 		text-align:center;
 	}
 	table.toolbox td.toolbox-right div label {
-		float:right; font-size:15px;
+		float:right; font-size:16px;
 	}
 	table.toolbox td.toolbox-right div.toolbox-separator {
-		float:right; width:20px; height:18px; box-sizing:border-box; 
+		float:right; width:20px; height:16px; box-sizing:border-box; 
 		margin:0px 2px 0px 2px; padding:0px; border:0px solid gray; background-color:white; color:white;
 	}
 

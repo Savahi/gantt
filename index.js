@@ -8,6 +8,7 @@ var _settings = {
 	ganttPhaseColor:'#0f7f07f', ganttPhaseOpacity:1.0, ganttCriticalColor:'#bf2f2f', ganttOperationStrokeWidth:0, 
 	ganttCompareColor:'#cfcfdf', ganttCompareOpacity:0.75,
 	ganttFontColor:'#4f4f4f', timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf',
+	timeScaleMaxFontSize:12, minRectWidthOnTimeScale:14,
 	ganttLinkStrokeColor:'#000000',	ganttLinkStrokeWidth:0.5, ganttLinkStrokeDashArray:null, 
 	ganttLinkOpacity:1.0, ganttLinkArrowWidth:8, ganttLinkArrowHeight:8,
 	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', 
@@ -32,7 +33,7 @@ var _terms = {
 		CostTotal:'Cost', VolSum:'Volume', DurSumD:'Duration', 
 		Notes:'Notes',status0:'Not started', status100:'Finished', statusNotFinished:'Under way',
 		gantt:'Gantt', help:'Help', 
-		monthNames:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+		monthNames:['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],
 		helpTitle:'Help',
 		helpText:'<b>Zoom in / Zoom out</b>: &lt;shift+mouse wheel&gt;<br/><b>Zoom 100%</b>: &lt;double click over the gantt canvas&gt;<br/><b>Edit</b>: <i>clicking on an operation or phase opens a dialog box to let you enter data.</i><br/><b>Swap columns in the table</b>: <i>hold and drag a column with the mouse.</i>',
 		settingsTitle:'Settings',
@@ -51,7 +52,7 @@ var _terms = {
 		CostTotal:'Стоимость', VolSum:'Объем', DurSumD:'Длительность', 
 		Notes:'Комментарий', status0:'Не начато', status100:'Завершено', statusNotFinished:'Не завершено',
 		gantt:'Гантт', help:'Справка', 
-		monthNames:['Янв','Фев','Мар','Апр','Май','Июнь','Июль','Авг','Сен','Окт','Ноя','Дек'], 
+		monthNames:['ЯНВ','ФЕВ','МАР','АПР','МАЙ','ИЮН','ИЮЛ','АВГ','СЕН','ОКТ','НОЯ','ДЕК'], 
 		helpTitle:'Справка',
 		helpText:'<b>Zoom in / Zoom out</b>: &lt;shift+mouse wheel&gt;<br/><b>Zoom 100%</b>: &lt;double click over the gantt canvas&gt;<br/><b>Edit</b>: <i>clicking on an operation or phase opens a dialog box to let you enter data.</i><br/><b>Swap columns in the table</b>: <i>hold and drag a column with the mouse.</i>',
 		settingsTitle:'Наcтройки',
@@ -583,13 +584,13 @@ function initData() {
 	// Initializing vertical zoom
 	_ganttVisibleTop = 0;
 	_ganttVisibleHeight = _data.operations.length;
-	let gvh = getCookie('ganttVisibleHeight', 'int');
+	let gvh = getCookie('ganttVisibleHeight', 'float');
 	if( gvh ) {
-		if( gvh <= _data.operations.length ) {
+		if( gvh > 0 ) {
 			_ganttVisibleHeight = gvh;
 		}	
 	}
-	let gvt = getCookie('ganttVisibleTop', 'int');
+	let gvt = getCookie('ganttVisibleTop', 'float');
 	if( gvt ) {
 		if( (gvt + _ganttVisibleHeight) <= _data.operations.length ) {
 			_ganttVisibleTop = gvt;
@@ -601,13 +602,13 @@ function initData() {
 	// Initializing horizontal zoom
 	_ganttVisibleLeft = _data.visibleMin;
 	_ganttVisibleWidth = _data.visibleMaxWidth;
-	let gvw = getCookie('ganttVisibleWidth', 'int');
+	let gvw = getCookie('ganttVisibleWidth', 'float');
 	if( gvw ) {
-		if( gvw <= _data.visibleMaxWidth ) {
+		if( gvw > 60*60 ) {
 			_ganttVisibleWidth = gvw;
 		}	
 	}
-	let gvl = getCookie('ganttVisibleLeft', 'int');
+	let gvl = getCookie('ganttVisibleLeft', 'float');
 	if( gvl ) {
 		if( (gvl + _ganttVisibleWidth) <= _data.visibleMaxWidth ) {
 			_ganttVisibleLeft = gvl;
@@ -716,11 +717,11 @@ function initLayout() {
 	_timeSVG.style.cursor = "default";
 
 	// zoom tools
-	_zoomGanttHorizontalInput.onchange = function(e) { 
+	_zoomGanttHorizontalInput.oninput = function(e) { 
 		zoomXR( (parseInt(this.value) - parseInt(_data.visibleMaxWidth * 100.0 / _ganttVisibleWidth + 0.5)) / 100.0, null );
 	};
-	_zoomGanttVerticalInput.onchange = function(e) { 
-		zoomYR( (parseInt(this.value) - parseInt(_data.operations.length *100.0 / _ganttVisibleHeight + 0.5)) / 100.0, null); 
+	_zoomGanttVerticalInput.oninput = function(e) { 
+		zoomYR( (parseFloat(this.value) - (_data.operations.length * 100.0 / _ganttVisibleHeight) ) / 100.0, null); 
 	};
 	_displayLinksCheckbox.onchange = function() { drawGantt(); };
 
@@ -748,7 +749,7 @@ function initLayoutCoords() {
 	_tableHeaderSVG.setAttributeNS(null, 'y', 0 ); 
 	_tableHeaderSVGWidth = _containerDivWidth * _verticalSplitterPosition;
 	_tableHeaderSVG.setAttributeNS(null, 'width', _tableHeaderSVGWidth ); // window.innerWidth * 0.1 );
-	_tableHeaderSVGHeight = _containerDivHeight * 0.1;
+	_tableHeaderSVGHeight = _containerDivHeight * 0.07;
 	_tableHeaderSVG.setAttributeNS(null, 'height', _tableHeaderSVGHeight ); 
 
 	// Table Content
@@ -1517,7 +1518,7 @@ function drawTableContent( init ) {
 				let textAnchor = 'start';
 				if( ref == "Name" ) { // A name should be adjusted according to it's position in the hierarchy
 					// textX += _settings.hierarchyIndent * _data.operations[i].parents.length;
-					content = padWithNChars( _data.operations[i].parents.length, '·' ) + content;
+					content = padWithNChars( _data.operations[i].parents.length, '   ' ) + content; // figure space: ' ', '·‧', '•', '⁌','|'
 				} else {
 					if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
 						textX = _data.table[col].width - 4;
@@ -1579,132 +1580,6 @@ function drawTableContent( init ) {
 	}
 }
 
-
-function drawTimeScale() {
-	while (_timeSVG.hasChildNodes()) {
-		_timeSVG.removeChild(_timeSVG.lastChild);
-	}
-	_timeSVGBkgr = createRect( 0, 0, _timeSVGWidth, _timeSVGHeight, { fill:'url(#timeScaleGradient)' } ); 	// backgroud rect
-	_timeSVG.appendChild( _timeSVGBkgr );			
-
-	let daysInScreen = (_ganttVisibleWidth)/ (60*60*24);
-	let dayRectWidth = _timeSVGWidth / daysInScreen;
-	let displayDays = ( dayRectWidth > _settings.minDayWidthOnTimeScale ) ? true : false;
-	let displayWeeks = ( !displayDays && dayRectWidth*7 > _settings.minDayWidthOnTimeScale ) ? true : false;
-
-	let minTime = _data.visibleMin * 1000; // screenToTime(0) * 1000;
-	let maxTime = _data.visibleMax * 1000; // screenToTime( _timeSVGWidth ) * 1000;
-	let minDT = new Date(minTime);
-	let maxDT = new Date(maxTime);
-	let deltaY = maxDT.getFullYear() - minDT.getFullYear();
-	let deltaM = maxDT.getMonth() - minDT.getMonth();
-	let deltaD = maxDT.getDate() - minDT.getDate();
-	let minY = minDT.getFullYear();
-	let maxY = maxDT.getFullYear();
-	let textRectProperties = { fill:'none', stroke:_settings.timeScaleStrokeColor, strokeWidth:0.25 };
-	let monthFontSize;
-	let monthWithYear=false;
-	if( dayRectWidth*30 > _timeSVGHeight*0.3*8 ) {
-		monthFontSize = _timeSVGHeight*0.25;
-		monthWithYear = true; 
-	} else if( dayRectWidth*30 > _timeSVGHeight*0.3*3 ) {
-		monthFontSize = _timeSVGHeight*0.25;
-	} else {
-		monthFontSize = dayRectWidth * 30 * 0.25;
-	}
-	let monthProperties = { fontSize:monthFontSize, fill:_settings.timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline' };
-	let dayFontSize=0;
-	if( displayDays ) {
-		dayFontSize = (dayRectWidth > _timeSVGHeight*0.25) ? _timeSVGHeight*0.22 : dayRectWidth * 0.8;
-	} else if( !displayDays && displayWeeks ) {
-		dayFontSize = (dayRectWidth*7 > _timeSVGHeight*0.25) ? _timeSVGHeight*0.22 : (dayRectWidth*7) * 0.8;
-	}
-	let dayProperties = { fontSize:dayFontSize, fill:_settings.timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline' };
-	let textRectHeight = _timeSVGHeight/3;
-	let monthY = textRectHeight;
-	let dayY = 2*textRectHeight;
-	let dayTextY = dayY+textRectHeight-3;
-	let numSecondsInDay = 24*60*60;
-
-	_timeScaleToGrid = []; // To draw a grid later on the Gantt chart...
-
-	for( let y = minY ; y <= maxY ; y++ ) {
-		if( minY != maxY ) {
-			let yearText = createText( minY, _timeSVGWidth/2, textRectHeight-3, monthProperties );
-			_timeSVG.appendChild(yearText);
-		} else {
-			let startOfYear = new Date(y,0,1,0,0,0,0);
-			let startOfYearInSeconds = startOfYear.getTime() / 1000;
-			let endOfYear = new Date(y,11,31,23,59,59,999);
-			let endOfYearInSeconds = endOfYear.getTime() / 1000;
-			let yearStartX = timeToScreen(startOfYearInSeconds);
-			let yearEndX = timeToScreen(endOfYearInSeconds);
-			let yearRect = createRect( yearStartX, 0, yearEndX - yearStartX, textRectHeight, textRectProperties );		
-			_timeSVG.appendChild(yearRect);
-			let yearText = createText( y, yearStartX + (yearEndX - yearStartX)/2, textRectHeight-3, monthProperties );
-			_timeSVG.appendChild(yearText);
-		}
-
-		let minM = ( y == minY ) ? minDT.getMonth() : 0;
-		let maxM = ( y == maxY ) ? maxDT.getMonth() : 11;
-		let mNames = _terms[_data.lang]['monthNames']
-		for( let m = minM ; m <= maxM ; m++ ) {
-			let startOfMonth = new Date(y,m,1,0,0,0,0);
-			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;
-			let endOfMonth = new Date(y,m+1,0,23,59,59,999);
-			let endOfMonthInSeconds = endOfMonth.getTime() / 1000;
-			let monthStartX = timeToScreen(startOfMonthInSeconds);
-			let monthEndX = timeToScreen(endOfMonthInSeconds);
-			let monthRect = createRect( monthStartX, monthY, monthEndX - monthStartX, textRectHeight, textRectProperties );		
-			_timeSVG.appendChild(monthRect);
-			let monthString = mNames[m];
-			if( monthWithYear ) { 
-				monthString += ", " + y;
-			}
-			let monthText = createText( monthString, monthStartX + (monthEndX - monthStartX)/2, monthY+textRectHeight-3, monthProperties );
-			_timeSVG.appendChild(monthText);
-
-			if( displayDays ) {
-				let minD = 1;
-				let maxD = endOfMonth.getDate();
-				for( let d = minD ; d <= maxD ; d++ ) {
-					let currentDay = new Date(y,m,d,0,0,0,0);
-					let currentTimeInSeconds = currentDay.getTime()/1000;
-					let dayStartX = timeToScreen(currentTimeInSeconds);
-					let dayEndX = timeToScreen(currentTimeInSeconds + numSecondsInDay);
-					let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, textRectHeight, textRectProperties );
-					_timeSVG.appendChild(dayRect);
-					let dayText = createText( d.toString(), dayStartX + (dayEndX - dayStartX)/2, dayTextY, dayProperties );
-					_timeSVG.appendChild(dayText);
-					_timeScaleToGrid.push(currentTimeInSeconds); // To a draw grid later on the Gantt chart...
-				}				
-			} 
-		}
-		
-		if( !displayDays && displayWeeks ) {
-			let minW = (y == minY) ? getWeekNumber(minDT) : 1;
-			let maxW = (y == maxY) ? getWeekNumber(maxDT) : 53;
-			let numSecondsInWeek = 7*numSecondsInDay;
-			let startOfWeekInSeconds = minDT.getTime()/1000;
-			let endOfWeekInSeconds = startOfWeekInSeconds + (8-minDT.getDay())*numSecondsInDay;
-			for( let w = minW ; w <= maxW ; w++ ) {
-				let weekStartX = timeToScreen(startOfWeekInSeconds);
-				let weekEndX = timeToScreen(endOfWeekInSeconds);
-				let weekRect = createRect( weekStartX, dayY, weekEndX - weekStartX, textRectHeight, textRectProperties );		
-				_timeSVG.appendChild(weekRect);
-				let weekText = createText( w.toString(), weekStartX + (weekEndX - weekStartX)/2, dayTextY, dayProperties );
-				_timeSVG.appendChild(weekText);
-				_timeScaleToGrid.push(startOfWeekInSeconds); // To draw a grid later on the Gantt chart...
-				startOfWeekInSeconds = endOfWeekInSeconds;
-				if( w < maxW ) {
-					endOfWeekInSeconds += numSecondsInWeek;
-				} else {
-					endOfWeekInSeconds = maxDT.getTime()/1000;
-				}
-			}								
-		}	
-	}
-}
 
 function drawTableScroll( init ) {
 	if( !init ) {
@@ -1835,11 +1710,11 @@ function zoomX( zoomFactorChange, zoomPositionChange, centerOfZoom=0.5 ) {
 		return;
 	} 
 	if( zoomFactorChange != null && zoomPositionChange == null ) {
-		if( _ganttVisibleWidth >= _data.visibleMaxWidth && zoomFactorChange > 1.0 ) {
-			return;
-		}
+		//if( _ganttVisibleWidth >= _data.visibleMaxWidth && zoomFactorChange < 0.0 ) {
+		//	return;
+		//}
 		let currentZoomFactor = _data.visibleMaxWidth / _ganttVisibleWidth;
-		let newZoomFactor = currentZoomFactor + zoomFactorChange; 
+		let newZoomFactor = currentZoomFactor + zoomFactorChange;
 		if( !(newZoomFactor > 0) ) {
 			return;
 		}
@@ -1895,9 +1770,9 @@ function zoomY( zoomFactorChange, zoomPositionChange, centerOfZoom=0.5 ) {
 		return;
 	} 
 	if( zoomFactorChange !== null && zoomPositionChange === null ) {
-		if( _ganttVisibleHeight >= _data.operations.length && zoomFactorChange > 1.0 ) {
-			return;
-		}
+		//if( _ganttVisibleHeight >= _data.operations.length && zoomFactorChange > 1.0 ) {
+		//	return;
+		//}
 		let currentZoomFactor = _data.operations.length / _ganttVisibleHeight;
 		let newZoomFactor = currentZoomFactor + zoomFactorChange;
 		if( !(newZoomFactor > 0) ) {
