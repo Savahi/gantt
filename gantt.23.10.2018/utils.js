@@ -6,15 +6,15 @@ function displaySynchronizedStatus( synchronized ) {
             if( synchronized == -1 ) {
                 el.innerHTML =  '×'; // ⚠ '&#9888;'
                 el.className = 'error-color';
-                el.title = _texts[_data.lang].errorUserData;
+                el.title = _terms[_data.lang].errorUserData;
             } else if( synchronized == 0 ) {
                 el.innerHTML =  '⚠'; // '&#9888;';
                 el.className = 'error-color';
-                el.title = _texts[_data.lang].unsynchronizedMessage;
+                el.title = _terms[_data.lang].unsynchronizedMessage;
             } else {
                 el.innerHTML =  '⟳'; // '&#8634;' '&#9888;';
                 el.className = 'ok-color';
-                el.title = _texts[_data.lang].synchronizedMessage;
+                el.title = _terms[_data.lang].synchronizedMessage;
             }
         }
     }
@@ -359,7 +359,7 @@ function getCookie( cname, type='string' ) {
 }
 
 
-function moveElementInsideArrayOfObjects( arr, from, to ) {    
+function moveElementInsideArray( arr, from, to ) {    
     var elToMove = {};
     for( let key in arr[from] ) {
         elToMove[key] = arr[from][key];
@@ -382,20 +382,6 @@ function moveElementInsideArrayOfObjects( arr, from, to ) {
     }
 }
 
-
-function copyArrayOfObjects( arrFrom, arrTo ) {    
-    if( arrTo.length == 0 ) {
-        for( let i = 0 ; i < arrFrom.length ; i++ ) {
-            arrTo.push({});
-        }
-    }
-
-    for( let i = 0 ; i < arrFrom.length ; i++ ) {
-        for( let key in arrFrom[i] ) {
-            arrTo[i][key] = arrFrom[i][key];
-        }
-    }
-}
 
 function decColorToString( decColor, defaultColor=null ) {
     if( typeof(decColor) !== 'undefined' ) {        
@@ -441,77 +427,3 @@ function padWithNChars( n, char ) {
     }
     return s;
 }
-
-/*
-
-    if( shiftOnly ) {
-        let ganttViewBoxTop = operToScreen( _ganttVisibleTop );
-        let ganttViewBoxLeft = timeToScreen( _ganttVisibleLeft );
-        let ganttViewBox = `${ganttViewBoxLeft} ${ganttViewBoxTop} ${_ganttSVGWidth} ${_ganttSVGHeight}`;
-        _ganttSVG.setAttributeNS(null,'viewBox',ganttViewBox);
-        return;
-    }
-
-
-
-function setTableVisibleLeft( tableVisibleLeft ) {
-    let maxTableVisibleLeft = (_tableHeaderOverallWidth > _tableHeaderSVGWidth) ? (_tableHeaderOverallWidth - _tableHeaderSVGWidth) : 0;
-    if( !(maxTableVisibleLeft > 0.0) ) {
-        return;
-    }
-    if( tableVisibleLeft > maxTableVisibleLeft ) {
-        _tableVisibleLeft = maxTableVisibleLeft;
-    } else if( _tableVisibleLeft < 0 ) {
-        _tableVisibleLeft = 0;
-    }
-
-    if( _tableHeaderSVG ) {
-        let headerViewBox = `${_tableVisibleLeft} 0 ${_tableHeaderSVGWidth} ${_tableHeaderSVGHeight}`;
-        _tableContentSVG.setAttributeNS(null,'viewBox',headerViewBox);
-    }
-
-    if( _tableContentSVG ) {
-        let contentViewBox = `${_tableVisibleLeft} ${_ganttViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`;
-        _tableContentSVG.setAttributeNS(null,'viewBox',contentViewBox);
-    }
-}
-
-
-function setGanttVisibleLeft( ganttVisibleLeft ) {
-    ganttVisibleLeft = validateGanttLeft( ganttVisibleLeft );
-    let _ganttViewBoxLeft = timeToScreen( ganttVisibleLeft );
-
-    if( _timeSVG ) {
-        let timeViewBox = `${_ganttViewBoxLeft} 0 ${_timeSVGWidth} ${_timeSVGHeight}`;
-        _ganttSVG.setAttributeNS(null,'viewBox',headerViewBox);
-    }
-    if( _ganttSVG ) {
-        let ganttViewBox = `${_ganttViewBoxLeft} ${_ganttViewBoxTop} ${_ganttSVGWidth} ${_ganttSVGHeight}`;
-        _ganttSVG.setAttributeNS(null,'viewBox',headerViewBox);
-    }
-}
-
-function setGanttVisibleTop( ganttVisibleTop, setSlider=true ) {
-    _ganttVisibleTop = ganttVisibleTop;
-    let _ganttViewBoxTop = operToScreen( ganttVisibleTop );
-
-    if( _tableContentSVG ) {
-        let tableContentViewBox = `${_tableVisibleLeft} ${_ganttViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`;
-        _ganttSVG.setAttributeNS(null,'viewBox',headerViewBox);
-    }
-    if( _ganttSVG ) {
-        let ganttViewBox = `${_ganttViewBoxLeft} ${_ganttViewBoxTop} ${_ganttSVGWidth} ${_ganttSVGHeight}`;
-        _ganttSVG.setAttributeNS(null,'viewBox',ganttViewBox);
-    }
-
-    if( _verticalScrollSVGSlider && setSlider ) {
-        let maxSlider = _verticalScrollSVGHeight - _verticalScrollSVGSlider.getBBox().height;
-        if( maxSlider > 0 ) {
-            let newSliderY = _ganttVisibleTop * maxSlider / (_data.operations.length - _ganttVisibleHeight);
-            _verticalScrollSVGSlider.setAttributeNS( null,'y', newSliderY );
-        }
-    }
-    setCookie("ganttVisibleTop",_ganttVisibleTop);
-}
-
-*/

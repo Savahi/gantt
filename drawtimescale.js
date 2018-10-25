@@ -209,7 +209,7 @@ function drawTimeScaleMonths( rectProperties, textProperties, displayMonths, min
 	for( let y = minY ; y <= maxY ; y++ ) {
 		let minM = ( y == minY ) ? minDT.getMonth() : 0;
 		let maxM = ( y == maxY ) ? maxDT.getMonth() : 11;
-		let mNames = _terms[_data.lang]['monthNames']
+		let mNames = _texts[_data.lang]['monthNames']
 		for( let m = minM ; m <= maxM ; m++ ) {
 			let startOfMonth = new Date(y,m,1,0,0,0,0);
 			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;

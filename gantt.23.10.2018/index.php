@@ -23,7 +23,7 @@ if( isAuthRequired() ) {
 	<div class='menu' id='menu'>
 		<div data-menuid='main' id='menuMain'>&#9870;</div>
 		<!--<div data-menuid='settings' id='menuSettings'>&#9881;</div>-->
-		<div data-menuid='help' id='menuHelp' style='padding-top:4px;'>&#8505;</div>
+		<div data-menuid='help' id='menuHelp'>&#8505;</div>
 	</div>
 	<div class='project-details' id='projectDetails'>
 		<div class='project-name' id='projectName'>SPIDER PROJECT</div>
@@ -47,26 +47,19 @@ if( isAuthRequired() ) {
 				<svg id='verticalScrollSVG' preserveAspectRatio='none' style='margin:0; padding:0;'></svg>
 			</svg>
 		</div>
-		<table cellspacing="0" cellpadding="0" class='toolbox'><tr valign="top">
+		<table cellspacing=0 cellpadding=0 class='toolbox'><tr>
 			<td class='toolbox-left'>
 				<div id='synchronized'></div>
-				<!--
-					↺ ↻ ↶ ↷ ⇆ ⇅ ⇎
-				-->
-				<div id='toolboxResetTableDimensions' style='margin-left:24px;' title=''>
-					<button class='toolbox-btn' onclick='restoreTableColumnOrderAndWidths();'>↶</button>
-				<div>					
 			</td><td class='toolbox-right'>
-				<div id='toolboxZoom100' title=''>
-					<button class='toolbox-btn' onclick='onGanttDblClick();'>100%</button>
-				<div>	
-				<div id='toolboxZoomHorizontally' style='margin-right:24px;'>
-					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxHScale'/>&nbsp;&nbsp;<label for='toolboxHScale'>↔</label> 
+				<div>
+					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxHScale'/>
+					&nbsp;&nbsp;<label for='toolboxHScale'>↔</label> 
 				</div>
-				<div id='toolboxZoomVertically'>
-					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxVScale'/>&nbsp;&nbsp;<label for='toolboxVScale'>↕</label> 					
-				</div>			
-				<div id='toolboxLinks' style='margin-right:24px;'>
+				<div>
+					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxVScale'/> 
+					&nbsp;&nbsp;<label for='toolboxHScale'>↕</label> 					
+				</div>
+				<div style='margin-right:12px;'>
 					<input id='toolboxDisplayLinks' type='checkbox'>
 					&nbsp;&nbsp;<label for='toolboxDisplayLinks'>⤡</label>
 				</div>				
@@ -84,7 +77,7 @@ if( isAuthRequired() ) {
 	-->
 	<div data-pageid='help'>
 		<h1 id='helpTitle'></h1>
-		<div id='helpText' style='padding:24px 5vw 0px 10vw; text-align:left; line-height:150%; font-size:14px;'></div>
+		<div id='helpText' style='padding:24px 5vw 0px 20vw; text-align:left; line-height:150%; font-size:14px;'></div>
 	</div>
 </div>
 
@@ -172,16 +165,7 @@ if( isAuthRequired() ) {
 	</script>
 
 
-<script type="text/javascript" src="texts.js">
-</script>
-
 <script type="text/javascript" src="utils.js">
-</script>
-
-<script type="text/javascript" src="drawtimescale.js">
-</script>
-
-<script type="text/javascript" src="messagebox.js">
 </script>
 
 <script type="text/javascript" src="index.js">

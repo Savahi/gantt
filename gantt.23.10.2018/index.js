@@ -8,7 +8,6 @@ var _settings = {
 	ganttPhaseColor:'#0f7f07f', ganttPhaseOpacity:1.0, ganttCriticalColor:'#bf2f2f', ganttOperationStrokeWidth:0, 
 	ganttCompareColor:'#cfcfdf', ganttCompareOpacity:0.75,
 	ganttFontColor:'#4f4f4f', timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf',
-	timeScaleMaxFontSize:12, minRectWidthOnTimeScale:14,
 	ganttLinkStrokeColor:'#000000',	ganttLinkStrokeWidth:0.5, ganttLinkStrokeDashArray:null, 
 	ganttLinkOpacity:1.0, ganttLinkArrowWidth:8, ganttLinkArrowHeight:8,
 	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', 
@@ -26,6 +25,47 @@ var _settings = {
 	zoomFactor:0.25, containerHPadding:2,
 	minDayWidthOnTimeScale:12, minVisibleFontSize:6, minTableColumnWidth:4, hierarchyIndent:4
 }
+
+var _terms = { 
+	'en': { operation:'Operation', phase:'Phase', status:'Status', resourse:'Resourse(s)', version: 'Version',
+		expandColumn:'[]', Level:'Level', Name:'Name', Code:'Code', Start:'Start', Fin:'Finish', 
+		CostTotal:'Cost', VolSum:'Volume', DurSumD:'Duration', 
+		Notes:'Notes',status0:'Not started', status100:'Finished', statusNotFinished:'Under way',
+		gantt:'Gantt', help:'Help', 
+		monthNames:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+		helpTitle:'Help',
+		helpText:'<b>Zoom in / Zoom out</b>: &lt;shift+mouse wheel&gt;<br/><b>Zoom 100%</b>: &lt;double click over the gantt canvas&gt;<br/><b>Edit</b>: <i>clicking on an operation or phase opens a dialog box to let you enter data.</i><br/><b>Swap columns in the table</b>: <i>hold and drag a column with the mouse.</i>',
+		settingsTitle:'Settings',
+		tableSettingsTitle:'Table Settings',
+		waitDataText:'PLEASE WAIT WHILE LOADING DATA...',
+		waitSaveUserDataText:'PLEASE WAIT WHILE SAVING DATA...',
+		errorLoadingData:'ERROR LOADING DATA...',
+		errorParsingData:'DATA LOADED ARE INVALID...',
+		errorParsingUserData:'DATA LOADED ARE INVALID...', 
+		enterUserDataMessage: 'ENTER USER DATA HERE',
+		errorUserData:'The data you\'ve entered are corrupted. Please contact your system administrator!',
+		synchronizedMessage: 'All the data presented are synchronized with Spider Project',
+		unsynchronizedMessage: 'The data you entered has not been uploaded into Spider Project yet!' },
+	'ru': { operation:'Операция', phase:'Фаза', status:'Состояние', resourse:'Ресурс(ы)', version: 'Версия',
+		expandColumn:'[]', Level:'Уровень', Name:'Название', Code:'Код', Start:'Старт', Fin:'Финиш', 
+		CostTotal:'Стоимость', VolSum:'Объем', DurSumD:'Длительность', 
+		Notes:'Комментарий', status0:'Не начато', status100:'Завершено', statusNotFinished:'Не завершено',
+		gantt:'Гантт', help:'Справка', 
+		monthNames:['Янв','Фев','Мар','Апр','Май','Июнь','Июль','Авг','Сен','Окт','Ноя','Дек'], 
+		helpTitle:'Справка',
+		helpText:'<b>Zoom in / Zoom out</b>: &lt;shift+mouse wheel&gt;<br/><b>Zoom 100%</b>: &lt;double click over the gantt canvas&gt;<br/><b>Edit</b>: <i>clicking on an operation or phase opens a dialog box to let you enter data.</i><br/><b>Swap columns in the table</b>: <i>hold and drag a column with the mouse.</i>',
+		settingsTitle:'Наcтройки',
+		tableSettingsTitle:'Настройки таблицы',
+		waitDataText:'ПОЖАЛУЙСТА ПОДОЖДИТЕ, ПОКА ЗАГРУЖАЮТСЯ ДАННЫЕ...',
+		waitSaveUserDataText:'ПОЖАЛУЙСТА, ПОДОЖДИТЕ ПОКА СОХРАНЯЮТСЯ ДАННЫЕ...',
+		errorLoadingData:'ОШИБКА ПРИ ЗАГРУЗКЕ ДАННЫХ...',
+		errorParsingData:'ЗАГРУЖЕННЫЕ ДАННЫЕ ИСКАЖЕНЫ...',
+		errorParsingUserData:'ЗАГРУЖЕННЫЕ ДАННЫЕ ИСКАЖЕНЫ...',
+		enterUserDataMessage: 'USER DATA ВВОДЯТСЯ СЮДА',
+		errorUserData:'Введенные вами данные были скажены. Обратитесь к системному администратору!',
+		synchronizedMessage: 'Все данные синхронизированы со Spider Project',
+		unsynchronizedMessage: 'Данные, которые вы ввели, еще не были загружены в Spider Project!' }
+};
 
 var _files = { gantt:"gantt.php", logout:"logout.php", userDataFile: "gantt_user_data.php", userDataSave:"gantt_save_user_data.php" };
 
@@ -162,9 +202,9 @@ window.addEventListener( 'mouseup', function(e) {
 		_data.table[_tableSplitterCaptured].width = newWidth;
 		setCookie( _data.table[_tableSplitterCaptured].ref + "Width", _data.table[_tableSplitterCaptured].width );
 		_tableSplitterCaptured = -1;
-		drawTableHeader();
+		calcTableHeaderOverallWidth();
 		drawTableContent();
-		drawTableScroll();
+		drawTableHeader();
 	}
 	if( _tableHeaderColumnSwapperCapturedAtX >= 0 ) { // Table column title has been moved...
 		_tableHeaderColumnSwapperCapturedAtX = -1;
@@ -178,7 +218,7 @@ window.addEventListener( 'mouseup', function(e) {
 			let width = parseInt( el.getAttributeNS( null, 'width' ) ); 
 			if( e.x > x && e.x < (x + width) ) {
 				if( from != col ) {
-					moveElementInsideArrayOfObjects(_data.table, from, col );
+					moveElementInsideArray(_data.table, from, col );
 					drawTableHeader(true);
 					drawTableContent(true);					
 					for( let cookie = 0 ; cookie < _data.table.length ; cookie++ ) { // Updating cookies according to new column sort order.
@@ -231,8 +271,8 @@ window.addEventListener( 'mousemove', function(e) {
 		}
 		_tableVisibleLeft = newSliderX * maxVisibleLeft / maxSlider;
 		_tableScrollSVGSlider.setAttributeNS( null,'x', newSliderX );
-		drawTableHeader(false,true);
-		drawTableContent(false,true);
+		drawTableHeader();
+		drawTableContent();
 		return;
 	}
 	if( _ganttHScrollCaptured ) {
@@ -266,8 +306,8 @@ window.addEventListener( 'mousemove', function(e) {
 		_ganttVisibleTop = newSliderY * (_data.operations.length - _ganttVisibleHeight) / maxSlider;
 		setCookie("ganttVisibleTop",_ganttVisibleTop);		
 		_verticalScrollSVGSlider.setAttributeNS( null,'y', newSliderY );
-		drawGantt(false,true);
-		drawTableContent(false,true);
+		drawGantt();
+		drawTableContent();
 		return;
 	}
 	if( _tableHeaderColumnSwapper != null ) {
@@ -293,7 +333,7 @@ function loadData() {
 			    	}
 			    	if( errorParsingData ) {
 			    		alert(this.responseText);
-						displayMessageBox( _texts['en'].errorParsingData ); 
+						displayMessageBox( _terms['en'].errorParsingData ); 
 			    	} else if( !('editables' in _data) ) {
 					    hideMessageBox();		    
 						initData();
@@ -332,25 +372,25 @@ function loadData() {
 						xmlhttpUserData.send();
 				    }
 				} else {
-					displayMessageBox( _texts['en'].errorLoadingData ); 
+					displayMessageBox( _terms['en'].errorLoadingData ); 
 				}
 		    }
 		};
 		xmlhttp.open("GET", _files.gantt, true);
 		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
 		xmlhttp.send();
-		displayMessageBox( _texts['en'].waitDataText ); 
+		displayMessageBox( _terms['en'].waitDataText ); 
 	} 
 }
 
 function displayData() {	
-	displayHeaderAndFooterInfo();	
+	displayLayoutHeader();	
 	drawAll();
 }
 
 function drawAll() {
-	drawTableHeader(true);
 	drawTableContent(true);
+	drawTableHeader(true);
 	drawTimeScale();
 	drawGantt(true);
 	drawTableScroll( true );
@@ -499,9 +539,7 @@ function initData() {
 		_data.operations[i].visible = true;
 	}
 
-	// Reading cookies to init interface elements.
-	_data.initialTable = []; // Saving table settings loaded from a local version of Spider Project
-	copyArrayOfObjects( _data.table, _data.initialTable );
+	// Reading cookies to init interface elements. 
 	for( let col = 0 ; col < _data.table.length ; col++ ) {
 		let widthValue = getCookie( _data.table[col].ref+"Width", 'int' );
 		if( widthValue ) {
@@ -527,7 +565,7 @@ function initData() {
 			for( let cookie = 0 ; cookie < _data.table.length ; cookie++ ) { // Searching for the column to be moved to 'moveTo' position...
 				let pos = getCookie( _data.table[cookie].ref+"Position", 'int' );
 				if( pos == moveTo ) {
-					moveElementInsideArrayOfObjects( _data.table, cookie, moveTo );
+					moveElementInsideArray( _data.table, cookie, moveTo );
 					moveTo -= 1;
 					break;
 				}
@@ -545,13 +583,13 @@ function initData() {
 	// Initializing vertical zoom
 	_ganttVisibleTop = 0;
 	_ganttVisibleHeight = _data.operations.length;
-	let gvh = getCookie('ganttVisibleHeight', 'float');
+	let gvh = getCookie('ganttVisibleHeight', 'int');
 	if( gvh ) {
-		if( gvh > 0 ) {
+		if( gvh <= _data.operations.length ) {
 			_ganttVisibleHeight = gvh;
 		}	
 	}
-	let gvt = getCookie('ganttVisibleTop', 'float');
+	let gvt = getCookie('ganttVisibleTop', 'int');
 	if( gvt ) {
 		if( (gvt + _ganttVisibleHeight) <= _data.operations.length ) {
 			_ganttVisibleTop = gvt;
@@ -563,13 +601,13 @@ function initData() {
 	// Initializing horizontal zoom
 	_ganttVisibleLeft = _data.visibleMin;
 	_ganttVisibleWidth = _data.visibleMaxWidth;
-	let gvw = getCookie('ganttVisibleWidth', 'float');
+	let gvw = getCookie('ganttVisibleWidth', 'int');
 	if( gvw ) {
-		if( gvw > 60*60 ) {
+		if( gvw <= _data.visibleMaxWidth ) {
 			_ganttVisibleWidth = gvw;
 		}	
 	}
-	let gvl = getCookie('ganttVisibleLeft', 'float');
+	let gvl = getCookie('ganttVisibleLeft', 'int');
 	if( gvl ) {
 		if( (gvl + _ganttVisibleWidth) <= _data.visibleMaxWidth ) {
 			_ganttVisibleLeft = gvl;
@@ -678,22 +716,21 @@ function initLayout() {
 	_timeSVG.style.cursor = "default";
 
 	// zoom tools
-	_zoomGanttHorizontalInput.oninput = function(e) { 
-		zoomXR( (parseInt(this.value) - parseInt(_data.visibleMaxWidth * 100.0 / _ganttVisibleWidth + 0.5)) / 100.0 );
+	_zoomGanttHorizontalInput.onchange = function(e) { 
+		zoomXR( (parseInt(this.value) - parseInt(_data.visibleMaxWidth * 100.0 / _ganttVisibleWidth + 0.5)) / 100.0, null );
 	};
-	_zoomGanttVerticalInput.oninput = function(e) { 
-		zoomYR( (parseFloat(this.value) - (_data.operations.length * 100.0 / _ganttVisibleHeight) ) / 100.0 ); 
+	_zoomGanttVerticalInput.onchange = function(e) { 
+		zoomYR( (parseInt(this.value) - parseInt(_data.operations.length *100.0 / _ganttVisibleHeight + 0.5)) / 100.0, null); 
 	};
 	_displayLinksCheckbox.onchange = function() { drawGantt(); };
 
 	createDefs( _containerSVG );
-
 	return true;
 }
 
 function initLayoutCoords() {
 	_containerDivY = getElementPosition(_containerDiv).y;
-	_containerDivHeight = window.innerHeight - _containerDivY - 32;
+	_containerDivHeight = window.innerHeight - _containerDivY - 24;
 
 	_containerDiv.style.height = _containerDivHeight;
 	_containerDiv.style.width = window.innerWidth;
@@ -711,9 +748,8 @@ function initLayoutCoords() {
 	_tableHeaderSVG.setAttributeNS(null, 'y', 0 ); 
 	_tableHeaderSVGWidth = _containerDivWidth * _verticalSplitterPosition;
 	_tableHeaderSVG.setAttributeNS(null, 'width', _tableHeaderSVGWidth ); // window.innerWidth * 0.1 );
-	_tableHeaderSVGHeight = _containerDivHeight * 0.07;
+	_tableHeaderSVGHeight = _containerDivHeight * 0.1;
 	_tableHeaderSVG.setAttributeNS(null, 'height', _tableHeaderSVGHeight ); 
-    _tableHeaderSVG.setAttribute('viewBox', `0 0 ${_tableHeaderSVGWidth} ${_tableHeaderSVGHeight}`);
 
 	// Table Content
 	_tableContentSVG.setAttributeNS(null, 'x', 0 );
@@ -722,7 +758,6 @@ function initLayoutCoords() {
 	_tableContentSVG.setAttributeNS(null, 'width', _tableContentSVGWidth ); // window.innerWidth * 0.1 );
 	_tableContentSVGHeight = _containerDivHeight - _tableHeaderSVGHeight - _settings.scrollThick;
 	_tableContentSVG.setAttributeNS(null, 'height', _tableContentSVGHeight ); 
-    _tableContentSVG.setAttribute('viewBox', `0 0 ${_tableContentSVGWidth} ${_tableContentSVGHeight}`);
 
 	// Vertical Splitter
 	_verticalSplitterSVG.setAttributeNS(null, 'x', _tableContentSVGWidth );
@@ -739,7 +774,6 @@ function initLayoutCoords() {
 	_ganttSVG.setAttributeNS(null, 'width', _ganttSVGWidth ); // window.innerWidth * 0.9 );
 	_ganttSVGHeight = _tableContentSVGHeight;
 	_ganttSVG.setAttributeNS(null, 'height', _ganttSVGHeight ); //window.innerHeight/2 );
-    _ganttSVG.setAttribute('viewBox', `0 0 ${_ganttSVGWidth} ${_ganttSVGHeight}`);
 
 	// Time scale
 	_timeSVG.setAttributeNS(null, 'x', _tableContentSVGWidth + _verticalSplitterSVGWidth );
@@ -774,25 +808,21 @@ function initLayoutCoords() {
 	_verticalScrollSVG.setAttributeNS(null, 'height', _verticalScrollSVGHeight ); 
 }
 
-function displayHeaderAndFooterInfo() {
+function displayLayoutHeader() {
 	let projectName = document.getElementById('projectName');
 	projectName.innerText = _data.proj.Name;
 
-	let timeAndVersion = _data.proj.CurTime + " | " + _texts[_data.lang].version + ": " + _data.proj.ProjVer;
+	let timeAndVersion = _data.proj.CurTime + " | " + _terms[_data.lang].version + ": " + _data.proj.ProjVer;
 	document.getElementById('projectTimeAndVersion').innerText = timeAndVersion;
 	if( _data.userName !== null ) {
 		let el = document.getElementById('projectUser');
 		el.innerHTML = _data.userName + "<br/><a href='" + _files.logout + "' title='Logout'>[&rarr;]</a>";
 	}
 
-	document.getElementById('helpTitle').innerText = _texts[_data.lang].helpTitle; // Initializing help text	
-	document.getElementById('helpText').innerHTML = _texts[_data.lang].helpText; // Initializing help text	
-
-	document.getElementById('toolboxResetTableDimensions').title = _texts[_data.lang].resetTableDimensionsTitle;
-	document.getElementById('toolboxZoom100').title = _texts[_data.lang].zoom100Title;
-	document.getElementById('toolboxZoomVertically').title = _texts[_data.lang].zoomVerticallyTitle;
-	document.getElementById('toolboxZoomHorizontally').title = _texts[_data.lang].zoomHorizontallyTitle;
-	document.getElementById('toolboxLinks').title = _texts[_data.lang].displayLinksTitle;
+	document.getElementById('helpTitle').innerText = _terms[_data.lang].helpTitle; // Initializing help text	
+	document.getElementById('helpText').innerHTML = _terms[_data.lang].helpText; // Initializing help text	
+	
+	//document.getElementById('settingsTableTitle').innerHTML = _terms[_data.lang].tableSettingsTitle; // Initializing settings text	
 }
 
 
@@ -806,26 +836,20 @@ function calcVisibleOperations() {
 	return numVisible;
 }
 
-function drawGantt( init=false, shiftOnly=false ) {
 
-    let ganttViewBoxLeft = timeToScreen( _ganttVisibleLeft ) - _settings.ganttChartLeftMargin;
-    let ganttViewBoxTop = operToScreen( _ganttVisibleTop );
-    let ganttViewBox = `${ganttViewBoxLeft} ${ganttViewBoxTop} ${_ganttSVGWidth} ${_ganttSVGHeight}`;
-    _ganttSVG.setAttributeNS(null,'viewBox',ganttViewBox);
-    if( shiftOnly ) {
-    	return;
-    }
-
+function drawGantt( init ) {
+	if( !init ) {
+		init = false;
+	}
 	if( init ) {
 		while (_ganttSVG.hasChildNodes()) {
 			_ganttSVG.removeChild(_ganttSVG.lastChild);
 		}		
-		_ganttSVGBkgr = createRect( 0, 0, timeToScreen(_data.visibleMax), operToScreen(_data.operations.length), { fill:'#ffffff' } );
+		_ganttSVGBkgr = createRect( 0, 0, _ganttSVGWidth, _ganttSVGHeight, {fill:'url(#ganttGradient)'} );
 		_ganttSVG.appendChild(_ganttSVGBkgr);		
 
 	} else {
-		_ganttSVGBkgr.setAttributeNS(null,'width',timeToScreen(_data.visibleMax));
-		_ganttSVGBkgr.setAttributeNS(null,'width',operToScreen(_data.operations.length));
+		_ganttSVGBkgr.setAttributeNS(null,'width',_ganttSVGWidth);		
 	}
 
 	let displayLinks = _displayLinksCheckbox.checked; // Display links?
@@ -1160,11 +1184,11 @@ function formatTitleTextContent( i, html=false ) {
 
 	let statusText;
 	if( _data.operations[i].status == 0 ) {
-		statusText = _texts[_data.lang].status0;
+		statusText = _terms[_data.lang].status0;
 	} else if( _data.operations[i].status < 100 ) {
 		statusText = _data.operations[i].status + "%";
 	} else {
-		statusText = _texts[_data.lang].status100;				
+		statusText = _terms[_data.lang].status100;				
 	}
 	textContent += "[ " + statusText + " ]" + endl + endl;
 
@@ -1198,7 +1222,7 @@ function formatTitleTextContent( i, html=false ) {
 				}
 			}
 		}
-		// let name = _texts[_data.lang][ref];
+		// let name = _terms[_data.lang][ref];
 		let name = _data.table[col].name;
 		if( html ) {
 			name = "<span style='color:#5f5f5f; font-style:italic;'>" + name + "</span>";
@@ -1268,7 +1292,7 @@ function createEditBoxInputs() {
 		let ref = _data.editables[iE].ref;
 		let promptDiv = document.createElement('div');
 		promptDiv.id = 'editBoxInputPrompt' + ref;
-		promptDiv.innerText = _data.editables[iE].name; // _texts[_data.lang][ref];
+		promptDiv.innerText = _data.editables[iE].name; // _terms[_data.lang][ref];
 		promptDiv.className = 'editBoxPrompt';
 
 		let input;
@@ -1288,21 +1312,16 @@ function createEditBoxInputs() {
 }
 
 
-function drawTableHeader( init=false, shiftOnly=false ) {
-    let thViewBox = `${_tableVisibleLeft} 0 ${_tableHeaderSVGWidth} ${_tableHeaderSVGHeight}`;
-    _tableHeaderSVG.setAttributeNS(null,'viewBox',thViewBox);
-    if( shiftOnly ) {
-        return;
-    }
-
-    calcTableHeaderOverallWidth();
+function drawTableHeader( init ) {
+	if( !init ) {
+		var init = false;
+	}
 	if( init ) {
 		while (_tableHeaderSVG.hasChildNodes()) {
 			_tableHeaderSVG.removeChild(_tableHeaderSVG.lastChild);
 		}
 
-		_tableHeaderSVGBkgr = createRect( 0, 0, _tableHeaderOverallWidth, _tableHeaderSVGHeight, 
-			{ id:'tableHeaderBkgr', fill:_settings.tableHeaderFillColor } ); // backgroud rect
+		_tableHeaderSVGBkgr = createRect( 0, 0, _tableHeaderOverallWidth, _tableHeaderSVGHeight, { fill:_settings.tableHeaderFillColor } ); // backgroud rect
 		_tableHeaderSVG.appendChild( _tableHeaderSVGBkgr );			
 
 		let left = _data.table[0].width;
@@ -1329,7 +1348,6 @@ function drawTableHeader( init=false, shiftOnly=false ) {
 			svg.dataset.columnNumber = col;
 		}
 	} else {
-		document.getElementById('tableHeaderBkgr').setAttributeNS(null,'width',_tableHeaderOverallWidth);
 		let left = _data.table[0].width;
 		for( let col = 1 ; col < _data.table.length ; col++ ) {
 			let svg = document.getElementById('tableHeaderColumnNameSVG'+col);
@@ -1357,28 +1375,23 @@ function onTableHeaderMouseDown(e) {
 }
 
 
-function drawTableContent( init=false, shiftOnly=false ) {
-
-    let tcViewBoxTop = operToScreen( _ganttVisibleTop );
-    let tcViewBox = `${_tableVisibleLeft} ${tcViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`;
-    _tableContentSVG.setAttributeNS(null,'viewBox',tcViewBox);
-    if( shiftOnly ) {
-        return;
-    }
-
-	let overallHeight = operToScreen(_data.operations.length);
+function drawTableContent( init ) {
+	if( !init ) {
+		init = false;
+	}
 	if( init ) {
 		while (_tableContentSVG.hasChildNodes()) {
 			_tableContentSVG.removeChild(_tableContentSVG.lastChild);
 		}
 
-		_tableContentSVGBkgr = createRect( 0-_tableVisibleLeft, 0, _containerDivWidth, overallHeight, 
+		let height = operToScreen(_data.operations.length);
+		_tableContentSVGBkgr = createRect( 0-_tableVisibleLeft, 0, _containerDivWidth, height, 
 			{ stroke:'none', strokeWidth:1,  fill:_settings.tableContentFillColor } ); 	// backgroud rect
 		_tableContentSVG.appendChild( _tableContentSVGBkgr );		
 		
 		let left = 0;
 		for( let col = 0 ; col < _data.table.length ; col++ ) { // Creating svg-containers for columns
-			let rect = createSVG( left+2-_tableVisibleLeft, 0, _data.table[col].width-4, overallHeight, 
+			let rect = createSVG( left+2-_tableVisibleLeft, 0, _data.table[col].width-4, height, 
 				{ id:('tableColumnSVG'+col), fill:_settings.tableContentStrokeColor } );
 			_tableContentSVG.appendChild( rect );
 			left += _data.table[col].width;
@@ -1386,7 +1399,7 @@ function drawTableContent( init=false, shiftOnly=false ) {
 
 		for( let col = 0, left=0 ; col < _data.table.length ; col++  ) { // Creating splitters
 			left += _data.table[col].width;
-			let splitter = createRect( left-_tableVisibleLeft, 0, 2, overallHeight, 
+			let splitter = createRect( left-_tableVisibleLeft, 0, 2, operToScreen(_data.operations.length), 
 				{id:'tableSplitter'+col, fill:'#dfdfdf'} );
 			splitter.dataset.columnNumber = col;
 			splitter.setAttributeNS(null,'cursor','col-resize');
@@ -1401,10 +1414,8 @@ function drawTableContent( init=false, shiftOnly=false ) {
 			rect.setAttributeNS(null,'x',left+2-_tableVisibleLeft);
 			rect.setAttributeNS(null,'width',_data.table[col].width-4);
 			left += _data.table[col].width;			
-			rect.setAttributeNS(null,'height',overallHeight);			
 			let splitter = document.getElementById('tableSplitter'+col); 
 			splitter.setAttributeNS(null,'x',left-_tableVisibleLeft);
-			splitter.setAttributeNS(null,'height',overallHeight);
 		}
 	}
 
@@ -1506,7 +1517,7 @@ function drawTableContent( init=false, shiftOnly=false ) {
 				let textAnchor = 'start';
 				if( ref == "Name" ) { // A name should be adjusted according to it's position in the hierarchy
 					// textX += _settings.hierarchyIndent * _data.operations[i].parents.length;
-					content = padWithNChars( _data.operations[i].parents.length, '   ' ) + content; // figure space: ' ', '·‧', '•', '⁌','|'
+					content = padWithNChars( _data.operations[i].parents.length, '·' ) + content;
 				} else {
 					if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
 						textX = _data.table[col].width - 4;
@@ -1569,7 +1580,144 @@ function drawTableContent( init=false, shiftOnly=false ) {
 }
 
 
-function drawTableScroll( init=false ) {
+function drawTimeScale() {
+	while (_timeSVG.hasChildNodes()) {
+		_timeSVG.removeChild(_timeSVG.lastChild);
+	}
+	_timeSVGBkgr = createRect( 0, 0, _timeSVGWidth, _timeSVGHeight, { fill:'url(#timeScaleGradient)' } ); 	// backgroud rect
+	_timeSVG.appendChild( _timeSVGBkgr );			
+
+	let daysInScreen = (_ganttVisibleWidth)/ (60*60*24);
+	let dayRectWidth = _timeSVGWidth / daysInScreen;
+	let displayDays = ( dayRectWidth > _settings.minDayWidthOnTimeScale ) ? true : false;
+	let displayWeeks = ( !displayDays && dayRectWidth*7 > _settings.minDayWidthOnTimeScale ) ? true : false;
+
+	let minTime = _data.visibleMin * 1000; // screenToTime(0) * 1000;
+	let maxTime = _data.visibleMax * 1000; // screenToTime( _timeSVGWidth ) * 1000;
+	let minDT = new Date(minTime);
+	let maxDT = new Date(maxTime);
+	let deltaY = maxDT.getFullYear() - minDT.getFullYear();
+	let deltaM = maxDT.getMonth() - minDT.getMonth();
+	let deltaD = maxDT.getDate() - minDT.getDate();
+	let minY = minDT.getFullYear();
+	let maxY = maxDT.getFullYear();
+	let textRectProperties = { fill:'none', stroke:_settings.timeScaleStrokeColor, strokeWidth:0.25 };
+	let monthFontSize;
+	let monthWithYear=false;
+	if( dayRectWidth*30 > _timeSVGHeight*0.3*8 ) {
+		monthFontSize = _timeSVGHeight*0.25;
+		monthWithYear = true; 
+	} else if( dayRectWidth*30 > _timeSVGHeight*0.3*3 ) {
+		monthFontSize = _timeSVGHeight*0.25;
+	} else {
+		monthFontSize = dayRectWidth * 30 * 0.25;
+	}
+	let monthProperties = { fontSize:monthFontSize, fill:_settings.timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline' };
+	let dayFontSize=0;
+	if( displayDays ) {
+		dayFontSize = (dayRectWidth > _timeSVGHeight*0.25) ? _timeSVGHeight*0.22 : dayRectWidth * 0.8;
+	} else if( !displayDays && displayWeeks ) {
+		dayFontSize = (dayRectWidth*7 > _timeSVGHeight*0.25) ? _timeSVGHeight*0.22 : (dayRectWidth*7) * 0.8;
+	}
+	let dayProperties = { fontSize:dayFontSize, fill:_settings.timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline' };
+	let textRectHeight = _timeSVGHeight/3;
+	let monthY = textRectHeight;
+	let dayY = 2*textRectHeight;
+	let dayTextY = dayY+textRectHeight-3;
+	let numSecondsInDay = 24*60*60;
+
+	_timeScaleToGrid = []; // To draw a grid later on the Gantt chart...
+
+	for( let y = minY ; y <= maxY ; y++ ) {
+		if( minY != maxY ) {
+			let yearText = createText( minY, _timeSVGWidth/2, textRectHeight-3, monthProperties );
+			_timeSVG.appendChild(yearText);
+		} else {
+			let startOfYear = new Date(y,0,1,0,0,0,0);
+			let startOfYearInSeconds = startOfYear.getTime() / 1000;
+			let endOfYear = new Date(y,11,31,23,59,59,999);
+			let endOfYearInSeconds = endOfYear.getTime() / 1000;
+			let yearStartX = timeToScreen(startOfYearInSeconds);
+			let yearEndX = timeToScreen(endOfYearInSeconds);
+			let yearRect = createRect( yearStartX, 0, yearEndX - yearStartX, textRectHeight, textRectProperties );		
+			_timeSVG.appendChild(yearRect);
+			let yearText = createText( y, yearStartX + (yearEndX - yearStartX)/2, textRectHeight-3, monthProperties );
+			_timeSVG.appendChild(yearText);
+		}
+
+		let minM = ( y == minY ) ? minDT.getMonth() : 0;
+		let maxM = ( y == maxY ) ? maxDT.getMonth() : 11;
+		let mNames = _terms[_data.lang]['monthNames']
+		for( let m = minM ; m <= maxM ; m++ ) {
+			let startOfMonth = new Date(y,m,1,0,0,0,0);
+			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;
+			let endOfMonth = new Date(y,m+1,0,23,59,59,999);
+			let endOfMonthInSeconds = endOfMonth.getTime() / 1000;
+			let monthStartX = timeToScreen(startOfMonthInSeconds);
+			let monthEndX = timeToScreen(endOfMonthInSeconds);
+			let monthRect = createRect( monthStartX, monthY, monthEndX - monthStartX, textRectHeight, textRectProperties );		
+			_timeSVG.appendChild(monthRect);
+			let monthString = mNames[m];
+			if( monthWithYear ) { 
+				monthString += ", " + y;
+			}
+			let monthText = createText( monthString, monthStartX + (monthEndX - monthStartX)/2, monthY+textRectHeight-3, monthProperties );
+			_timeSVG.appendChild(monthText);
+
+			if( displayDays ) {
+				let minD = 1;
+				let maxD = endOfMonth.getDate();
+				for( let d = minD ; d <= maxD ; d++ ) {
+					let currentDay = new Date(y,m,d,0,0,0,0);
+					let currentTimeInSeconds = currentDay.getTime()/1000;
+					let dayStartX = timeToScreen(currentTimeInSeconds);
+					let dayEndX = timeToScreen(currentTimeInSeconds + numSecondsInDay);
+					let dayRect = createRect( dayStartX, dayY, dayEndX - dayStartX, textRectHeight, textRectProperties );
+					_timeSVG.appendChild(dayRect);
+					let dayText = createText( d.toString(), dayStartX + (dayEndX - dayStartX)/2, dayTextY, dayProperties );
+					_timeSVG.appendChild(dayText);
+					_timeScaleToGrid.push(currentTimeInSeconds); // To a draw grid later on the Gantt chart...
+				}				
+			} 
+		}
+		
+		if( !displayDays && displayWeeks ) {
+			let minW = (y == minY) ? getWeekNumber(minDT) : 1;
+			let maxW = (y == maxY) ? getWeekNumber(maxDT) : 53;
+			let numSecondsInWeek = 7*numSecondsInDay;
+			let firstDay = minDT.getDay(); // To adjust to the beginning of a week.
+			if( firstDay == 0 ) { // If Sunday... 
+				firstDay = 7; // ... making it 7 instead of 0
+			}
+			if( firstDay > 1 ) { // If not monday...
+				minDT = new Date(minDT.getTime() - numSecondsInDay*1000*(firstDay-1)); // ... making it Monday
+			}
+			let startOfWeekInSeconds = minDT.getTime()/1000;
+			let endOfWeekInSeconds = startOfWeekInSeconds + (8-minDT.getDay())*numSecondsInDay;
+			for( let w = minW ; w <= maxW ; w++ ) {
+				let weekStartX = timeToScreen(startOfWeekInSeconds);
+				let weekEndX = timeToScreen(endOfWeekInSeconds);
+				let weekRect = createRect( weekStartX, dayY, weekEndX - weekStartX, textRectHeight, textRectProperties );		
+				_timeSVG.appendChild(weekRect);
+				let startOfWeekDate = new Date(startOfWeekInSeconds*1000);
+				let weekText = createText( (startOfWeekDate.getDate()).toString(), weekStartX + (weekEndX - weekStartX)/2, dayTextY, dayProperties );
+				_timeSVG.appendChild(weekText);
+				_timeScaleToGrid.push(startOfWeekInSeconds); // To draw a grid later on the Gantt chart...
+				startOfWeekInSeconds = endOfWeekInSeconds;
+				if( w < maxW ) {
+					endOfWeekInSeconds += numSecondsInWeek;
+				} else {
+					endOfWeekInSeconds = maxDT.getTime()/1000;
+				}
+			}								
+		}	
+	}
+}
+
+function drawTableScroll( init ) {
+	if( !init ) {
+		init = false;
+	}
 	let visibleMaxStart = (_tableHeaderOverallWidth > _tableScrollSVGWidth) ? (_tableHeaderOverallWidth - _tableScrollSVGWidth) : 0;
 	let sliderSize = (visibleMaxStart > 0) ? (_tableScrollSVGWidth*_tableScrollSVGWidth/_tableHeaderOverallWidth) : _tableScrollSVGWidth;
 	if( sliderSize < _settings.scrollSliderSize ) {
@@ -1601,7 +1749,10 @@ function drawTableScroll( init=false ) {
 	}
 }
 
-function drawGanttHScroll( init=false ) {
+function drawGanttHScroll( init ) {
+	if( !init ) {
+		init = false;
+	}
 	let overallWidth = _data.visibleMaxWidth;
 	let visibleMaxLeft = (overallWidth > _ganttVisibleWidth) ? (_data.visibleMin + overallWidth - _ganttVisibleWidth) : _data.visibleMin;
 	let sliderSize = (visibleMaxLeft > _data.visibleMin) ? (_ganttHScrollSVGWidth*_ganttVisibleWidth/overallWidth) : _ganttHScrollSVGWidth;
@@ -1682,57 +1833,48 @@ function drawVerticalScroll( init ) {
 }
 
 
-function zoomX100() {
-	_ganttVisibleLeft = _data.visibleMin;
-	_ganttVisibleWidth = _data.visibleMaxWidth;
-	_zoomGanttHorizontalInput.value = 100;
-	setCookie("ganttVisibleLeft",_ganttVisibleLeft);
-	setCookie("ganttVisibleWidth",_ganttVisibleWidth);	
-}
-
-
-function moveX( positionChange ) {
-	_ganttVisibleLeft = validateGanttLeft(_ganttVisibleLeft + positionChange);
-	setCookie("ganttVisibleLeft",_ganttVisibleLeft);
-}
-
-function moveXR( positionChange ) {
-	moveX( positionChange );
-	drawGantt(false,true);
-	drawTimeScale();
-}
-
-
-function zoomX( zoomFactorChange, centerOfZoom=0.5 ) {
-	let currentZoomFactor = _data.visibleMaxWidth / _ganttVisibleWidth;
-	let newZoomFactor = currentZoomFactor + zoomFactorChange;
-	if( !(newZoomFactor > 0) ) {
+function zoomX( zoomFactorChange, zoomPositionChange, centerOfZoom=0.5 ) {
+	if( (zoomFactorChange == null || zoomFactorChange == '100%') && zoomPositionChange == null ) {
+		_ganttVisibleLeft = _data.visibleMin;
+		_ganttVisibleWidth = _data.visibleMaxWidth;
+		_zoomGanttHorizontalInput.value = 100;
+		setCookie("ganttVisibleLeft",_ganttVisibleLeft);
+		setCookie("ganttVisibleWidth",_ganttVisibleWidth);
+		return;
+	} 
+	if( zoomFactorChange != null && zoomPositionChange == null ) {
+		//if( _ganttVisibleWidth >= _data.visibleMaxWidth && zoomFactorChange < 0.0 ) {
+		//	return;
+		//}
+		let currentZoomFactor = _data.visibleMaxWidth / _ganttVisibleWidth;
+		let newZoomFactor = currentZoomFactor + zoomFactorChange;
+		if( !(newZoomFactor > 0) ) {
+			return;
+		}
+		if( centerOfZoom < 0.1 ) {
+			centerOfZoom = 0.0;
+		} else if( centerOfZoom > 0.9 ) {
+			centerOfZoom = 1.0;
+		}
+		let newWidth = _data.visibleMaxWidth / newZoomFactor;
+		let newLeft = _ganttVisibleLeft - (newWidth - _ganttVisibleWidth) * centerOfZoom;				
+		if( newLeft < _data.visibleMin ) {
+			newLeft = _data.visibleMin;
+		} else if( newLeft + newWidth > _data.visibleMax ) {
+			newLeft = _data.visibleMin;
+		}
+		_ganttVisibleLeft = newLeft;
+		_ganttVisibleWidth = newWidth;
+		_zoomGanttHorizontalInput.value = parseInt(newZoomFactor*100.0 + 0.5);
+		setCookie("ganttVisibleLeft",_ganttVisibleLeft);
+		setCookie("ganttVisibleWidth",_ganttVisibleWidth);
 		return;
 	}
-	if( centerOfZoom < 0.1 ) {
-		centerOfZoom = 0.0;
-	} else if( centerOfZoom > 0.9 ) {
-		centerOfZoom = 1.0;
+	if( zoomFactorChange == null && zoomPositionChange != null ) {
+		_ganttVisibleLeft = validateGanttLeft(_ganttVisibleLeft + zoomPositionChange);
+		setCookie("ganttVisibleLeft",_ganttVisibleLeft);
+		return;
 	}
-	let newWidth = _data.visibleMaxWidth / newZoomFactor;
-	let newLeft = _ganttVisibleLeft - (newWidth - _ganttVisibleWidth) * centerOfZoom;				
-	if( newLeft < _data.visibleMin ) {
-		newLeft = _data.visibleMin;
-	} else if( newLeft + newWidth > _data.visibleMax ) {
-		newLeft = _data.visibleMin;
-	}
-	_ganttVisibleLeft = newLeft;
-	_ganttVisibleWidth = newWidth;
-	_zoomGanttHorizontalInput.value = parseInt(newZoomFactor*100.0 + 0.5);
-	setCookie("ganttVisibleLeft",_ganttVisibleLeft);
-	setCookie("ganttVisibleWidth",_ganttVisibleWidth);
-}
-
-function zoomXR( factorChange, centerOfZoom=0.5 ) { // Zoom and redraw
-	zoomX( factorChange, centerOfZoom );		
-	drawTimeScale();
-	drawGantt();
-	drawGanttHScroll();	
 }
 
 function validateGanttLeft( left ) {
@@ -1744,63 +1886,68 @@ function validateGanttLeft( left ) {
 	return left;
 }
 
-function zoomY100() {
-	_ganttVisibleTop = 0;
-	_ganttVisibleHeight = _data.operations.length;
-	_zoomGanttVerticalInput.value = 100;
-	setCookie("ganttVisibleTop",_ganttVisibleTop);
-	setCookie("ganttVisibleHeight",_ganttVisibleHeight);
-} 
-
-function moveY( positionChange ) {
-	let newY = _ganttVisibleTop + positionChange;
-	if( newY < 0 ) {
-		newY = 0;
-	} else if( newY + _ganttVisibleHeight > _data.operations.length ) {
-		newY = _data.operations.length - _ganttVisibleHeight;
-	}
-	_ganttVisibleTop = newY;
-	setCookie("ganttVisibleTop",_ganttVisibleTop);
+function zoomXR( factorChange, positionChange, centerOfZoom=0.5 ) { // Zoom and redraw
+	zoomX( factorChange, positionChange, centerOfZoom );		
+	drawTimeScale();
+	drawGantt();
+	drawGanttHScroll();	
 }
 
-function moveYR( positionChange ) {
-	moveY( positionChange );
-	drawGantt(false,true);
-	drawTableContent(false,true);
-	drawVerticalScroll();
-}
-
-
-function zoomY( zoomFactorChange, centerOfZoom=0.5 ) {
-	let currentZoomFactor = _data.operations.length / _ganttVisibleHeight;
-	let newZoomFactor = currentZoomFactor + zoomFactorChange;
-	if( !(newZoomFactor > 0) ) {
+function zoomY( zoomFactorChange, zoomPositionChange, centerOfZoom=0.5 ) {
+	if( (zoomFactorChange === null || zoomFactorChange == '100%') && zoomPositionChange === null ) {
+		_ganttVisibleTop = 0;
+		_ganttVisibleHeight = _data.operations.length;
+		_zoomGanttVerticalInput.value = 100;
+		setCookie("ganttVisibleTop",_ganttVisibleTop);
+		setCookie("ganttVisibleHeight",_ganttVisibleHeight);
 		return;
-	}
-	let newHeight = _data.operations.length / newZoomFactor;
-	if( newHeight < 1 && zoomFactorChange < 1.0 ) {
-		return;
-	}
-	if( centerOfZoom < 0.1 ) {
-		centerOfZoom = 0.0;
-	} else if ( centerOfZoom > 0.9 ) {
-		centerOfZoom = 1.0;
 	} 
-	let newY = _ganttVisibleTop - (newHeight - _ganttVisibleHeight) * centerOfZoom;	
-	if( newY < 0 ) {
-		newY = 0;
-	} else if( newY + newHeight > _data.operations.length ) {
-		newY = 0;
+	if( zoomFactorChange !== null && zoomPositionChange === null ) {
+		if( _ganttVisibleHeight >= _data.operations.length && zoomFactorChange > 1.0 ) {
+			return;
+		}
+		let currentZoomFactor = _data.operations.length / _ganttVisibleHeight;
+		let newZoomFactor = currentZoomFactor + zoomFactorChange;
+		if( !(newZoomFactor > 0) ) {
+			return;
+		}
+		let newHeight = _data.operations.length / newZoomFactor;
+		if( newHeight < 1 && zoomFactorChange < 1.0 ) {
+			return;
+		}
+		if( centerOfZoom < 0.1 ) {
+			centerOfZoom = 0.0;
+		} else if ( centerOfZoom > 0.9 ) {
+			centerOfZoom = 1.0;
+		} 
+		let newY = _ganttVisibleTop - (newHeight - _ganttVisibleHeight) * centerOfZoom;	
+		if( newY < 0 ) {
+			newY = 0;
+		} else if( newY + newHeight > _data.operations.length ) {
+			newY = 0;
+		}
+		_ganttVisibleTop = newY;
+		_ganttVisibleHeight = newHeight;
+		_zoomGanttVerticalInput.value = parseInt(newZoomFactor*100.0 + 0.5);
+		setCookie("ganttVisibleTop",_ganttVisibleTop);
+		setCookie("ganttVisibleHeight",_ganttVisibleHeight);
+		return;
+	} 
+	if( zoomFactorChange === null && zoomPositionChange !== null ) {
+		let newY = _ganttVisibleTop + zoomPositionChange;
+		if( newY < 0 ) {
+			newY = 0;
+		} else if( newY + _ganttVisibleHeight > _data.operations.length ) {
+			newY = _data.operations.length - _ganttVisibleHeight;
+		}
+		_ganttVisibleTop = newY;
+		setCookie("ganttVisibleTop",_ganttVisibleTop);
+		return;
 	}
-	_ganttVisibleTop = newY;
-	_ganttVisibleHeight = newHeight;
-	_zoomGanttVerticalInput.value = parseInt(newZoomFactor*100.0 + 0.5);
-	setCookie("ganttVisibleTop",_ganttVisibleTop);
-	setCookie("ganttVisibleHeight",_ganttVisibleHeight);
 }
 
-function zoomYR( factorChange, centerOfZoom=0.5 ) {
-	zoomY( factorChange, centerOfZoom );		
+function zoomYR( factorChange, positionChange ) {
+	zoomY( factorChange, positionChange );		
 	drawTableContent();
 	drawGantt();
 	drawVerticalScroll();
@@ -1859,13 +2006,13 @@ function onTimeWheel(e) {
 		} else {
 			zoomFactorChange = -_settings.zoomFactor;
 		}
-		zoomXR( zoomFactorChange, (e.clientX - _ganttSVG.getAttributeNS(null,'x')) / _ganttSVGWidth );
+		zoomXR( zoomFactorChange, null, (e.clientX - _ganttSVG.getAttributeNS(null,'x')) / _ganttSVGWidth );
 	} else {
 		let change = _ganttVisibleWidth * _settings.timeScaleScrollStep;
 		if( delta < 0 ) {
 			change = -change;
 		}
-		moveX( change );		
+		zoomXR( null, change );		
 	}
 }
 
@@ -1873,9 +2020,9 @@ function onGanttHScrollSVGBkgr(e) {
 	let x = parseInt( _ganttHScrollSVGSlider.getAttributeNS(null,'x') ) + parseInt( _ganttHScrollSVG.getAttributeNS(null,'x') ) + _containerDivX;
 	let step = _ganttVisibleWidth * _settings.timeScaleScrollStep;
 	if( e.x < x ) {
-		moveX( -step );		
+		zoomXR( null, -step );		
 	} else if( e.x > x + parseInt( _ganttHScrollSVGSlider.getAttributeNS(null,'width') ) ) {
-		moveX( step );		
+		zoomXR( null, step );		
 	}
 }
 
@@ -1904,8 +2051,8 @@ function onTableScrollSVGBkgr(e) {
 	}
 	newSliderX = _tableVisibleLeft * (_tableScrollSVGWidth - _tableScrollSVGSlider.getBBox().width) / maxVisibleLeft;
 	_tableScrollSVGSlider.setAttributeNS( null,'x', newSliderX );
-	drawTableHeader(false,true);
-	drawTableContent(false,true);
+	drawTableHeader();
+	drawTableContent();
 }
 
 
@@ -1919,7 +2066,7 @@ function onGanttWheel(e) {
 			zoomFactorChange = -_settings.zoomFactor;
 		}		
 		let y = e.clientY - getElementPosition(_containerDiv).y - _ganttSVG.getAttributeNS(null,'y');
-		zoomYR( zoomFactorChange, y / _ganttSVGHeight );
+		zoomYR( zoomFactorChange, null, y / _ganttSVGHeight );
 	} else {
 		let positionChange;
 		if( delta > 0 ) {
@@ -1927,7 +2074,7 @@ function onGanttWheel(e) {
 		} else {
 			positionChange = -1;
 		}		
-		moveYR( positionChange );		
+		zoomYR( null, positionChange );		
 	}
 }
 
@@ -1935,10 +2082,17 @@ function onVerticalScrollSVGBkgr(e) {
 	let bbox = _verticalScrollSVGSlider.getBBox();
 	let mouseYRelative = e.y - _containerDivY - _tableHeaderSVGHeight;
 	if( mouseYRelative < bbox.y ) {
-		moveYR( -1 );				
+		zoomYR( null, -1 );				
 	} else if( mouseYRelative > bbox.y + bbox.height ) {
-		moveYR( 1 );				
+		zoomYR( null, 1 );				
 	}
+}
+
+function zoomYR( factorChange, positionChange, centerOfZoom=0.5 ) {
+	zoomY( factorChange, positionChange, centerOfZoom );		
+	drawTableContent();
+	drawGantt();
+	drawVerticalScroll();
 }
 
 function onGanttMouseDown(e) {
@@ -1963,8 +2117,8 @@ function onGanttCapturedMouseMove(e) {
 }
 
 function onGanttDblClick(e) {
-	zoomX100();
-	zoomY100();
+	zoomX( null, null );
+	zoomY( null, null );
 	drawGantt();
 	drawTimeScale();
 	drawGanttHScroll();
@@ -1975,7 +2129,7 @@ function onGanttDblClick(e) {
 
 function timeToScreen( timeInSeconds ) {
 	let availableSVGWidth = _ganttSVGWidth - _settings.ganttChartLeftMargin - _settings.ganttChartRightMargin;
-	return _settings.ganttChartLeftMargin + (timeInSeconds - _data.visibleMin) * availableSVGWidth / _ganttVisibleWidth; 
+	return _settings.ganttChartLeftMargin + (timeInSeconds - _ganttVisibleLeft) * availableSVGWidth / _ganttVisibleWidth; 
 }
 
 function timeToScreenInt( timeInSeconds ) {
@@ -1984,14 +2138,13 @@ function timeToScreenInt( timeInSeconds ) {
 }
 
 function screenToTime( screenX ) {
-	let xNotScaled = screenX * (_ganttVisibleWidth - 1) / (_ganttSVGWidth-1);
+	let xNotScaled = _ganttVisibleLeft + screenX * (_ganttVisibleWidth - 1) / (_ganttSVGWidth-1);
 }
 
 
 function operToScreen( n ) {
 	//return ( ( n ) * _ganttSVGHeight )/ _data.operations.length; 
-	// return ( n - _ganttVisibleTop) * _ganttSVGHeight / (_ganttVisibleHeight+0.5); 
-	return n * _ganttSVGHeight / (_ganttVisibleHeight+0.5); 
+	return ( n - _ganttVisibleTop) * _ganttSVGHeight / (_ganttVisibleHeight+0.5); 
 } 
 
 
@@ -2073,7 +2226,7 @@ function saveUserDataFromEditBox() {
 				        hideEditBox();
 			        } else {
 			        	alert("Error: " + this.responseText); // this.responseText contains the error message. 
-			        	document.getElementById('editBoxMessage').innerText = _texts[_data.lang].errorLoadingData + ": " + this.responseText;
+			        	document.getElementById('editBoxMessage').innerText = _terms[_data.lang].errorLoadingData + ": " + this.responseText;
 			        }
 			    }
 		    }
@@ -2127,7 +2280,7 @@ function saveUserDataFromEditBox() {
 			xmlhttp.setRequestHeader("Cache-Control", "no-cache");
 			xmlhttp.setRequestHeader("Content-type", "plain/text" ); //"application/x-www-form-urlencoded");
 			xmlhttp.send( JSON.stringify(userData) );		
-			document.getElementById('editBoxMessage').innerText = _texts[_data.lang].waitSaveUserDataText;			
+			document.getElementById('editBoxMessage').innerText = _terms[_data.lang].waitSaveUserDataText;			
 		}
 	} else {
     	let i = _editBoxOperationIndexElem.value;
@@ -2151,22 +2304,4 @@ function calcTableHeaderOverallWidth() {
 		w += _data.table[col].width;
 	}	
 	_tableHeaderOverallWidth = w;
-}
-
-
-function restoreTableColumnOrderAndWidths() {
-	copyArrayOfObjects( _data.initialTable, _data.table );
-	drawTableHeader();
-	drawTableContent();
-	drawTableScroll();
-	for( let cookie = 0 ; cookie < _data.table.length ; cookie++ ) {
-		let cname = _data.table[cookie].ref+"Position";
-		if( getCookie(cname) != null ) {
-			deleteCookie( cname );
-		}
-		cname = _data.table[cookie].ref+"Width";
-		if( getCookie(cname) != null ) {
-			deleteCookie( cname );
-		}
-	}
 }
