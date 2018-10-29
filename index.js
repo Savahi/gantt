@@ -14,6 +14,7 @@ var _settings = {
 	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', 
 	tableHeaderBorderColor:'#cfcfdf', tableHeaderActiveBorderColor:'#8f8f9f', 
 	tableContentFontColor:'#4f4f4f', tableContentFillColor:'#ffffff', tableContentStrokeColor:'#4f4f4f', 
+	tableColumnHMargin:1, tableColumnTextMargin:2, 
 	tableMaxFontSize:12, expandMaxFontSize:32,
 	scrollBkgrColor:'#cfcfcf', scrollRectColor:'#afafaf', scrollSliderColor:'#8f8f8f', scrollSliderActiveColor:'#000000',
 	gridColor:"#bfbfbf", gridStrokeWidth:0.5, gridOpacity:1, gridStrokeDashArray:'2,2', gridCurrentTimeColor:"#bf2f2f",
@@ -62,6 +63,8 @@ var _ganttVisibleWidth;
 var _ganttVisibleTop;
 var _ganttVisibleHeight;
 var _ganttSVGBkgr = null;
+var _ganttViewBoxLeft = 0;
+var _ganttViewBoxTop = 0;
 
 var _timeSVGWidth;
 var _timeSVGHeight;
@@ -76,7 +79,8 @@ var _tableHeaderSVGHeight;
 var _tableHeaderSVGBkgr=null;
 var _tableHeaderOverallWidth=0;
 
-var _tableVisibleLeft=0;
+var _tableViewBoxLeft = 0; // 
+var _tableViewBoxTop = 0;
 
 var _ganttCaptured=false;
 var _ganttCapturedAtX;
@@ -191,6 +195,7 @@ window.addEventListener( 'mouseup', function(e) {
 	}
 }, true );
 
+
 window.addEventListener( 'mousemove', function(e) { 
 	if( _verticalSplitterCaptured ) {
 		if( ( e.x < 20 ) || ( e.x > (window.innerWidth - 20 - _settings.scrollThick) ) ) {
@@ -202,7 +207,6 @@ window.addEventListener( 'mousemove', function(e) {
 		initLayoutCoords();
 		drawTableScroll();
 		drawGanttHScroll();
-		_ganttVisibleWidth *= (_ganttSVGWidth / oldGanttSVGWidth);
 		setCookie("verticalSplitterPosition",_verticalSplitterPosition);
 		return;
 	}
@@ -229,7 +233,7 @@ window.addEventListener( 'mousemove', function(e) {
 		} else if( newSliderX > maxSlider ) {
 			newSliderX = maxSlider;
 		}
-		_tableVisibleLeft = newSliderX * maxVisibleLeft / maxSlider;
+		_tableViewBoxLeft = newSliderX * maxVisibleLeft / maxSlider;
 		_tableScrollSVGSlider.setAttributeNS( null,'x', newSliderX );
 		drawTableHeader(false,true);
 		drawTableContent(false,true);
@@ -356,6 +360,7 @@ function drawAll() {
 	drawTableScroll( true );
 	drawGanttHScroll( true );
 	drawVerticalScroll( true );			
+	drawVerticalSplitter( true );	
 }
 
 function initData() {
@@ -499,19 +504,25 @@ function initData() {
 		_data.operations[i].visible = true;
 	}
 
-	// Reading cookies to init interface elements.
+	// Handling table columns widths
+	for( let col = 0 ; col < _data.table.length ; col++ ) { // Recalculating widths in symbols into widths in points 
+		let add = _settings.tableColumnHMargin*2 + _settings.tableColumnTextMargin*2;
+		_data.table[col].width = _data.table[col].width * _settings.tableMaxFontSize*0.8 + add;
+	}
 	_data.initialTable = []; // Saving table settings loaded from a local version of Spider Project
 	copyArrayOfObjects( _data.table, _data.initialTable );
+	// Reading cookies to init interface elements.
 	for( let col = 0 ; col < _data.table.length ; col++ ) {
-		let widthValue = getCookie( _data.table[col].ref+"Width", 'int' );
+		let widthValue = getCookie( _data.table[col].ref + "Width", 'int' );
 		if( widthValue ) {
 			_data.table[col].width = widthValue;
 		}
 	}
+
 	// Reading and assigning the positions of columns.
-	let failed=false;
+	let failed = false;
 	for( let col = 0 ; col < _data.table.length ; col++ ) {
-		let pos = getCookie( _data.table[col].ref+"Position", 'int' );
+		let pos = getCookie( _data.table[col].ref + "Position", 'int' );
 		if( pos == null ) {
 			failed = true;
 			break;			
@@ -653,11 +664,6 @@ function initLayout() {
 	_containerDiv.addEventListener('selectstart', function() { event.preventDefault(); return false; } );
 	_containerDiv.addEventListener('selectend', function() { event.preventDefault(); return false; } );
 
-	// Vertical splitter
-	_verticalSplitterSVGBkgr = createRect( 0, 0, _verticalSplitterSVGWidth, _verticalSplitterSVGHeight, 
-			{ stroke:_settings.tableContentStrokeColor, strokeWidth:1,  fill:_settings.tableContentFillColor } ); 	// backgroud rect
-	_verticalSplitterSVG.setAttributeNS(null,'cursor','col-resize');	
-	_verticalSplitterSVG.appendChild( _verticalSplitterSVGBkgr );			
 	_verticalSplitterSVG.onmousedown = function(e) { _verticalSplitterCaptured=true; _verticalSplitterCapturedAtX=e.x; };
 
 	// Gantt chart
@@ -713,7 +719,7 @@ function initLayoutCoords() {
 	_tableHeaderSVG.setAttributeNS(null, 'width', _tableHeaderSVGWidth ); // window.innerWidth * 0.1 );
 	_tableHeaderSVGHeight = _containerDivHeight * 0.07;
 	_tableHeaderSVG.setAttributeNS(null, 'height', _tableHeaderSVGHeight ); 
-    _tableHeaderSVG.setAttribute('viewBox', `0 0 ${_tableHeaderSVGWidth} ${_tableHeaderSVGHeight}`);
+    _tableHeaderSVG.setAttribute('viewBox', `${_tableViewBoxLeft} 0 ${_tableHeaderSVGWidth} ${_tableHeaderSVGHeight}`);
 
 	// Table Content
 	_tableContentSVG.setAttributeNS(null, 'x', 0 );
@@ -722,7 +728,7 @@ function initLayoutCoords() {
 	_tableContentSVG.setAttributeNS(null, 'width', _tableContentSVGWidth ); // window.innerWidth * 0.1 );
 	_tableContentSVGHeight = _containerDivHeight - _tableHeaderSVGHeight - _settings.scrollThick;
 	_tableContentSVG.setAttributeNS(null, 'height', _tableContentSVGHeight ); 
-    _tableContentSVG.setAttribute('viewBox', `0 0 ${_tableContentSVGWidth} ${_tableContentSVGHeight}`);
+    _tableContentSVG.setAttribute('viewBox', `${_tableViewBoxLeft} ${_tableViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`);
 
 	// Vertical Splitter
 	_verticalSplitterSVG.setAttributeNS(null, 'x', _tableContentSVGWidth );
@@ -739,7 +745,7 @@ function initLayoutCoords() {
 	_ganttSVG.setAttributeNS(null, 'width', _ganttSVGWidth ); // window.innerWidth * 0.9 );
 	_ganttSVGHeight = _tableContentSVGHeight;
 	_ganttSVG.setAttributeNS(null, 'height', _ganttSVGHeight ); //window.innerHeight/2 );
-    _ganttSVG.setAttribute('viewBox', `0 0 ${_ganttSVGWidth} ${_ganttSVGHeight}`);
+    _ganttSVG.setAttribute('viewBox', `${_ganttViewBoxLeft} ${_ganttViewBoxTop} ${_ganttSVGWidth} ${_ganttSVGHeight}`);
 
 	// Time scale
 	_timeSVG.setAttributeNS(null, 'x', _tableContentSVGWidth + _verticalSplitterSVGWidth );
@@ -774,6 +780,7 @@ function initLayoutCoords() {
 	_verticalScrollSVG.setAttributeNS(null, 'height', _verticalScrollSVGHeight ); 
 }
 
+
 function displayHeaderAndFooterInfo() {
 	let projectName = document.getElementById('projectName');
 	projectName.innerText = _data.proj.Name;
@@ -806,11 +813,12 @@ function calcVisibleOperations() {
 	return numVisible;
 }
 
+
 function drawGantt( init=false, shiftOnly=false ) {
 
-    let ganttViewBoxLeft = timeToScreen( _ganttVisibleLeft ) - _settings.ganttChartLeftMargin;
-    let ganttViewBoxTop = operToScreen( _ganttVisibleTop );
-    let ganttViewBox = `${ganttViewBoxLeft} ${ganttViewBoxTop} ${_ganttSVGWidth} ${_ganttSVGHeight}`;
+    _ganttViewBoxLeft = timeToScreen( _ganttVisibleLeft ) - _settings.ganttChartLeftMargin;
+    _ganttViewBoxTop = operToScreen( _ganttVisibleTop );
+    let ganttViewBox = `${_ganttViewBoxLeft} ${_ganttViewBoxTop} ${_ganttSVGWidth} ${_ganttSVGHeight}`;
     _ganttSVG.setAttributeNS(null,'viewBox',ganttViewBox);
     if( shiftOnly ) {
     	return;
@@ -1278,10 +1286,8 @@ function createEditBoxInputs() {
 		} else {
 			input = document.createElement('input');			
 		}
-
 		input.className = 'editBoxInput';
 		input.id = 'editBoxInput' + ref;
-
 		container.appendChild(promptDiv);
 		container.appendChild(input);
 	}
@@ -1289,7 +1295,7 @@ function createEditBoxInputs() {
 
 
 function drawTableHeader( init=false, shiftOnly=false ) {
-    let thViewBox = `${_tableVisibleLeft} 0 ${_tableHeaderSVGWidth} ${_tableHeaderSVGHeight}`;
+    let thViewBox = `${_tableViewBoxLeft} 0 ${_tableHeaderSVGWidth} ${_tableHeaderSVGHeight}`;
     _tableHeaderSVG.setAttributeNS(null,'viewBox',thViewBox);
     if( shiftOnly ) {
         return;
@@ -1307,7 +1313,7 @@ function drawTableHeader( init=false, shiftOnly=false ) {
 
 		let left = _data.table[0].width;
 		for( let col = 1 ; col < _data.table.length ; col++ ) {
-			let svg = createSVG(left+1-_tableVisibleLeft, 0, _data.table[col].width-2, _tableHeaderSVGHeight, 
+			let svg = createSVG(left+1, 0, _data.table[col].width-2, _tableHeaderSVGHeight, 
 				{ id:'tableHeaderColumnNameSVG'+col, 'fill':_settings.tableHeaderFillColor } );
 			left += _data.table[col].width;
 			let props = { id:'tableHeaderColumnNameBkgr'+col, 'fill':_settings.tableHeaderFillColor, 
@@ -1333,7 +1339,7 @@ function drawTableHeader( init=false, shiftOnly=false ) {
 		let left = _data.table[0].width;
 		for( let col = 1 ; col < _data.table.length ; col++ ) {
 			let svg = document.getElementById('tableHeaderColumnNameSVG'+col);
-			svg.setAttributeNS(null,'x',left+1-_tableVisibleLeft);
+			svg.setAttributeNS(null,'x',left+1);
 			svg.setAttributeNS(null,'width',_data.table[col].width-2);			
 			svg.setAttributeNS(null,'display','block');
 			let rect = document.getElementById('tableHeaderColumnNameBkgr'+col);
@@ -1359,8 +1365,8 @@ function onTableHeaderMouseDown(e) {
 
 function drawTableContent( init=false, shiftOnly=false ) {
 
-    let tcViewBoxTop = operToScreen( _ganttVisibleTop );
-    let tcViewBox = `${_tableVisibleLeft} ${tcViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`;
+    _tableViewBoxTop = operToScreen( _ganttVisibleTop );
+    let tcViewBox = `${_tableViewBoxLeft} ${_tableViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`;
     _tableContentSVG.setAttributeNS(null,'viewBox',tcViewBox);
     if( shiftOnly ) {
         return;
@@ -1372,13 +1378,15 @@ function drawTableContent( init=false, shiftOnly=false ) {
 			_tableContentSVG.removeChild(_tableContentSVG.lastChild);
 		}
 
-		_tableContentSVGBkgr = createRect( 0-_tableVisibleLeft, 0, _containerDivWidth, overallHeight, 
+		_tableContentSVGBkgr = createRect( 0, 0, _tableHeaderOverallWidth, overallHeight, 
 			{ stroke:'none', strokeWidth:1,  fill:_settings.tableContentFillColor } ); 	// backgroud rect
 		_tableContentSVG.appendChild( _tableContentSVGBkgr );		
 		
 		let left = 0;
 		for( let col = 0 ; col < _data.table.length ; col++ ) { // Creating svg-containers for columns
-			let rect = createSVG( left+2-_tableVisibleLeft, 0, _data.table[col].width-4, overallHeight, 
+			let rectX = left + _settings.tableColumnHMargin;
+			let rectWidth = _data.table[col].width - _settings.tableColumnHMargin * 2;
+			let rect = createSVG( rectX, 0, rectWidth, overallHeight, 
 				{ id:('tableColumnSVG'+col), fill:_settings.tableContentStrokeColor } );
 			_tableContentSVG.appendChild( rect );
 			left += _data.table[col].width;
@@ -1386,7 +1394,7 @@ function drawTableContent( init=false, shiftOnly=false ) {
 
 		for( let col = 0, left=0 ; col < _data.table.length ; col++  ) { // Creating splitters
 			left += _data.table[col].width;
-			let splitter = createRect( left-_tableVisibleLeft, 0, 2, overallHeight, 
+			let splitter = createRect( left, 0, 2, overallHeight, 
 				{id:'tableSplitter'+col, fill:'#dfdfdf'} );
 			splitter.dataset.columnNumber = col;
 			splitter.setAttributeNS(null,'cursor','col-resize');
@@ -1394,16 +1402,19 @@ function drawTableContent( init=false, shiftOnly=false ) {
 			splitter.onmousedown = function(e) { _tableSplitterCaptured=Number(this.dataset.columnNumber); _tableSplitterCapturedAtX=e.x; };
 		}
 	} else {
-		_tableContentSVGBkgr.setAttributeNS(null,'x',-_tableVisibleLeft);
+		_tableContentSVGBkgr.setAttributeNS(null,'width',_tableHeaderOverallWidth);
+		_tableContentSVGBkgr.setAttributeNS(null,'height',overallHeight);
 		let left = 0;
 		for( let col = 0 ; col < _data.table.length ; col++ ) { // Updating svg-containers for columns as well as splitters 
+			let rectX = left + _settings.tableColumnHMargin;
+			let rectWidth = _data.table[col].width - _settings.tableColumnHMargin * 2;
 			let rect = document.getElementById('tableColumnSVG'+col);
-			rect.setAttributeNS(null,'x',left+2-_tableVisibleLeft);
-			rect.setAttributeNS(null,'width',_data.table[col].width-4);
+			rect.setAttributeNS(null,'x',rectX);
+			rect.setAttributeNS(null,'width',rectWidth);
 			left += _data.table[col].width;			
 			rect.setAttributeNS(null,'height',overallHeight);			
 			let splitter = document.getElementById('tableSplitter'+col); 
-			splitter.setAttributeNS(null,'x',left-_tableVisibleLeft);
+			splitter.setAttributeNS(null,'x',left);
 			splitter.setAttributeNS(null,'height',overallHeight);
 		}
 	}
@@ -1497,19 +1508,21 @@ function drawTableContent( init=false, shiftOnly=false ) {
 					}
 				}
 
+				let columnWidthToUse = _data.table[col].width - _settings.tableColumnHMargin*2;
+
 				let el = document.getElementById('tableColumnSVG'+col);
-				let bkgr = createRect( 0, lineTop, _data.table[col].width, rectHeight,  
+				let bkgr = createRect( 0, lineTop, columnWidthToUse, rectHeight,  
 					{ id:('tableColumn'+col+'Row'+i+'Bkgr'), fill:_data.operations[i].colorBack } );
 				el.appendChild( bkgr );
 
-				let textX = 2;
+				let textX = _settings.tableColumnTextMargin;
 				let textAnchor = 'start';
 				if( ref == "Name" ) { // A name should be adjusted according to it's position in the hierarchy
 					// textX += _settings.hierarchyIndent * _data.operations[i].parents.length;
 					content = padWithNChars( _data.operations[i].parents.length, '   ' ) + content; // figure space: ' ', '·‧', '•', '⁌','|'
 				} else {
 					if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
-						textX = _data.table[col].width - 4;
+						textX = columnWidthToUse - _settings.tableColumnTextMargin*2;
 						textAnchor = 'end';
 					}						
 				}
@@ -1535,16 +1548,18 @@ function drawTableContent( init=false, shiftOnly=false ) {
 
 			let left = _data.table[0].width;
 			for( let col = 1 ; col < _data.table.length ; col++ ) {
+				let columnWidthToUse = _data.table[col].width - _settings.tableColumnHMargin*2;
+
 				let id = 'tableColumn'+col+'Row'+i;
 				let el = document.getElementById(id);
 				el.setAttributeNS(null,'y',lineMiddle);
 				el.setAttributeNS(null,'font-size',fontSize);
 				if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
-					el.setAttributeNS( null, 'x', _data.table[col].width - 4 );
+					el.setAttributeNS( null, 'x', columnWidthToUse - _settings.tableColumnTextMargin*2 );
 				}
 				let bkgrEl = document.getElementById(id+'Bkgr');
 				bkgrEl.setAttributeNS(null,'y',lineTop);
-				bkgrEl.setAttributeNS(null,'width',_data.table[col].width);
+				bkgrEl.setAttributeNS(null,'width',columnWidthToUse);
 				bkgrEl.setAttributeNS(null,'height',rectHeight);
 			}
 		}
@@ -1570,10 +1585,23 @@ function drawTableContent( init=false, shiftOnly=false ) {
 
 
 function drawTableScroll( init=false ) {
-	let visibleMaxStart = (_tableHeaderOverallWidth > _tableScrollSVGWidth) ? (_tableHeaderOverallWidth - _tableScrollSVGWidth) : 0;
-	let sliderSize = (visibleMaxStart > 0) ? (_tableScrollSVGWidth*_tableScrollSVGWidth/_tableHeaderOverallWidth) : _tableScrollSVGWidth;
+	let maxViewBoxLeft = (_tableHeaderOverallWidth > _tableScrollSVGWidth) ? (_tableHeaderOverallWidth - _tableScrollSVGWidth) : 0;
+	let sliderSize = (maxViewBoxLeft > 0) ? (_tableScrollSVGWidth*_tableScrollSVGWidth/_tableHeaderOverallWidth) : _tableScrollSVGWidth;
 	if( sliderSize < _settings.scrollSliderSize ) {
 		sliderSize = _settings.scrollSliderSize;
+	}
+
+	let sliderX;
+	if( maxViewBoxLeft > 0 ) {
+		let maxSlider = _tableScrollSVGWidth - sliderSize;
+		sliderX = _tableViewBoxLeft * maxSlider / maxViewBoxLeft;
+		if( sliderX < 0 ) {
+			sliderX = 0;
+		} else if( sliderX > maxSlider ) {
+			sliderX = maxSlider;
+		}
+	} else {
+		sliderX = 0;
 	}
 
 	if( init ) {
@@ -1582,7 +1610,7 @@ function drawTableScroll( init=false ) {
 			{ id:('tableScrollSVGBkgr'), fill:_settings.scrollBkgrColor, stroke:_settings.scrollRectColor, strokeWidth:1 } );
 		_tableScrollSVGBkgr.setAttributeNS(null,'cursor','pointer');
 		_tableScrollSVGBkgr.onmousedown = onTableScrollSVGBkgr;
-		_tableScrollSVGSlider = createRect( 0, 0, sliderSize, _tableScrollSVGHeight, 
+		_tableScrollSVGSlider = createRect( sliderX, 0, sliderSize, _tableScrollSVGHeight, 
 			{ id:('tableScrollSVGSlider'), fill:_settings.scrollSliderColor } );
 		_tableScrollSVGSlider.setAttributeNS(null,'cursor','pointer');
 		_tableScrollSVG.appendChild( _tableScrollSVGBkgr );
@@ -1598,6 +1626,7 @@ function drawTableScroll( init=false ) {
 	} else {
 		_tableScrollSVGBkgr.setAttributeNS(null,'width',_tableScrollSVGWidth);
 		_tableScrollSVGSlider.setAttributeNS(null,'width',sliderSize);
+		_tableScrollSVGSlider.setAttributeNS( null,'x', sliderX );
 	}
 }
 
@@ -1678,6 +1707,19 @@ function drawVerticalScroll( init ) {
 	} else {
 		_verticalScrollSVGSlider.setAttributeNS(null,'height',sliderSize);
 		_verticalScrollSVGSlider.setAttributeNS(null,'y',sliderPosition);
+	}
+}
+
+
+function drawVerticalSplitter( init=false ) {
+	if( init ) {
+		while (_verticalSplitterSVG.hasChildNodes()) {
+			_verticalSplitterSVG.removeChild(_verticalSplitterSVG.lastChild);
+		}		
+		_verticalSplitterSVGBkgr = createRect( 0, 0, _verticalSplitterSVGWidth, _verticalSplitterSVGHeight, 
+				{ stroke:_settings.tableContentStrokeColor, strokeWidth:1,  fill:_settings.tableContentFillColor } ); 	// backgroud rect
+		_verticalSplitterSVG.setAttributeNS(null,'cursor','col-resize');	
+		_verticalSplitterSVG.appendChild( _verticalSplitterSVGBkgr );					
 	}
 }
 
@@ -1896,13 +1938,13 @@ function onTableScrollSVGBkgr(e) {
 	if( !(maxVisibleLeft > 0.0) ) {
 		return;
 	}
-	_tableVisibleLeft = parseInt(_tableVisibleLeft + step * moveTo);
-	if( _tableVisibleLeft > maxVisibleLeft ) {
-		_tableVisibleLeft = maxVisibleLeft;
-	} else if( _tableVisibleLeft < 0 ) {
-		_tableVisibleLeft = 0;
+	_tableViewBoxLeft = parseInt(_tableViewBoxLeft + step * moveTo);
+	if( _tableViewBoxLeft > maxVisibleLeft ) {
+		_tableViewBoxLeft = maxVisibleLeft;
+	} else if( _tableViewBoxLeft < 0 ) {
+		_tableViewBoxLeft = 0;
 	}
-	newSliderX = _tableVisibleLeft * (_tableScrollSVGWidth - _tableScrollSVGSlider.getBBox().width) / maxVisibleLeft;
+	newSliderX = _tableViewBoxLeft * (_tableScrollSVGWidth - _tableScrollSVGSlider.getBBox().width) / maxVisibleLeft;
 	_tableScrollSVGSlider.setAttributeNS( null,'x', newSliderX );
 	drawTableHeader(false,true);
 	drawTableContent(false,true);
@@ -2156,8 +2198,8 @@ function calcTableHeaderOverallWidth() {
 
 function restoreTableColumnOrderAndWidths() {
 	copyArrayOfObjects( _data.initialTable, _data.table );
-	drawTableHeader();
-	drawTableContent();
+	drawTableHeader(true);
+	drawTableContent(true);
 	drawTableScroll();
 	for( let cookie = 0 ; cookie < _data.table.length ; cookie++ ) {
 		let cname = _data.table[cookie].ref+"Position";
