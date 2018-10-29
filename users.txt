@@ -1,3 +1,0 @@
-NOAUTH
-petrov	8F9A8B8D9089	Петров
-ivanov	96899E919089	Иванов
