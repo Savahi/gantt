@@ -1,3 +1,16 @@
+:root {
+	--header-height:40px;
+	--half-header-height:20px;
+	--toolbox-table-height:22px;
+	--toolbox-td-height:20px;
+	--toolbox-font-size:16px;
+	--toolbox-input-width:44px;
+	--toolbox-input-font-size:14px;
+	--ok-color: #4f4f4f;
+	--cancel-color: #bf2f2f;
+	--error-color: #b2f2f2;
+}
+
 	body { 
 		background-color: #FAFCFF;
 		font-family: sans-serif; 
@@ -14,11 +27,11 @@
 	}
 
 	.header {
-		left:0; top:0; z-index:999; height:40px; width:100%; margin:0; padding:0; display:block; box-sizing:border-box;
+		left:0; top:0; z-index:999; height:var(--header-height); width:100%; margin:0; padding:0; display:block; box-sizing:border-box;
 		border-bottom:0px solid #2f2f2f; background-image:linear-gradient(to right, rgb(0,0,0), rgb(0,0,0), rgb(75,75,75) );
 	}
 	.menu {
-		width:15%; height:40px; margin:0px 0px 0px 0px; padding:0px; box-sizing:border-box; display:block; float:left; 
+		width:15%; height:var(--header-height); margin:0px 0px 0px 0px; padding:0px; box-sizing:border-box; display:block; float:left; 
 		text-align:center; 
 	}
 	.menu div {
@@ -30,22 +43,22 @@
 	.menu div.normal { color:white; }
 	.menu div.active { color:white; background-color:#2f2f2f; border-bottom:0px solid #7f7f7f; }
 	.project-details {
-		width:65%; height:40px; margin:0px; display:block; float:left; 
+		width:65%; height:var(--header-height); margin:0px; display:block; float:left; 
 		text-align:center; font-size:11px; color:white; font-family:courier;
 	}
 	.project-details div.project-name {
-		width:100%; height:20px; margin:0px; padding-top:2px; display:block; 
+		width:100%; height:var(--half-header-height); margin:0px; padding-top:2px; display:block; 
 		white-space:nowrap; text-overflow:ellipsis; overflow:hidden;  
 		text-align:center; font-size:16px;
 	}
 	.project-details div.project-time-and-version {
-		width:100%; height:20px; display:block; 
+		width:100%; height:var(--half-header-height); display:block; 
 		white-space:nowrap; text-overflow:ellipsis; overflow:hidden;  
 		text-align:center; font-size:11px; margin:0; padding:2px;
 	}
 
 	.project-user {
-		width:20%; height:40px; margin:0px; padding:2px; display:block; float:left;
+		width:20%; height:var(--header-height); margin:0px; padding:2px; display:block; float:left;
 		white-space:nowrap; text-overflow:ellipsis; overflow:hidden;  
 		vertical-align:middle; color:white; text-align:center;
 		font-size:12px; font-family:courier;
@@ -53,9 +66,9 @@
 
 	.content {
 		width:100%;
-		position: absolute; top:40px; left:0px;
+		position: absolute; top:var(--header-height); left:0px;
 		box-sizing:border-box;
-		border-top:0px solid white;
+		border:0;
 		margin:0; padding:0;
 		background-color:#ffffff;
 		text-align:center;
@@ -64,55 +77,58 @@
 	.page {
 		display:none;
 		width:100%;
-		margin:0; padding:0px 0px 0px 0px;
+		border:0;
+		margin:0; padding:0;
 		background-color:#ffffff;
 	}
 
 	table.toolbox {
-		width:100%; margin:0; padding:0; height:18px; font-size:12px;		
+		width:100%; margin:0; padding:0; box-sizing:border-box; 
+		height:var(--toolbox-table-height); font-size:var(--toolbox-font-size);
 	}
 	table.toolbox td.toolbox-left {
-		width:50%; height:18px; padding:0px 0px 0px 24px; text-align:left;
+		width:50%; height:var(--toolbox-td-height); padding:0px 0px 0px 24px; text-align:left;
 	}
 	table.toolbox td.toolbox-left div {
-		float:left; height:18px; box-sizing:border-box; 
+		float:left; height:var(--toolbox-td-height); box-sizing:border-box; 
 		margin:0px 2px 0px 2px; padding:0px; border:0;
-		cursor:default; text-align:center; font-size:16px;
+		cursor:default; text-align:center; font-size:var(--toolbox-font-size);
 	}
 	table.toolbox td.toolbox-left div button {
-		float:left; box-sizing:border-box; 
-		margin:0px; height:17px; text-align:center;
+		box-sizing:border-box; margin:0px; text-align:center;
+		width:var(--toolbox-input-width); height:var(--toolbox-td-height); font-size:var(--toolbox-input-font-size); 
+	}
+	table.toolbox td.toolbox-left div input[type=number] {
+		width:var(--toolbox-input-width); height:var(--toolbox-td-height); box-sizing:border-box; font-size:var(--toolbox-input-font-size); 
+		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:#dfdfdf; text-align:center;
 	}
 
 	table.toolbox td.toolbox-right {
-		width:50%; height:18px; padding:0px 24px 0px 0px; text-align:right;
+		width:50%; height:var(--toolbox-td-height); padding:0px 24px 0px 0px; text-align:right;
 	}
 	table.toolbox td.toolbox-right div {
 		float:right; box-sizing:border-box; 
-		margin:0px 2px 0px 2px; height:18px; padding:0px;
+		margin:0px 2px 0px 2px; height:var(--toolbox-td-height); padding:0px;
 		text-align:center;
 	}
 	table.toolbox td.toolbox-right div button {
-		float:right; box-sizing:border-box; 
-		margin:0px; height:17px; text-align:center;
+		box-sizing:border-box; margin:0px; padding:1px; text-align:center; 
+		width:var(--toolbox-input-width); height:var(--toolbox-td-height); font-size:var(--toolbox-input-font-size); 	
 	}
 
 	table.toolbox td.toolbox-right div input[type=number] {
-		float:right; width:44px; height:17px; box-sizing:border-box; font-size:15px; 
-		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:#2f2f2f; color:white;
-		text-align:center;
+		width:var(--toolbox-input-width); height:var(--toolbox-td-height); box-sizing:border-box; font-size:var(--toolbox-input-font-size); 
+		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:#dfdfdf; text-align:center;		
 	}
-	table.toolbox td.toolbox-right div input[type=checkbox] {
-		float:right; width:20px; height:17px; box-sizing:border-box; 
-		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:#2f2f2f; color:white;
-		text-align:center;
+	table.toolbox td.toolbox-right div input[type=checkbox] { 
+		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:#dfdfdf; text-align:center;
 	}
 	table.toolbox td.toolbox-right div label {
-		float:right; font-size:15px;
+		font-size:var(--toolbox-font-size); 
 	}
 	table.toolbox td.toolbox-right div.toolbox-separator {
-		float:right; width:20px; height:18px; box-sizing:border-box; 
-		margin:0px 2px 0px 2px; padding:0px; border:0px solid gray; background-color:white; color:white;
+		width:20px; height:var(--toolbox-td-height); box-sizing:border-box;
+		margin:0px 2px 0px 2px; padding:0px; border:0px solid gray; background-color:white; color:#2f2f2f;
 	}
 
 	textarea.editBoxInput {
@@ -127,50 +143,16 @@
 		
 	h1 { margin:2% 1% 1% 1%; font-size:140%; color:#4f4f4f; font-variant:small-caps; }
 
-	.slidecontainer { width: 100%; }
-
-	.slider { 
-		-webkit-appearance: none;
-		width: 100%; height: 5px; background: #d3d3d3; outline: none; opacity: 0.7;
-		-webkit-transition: .2s; transition: opacity .2s;
-	}
-
-	.slider:hover { opacity: 1; }
-
-	.slider::-webkit-slider-thumb {
-		-webkit-appearance: none; appearance: none;
-		width: 25px; height: 5px; background: #4CAF50; cursor: pointer;
-	}
-
-	.slider::-moz-range-thumb {
-		width: 25px; height: 5px; background: #4CAF50; cursor: pointer;
-	}    	
-
-	.toolbox-btn {
-		border: 2px solid #2f8f2f; background-color: white; margin:0px; padding: 1px 4px 1px 4px;
-		color: black; font-size: 8px; cursor: pointer;
-	}
-	.toolbox-btn:hover { background-color: #2f8f2f; color: white; }
-
 	.btn {
 		border: 2px solid black; background-color: white; padding: 7px 14px;
 		color: black; font-size: 14px; cursor: pointer;
 	}
 
-	.ok { border-color: #2f8f2f; color:#2f8f2f; }
-	.ok:hover { background-color: #2f8f2f; color: white; }
+	.ok { border-color: var(--ok-color); color:var(--ok-color); }
+	.ok:hover { background-color: var(--ok-color); color: white; }
 
-	.cancel { border-color: #bf2f2f; color: red }
-	.cancel:hover { background: #bf2f2f; color: white; }
-
-	.info { border-color: #2196F3; color: dodgerblue; }
-	.info:hover { background: #2196F3; color: white; }
-
-	.warning { border-color: #ff9800; color: orange; }
-	.warning:hover { background: #ff9800; color: white; }
-
-	.default { border-color: #e7e7e7; color: black;	}
-	.default:hover { background: #e7e7e7; }
+	.cancel { border-color: var(--cancel-color); color: var(--cancel-color) }
+	.cancel:hover { background: var(--cancel-color); color: white; }
 
 	.dim { border-color: #afafaf; color: #afafaf; }
 
@@ -178,9 +160,9 @@
 	    content: ""; clear: both; display: table;
 	}
 
-	.ok-color { color: #2f8f2f; }
-	.cancel-color { color: #bf2f2f; }
-	.error-color { color: #bf2f2f; }	
+	.ok-color { color: var(--ok-color); }
+	.cancel-color { color: var(--cancel-color); }
+	.error-color { color: var(--error-color); }	
 
 	.keyword {
 		background-color: #cfcfcf; padding:0px 4px 0px 4px; font-style:normal;

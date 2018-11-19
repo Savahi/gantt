@@ -9,7 +9,7 @@ function displaySynchronizedStatus( synchronized ) {
                 el.title = _texts[_data.lang].errorUserData;
             } else if( synchronized == 0 ) {
                 el.innerHTML =  '⚠'; // '&#9888;';
-                el.className = 'cancel-color';
+                el.className = 'error-color';
                 el.title = _texts[_data.lang].unsynchronizedMessage;
             } else {
                 el.innerHTML =  '⟳'; // '&#8634;' '&#9888;';
@@ -22,16 +22,16 @@ function displaySynchronizedStatus( synchronized ) {
 
 
 function createForeignObjectWithText( text, x, y, width, height, properties ) {
-    let foreignObject = createForeignObject( x, y, width, height, properties );
+    let foreignObject = createForeignObject( text, x, y, width, height, properties );
     foreignObject.appendChild( document.createTextNode(text) );
     return foreignObject;
 }
 
 
-function createForeignObject( x, y, width, height, properties ) {
+function createForeignObject( text, x, y, width, height, properties ) {
     let foreignObject = document.createElementNS(NS, 'foreignObject'); 
-    foreignObject.setAttribute("x",x); 
-    foreignObject.setAttribute("y",y); 
+    foreignObject.setAttribute("x",0); 
+    foreignObject.setAttribute("y",0); 
     foreignObject.setAttribute("width",width); 
     foreignObject.setAttribute("height",height); 
     if( 'id' in properties ) {
@@ -428,24 +428,16 @@ function isEditable( name ) {
     for( let iE=0 ; iE < _data.editables.length ; iE++ ) {
         let ref = _data.editables[iE].ref;
         if( ref == name ) {
-            return _data.editables[iE].type;
+            return true;
         }
     }
-    return null;
+    return false;
 }
 
 function padWithNChars( n, char ) {
     let s = '';
     for( let i = 0 ; i < n ; i++ ) {
         s += char;
-    }
-    return s;
-}
-
-function spacesToPadNameAccordingToHierarchy( hierarchy ) {
-    let s = '';
-    for( let i = 0 ; i < hierarchy ; i++ ) {
-        s += '   '; // figure space: ' ', '·‧', '•', '⁌','|'
     }
     return s;
 }

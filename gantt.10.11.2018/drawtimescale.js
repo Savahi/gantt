@@ -1,9 +1,5 @@
 
 function drawTimeScale() {
-	if( _inputOnly ) {
-		return;
-	}
-
 	while (_timeSVG.hasChildNodes()) {
 		_timeSVG.removeChild(_timeSVG.lastChild);
 	}
@@ -177,7 +173,7 @@ function drawTimeScaleYears( rectProperties, textProperties, displayYears, minY,
 
 	for( let y = minY ; y <= maxY ; y++ ) {
 		if( minY == maxY ) {
-			let yearText = createText( minY, _timeSVGWidth/2, bottom-3, textProperties );
+			let yearText = createText( minY, _timeSVGWidth/2, bottom-3, textproperties );
 			_timeSVG.appendChild(yearText);
 		} else {
 			let startOfYear = new Date(y,0,1,0,0,0,0);

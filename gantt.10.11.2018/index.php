@@ -54,23 +54,21 @@ if( isAuthRequired() ) {
 					↺ ↻ ↶ ↷ ⇆ ⇅ ⇎
 				-->
 				<div id='toolboxResetTableDimensions' style='margin-left:24px;' title=''>
-					<button class='ok' onclick='restoreTableColumnOrderAndWidths();'>↶</button>
-				</div>					
-				<div id='toolboxZoomVerticallyT' style='margin-left:24px;' title=''>
-					<label for='toolboxVScaleT'>↕</label><input type='number' value='100' min='5' max='999' size=4 step=25 required id='toolboxVScaleT'/>% 					
-				</div>			
+					<button class='toolbox-btn' onclick='restoreTableColumnOrderAndWidths();'>↶</button>
+				<div>					
 			</td><td class='toolbox-right'>
 				<div id='toolboxZoom100' title=''>
-					<button class='ok' onclick='onGanttDblClick();'>100%</button>
-				</div>	
+					<button class='toolbox-btn' onclick='onGanttDblClick();'>100%</button>
+				<div>	
 				<div id='toolboxZoomHorizontally' style='margin-right:24px;'>
-					&nbsp;&nbsp;<label for='toolboxHScale'>↔</label><input type='number' value='100' min='5' max='999' size=4 step=25 required id='toolboxHScale'/>%&nbsp;&nbsp;
+					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxHScale'/>&nbsp;&nbsp;<label for='toolboxHScale'>↔</label> 
 				</div>
 				<div id='toolboxZoomVertically'>
-					&nbsp;&nbsp;<label for='toolboxVScale'>↕</label><input type='number' value='100' min='5' max='999' size=4 step=25 required id='toolboxVScale'/>%&nbsp;&nbsp;
+					<input type='number' value='100' min='5' max='999' size=4 step=5 required id='toolboxVScale'/>&nbsp;&nbsp;<label for='toolboxVScale'>↕</label> 					
 				</div>			
 				<div id='toolboxLinks' style='margin-right:24px;'>
-					&nbsp;&nbsp;<label for='toolboxDisplayLinks'>⤡</label><input id='toolboxDisplayLinks' type='checkbox'>&nbsp;&nbsp;
+					<input id='toolboxDisplayLinks' type='checkbox'>
+					&nbsp;&nbsp;<label for='toolboxDisplayLinks'>⤡</label>
 				</div>				
 			</td>
 		</tr></table>
@@ -108,6 +106,8 @@ if( isAuthRequired() ) {
 					<div id='editBoxInputs' style='overflow:auto; text-align:left;'>
 					</div>
 					<div id='editBoxMessage' style='font-size:12px; font-style:italic; color:#4f4f4f;'></div>
+					<input id='editBoxOperationCode' type='hidden' value=''>
+					<input id='editBoxOperationIndex' type='hidden' value=''>
 					<table style='width:100%;' cellspacing=0 cellpadding=0><tr>
 						<td style='width:50%; padding:24px; text-align:right;'>
 							<button style='width:100%;' onclick="saveUserDataFromEditBox();" class='btn ok'>Ok</button>
@@ -119,15 +119,6 @@ if( isAuthRequired() ) {
 				</td>
 			</tr>
 		</table>
-	</div>
-</div>
-
-<div id='editTableFieldBox' style='position:absolute; display:none;'/>
-	<input id='editTableFieldBoxInput' style='display:none; font-size:12px;' autofocus /><textarea id='editTableFieldBoxTextarea' style='display:none; font-size:12px;' rows=3 autofocus /></textarea>
-	<div>
-		<button id='editTableFieldBoxCancel' class='cancel'>☓</button>
-		<div id='editTableFieldBoxMessage' class='cancel' 
-			style='overflow:ellipsis; background-color:#ffffff; font-size:12px;'></div>
 	</div>
 </div>
 
@@ -180,28 +171,17 @@ if( isAuthRequired() ) {
 		}
 	</script>
 
-<script type="text/javascript" src="parameters.js">
+
+<script type="text/javascript" src="texts.js">
 </script>
 
 <script type="text/javascript" src="utils.js">
 </script>
 
-<script type="text/javascript" src="texts.js">
-</script>
-
-<script type="text/javascript" src="boxes.js">
-</script>
-
 <script type="text/javascript" src="drawtimescale.js">
 </script>
 
-<script type="text/javascript" src="on.js">
-</script>
-
-<script type="text/javascript" src="drawtable.js">
-</script>
-
-<script type="text/javascript" src="drawgantt.js">
+<script type="text/javascript" src="messagebox.js">
 </script>
 
 <script type="text/javascript" src="index.js">
