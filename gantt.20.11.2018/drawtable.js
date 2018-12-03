@@ -218,65 +218,31 @@ function drawTableContent( init=false, shiftOnly=false ) {
 				el.appendChild( bkgr );
 
 				let textX = _settings.tableColumnTextMargin;
-				let textProperties = { id:('tableColumn'+col+'Row'+i), fill:color, textAnchor:'start', fontSize:fontSize };
+				let textAnchor = 'start';
 				if( ref == 'Name' ) { // A name should be adjusted according to it's position in the hierarchy
 					// textX += _settings.hierarchyIndent * _data.operations[i].parents.length;
 					content = spacesToPadNameAccordingToHierarchy(_data.operations[i].parents.length) + content; 
-					if( typeof(_data.operations[i].Level) === 'number' ) { // If it's a phase...
-						textProperties.fontWeight = 'bold'; // ... making it bold.
-					}
 				} else {
-					if( _data.table[col].type == 'float' ) {					
-						value = parseFloat( content );
-						if( !isNaN(value) ) {
-							content = value.toFixed( _data.table[col].format ); // For float values "format" stands for the radix.
-						}
-					}	
 					if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
 						textX = columnWidthToUse - _settings.tableColumnTextMargin*2;
-						textProperties.textAnchor = 'end';
+						textAnchor = 'end';
 					}						
-					if( _data.table[col].type == 'string' || _data.table[col].type == 'text' ) { // For strings "format" stands for alignment
-						if( _data.table[col].format == 1 ) { // Align right
-							textX = columnWidthToUse - _settings.tableColumnTextMargin*2;
-							textProperties.textAnchor = 'end';							
-						} else if ( _data.table[col].format == 2 ) {
-							textX = parseInt( (columnWidthToUse - _settings.tableColumnTextMargin) / 2 );
-							textProperties.textAnchor = 'center';														
-						}
-					}
-					if( _data.table[col].type == 'datetime' ) {
-						if( !(_data.table[col].format > 0) ) { // Date only
-							let pattern = / +[0-9]{2}:[0-9]{2} *$/; 
-							if( pattern.test(content) ) {               // If time is as well found in the string...
-								content = content.replace(pattern, ''); // ... deleting it.
-							}
-						} else {  // Date and time should be specified...
-							let pattern = /^ *[0-9]{2}\.[0-9]{2}\.[0-9]{4} *$/;
-							if( pattern.test(content) ) {  // ... if not ... 
-								content += ' 00:00';       // ... adding time.
-							}
-						}
-					}
 				}
-				let text = createText( content, textX, lineMiddle, textProperties );
+				let text = createText( content, textX, lineMiddle, 
+					{ id:('tableColumn'+col+'Row'+i), fill:color, textAnchor:textAnchor, fontSize:fontSize } );
 				el.appendChild( text );
 				let editableType = isEditable(_data.table[col].ref); // To confirm the field is editable...
-				// If it's editable and it's neither team nor assignment...
 				if( editableType != null ) {
-					if( !_inputOnly || 
-						(_inputOnly && (typeof(_data.operations[i].Level) === 'string' || _data.operations[i].Level === null)) ) {
-						bkgr.style.cursor = 'pointer';
-						bkgr.setAttributeNS( null, 'data-i', i );
-						bkgr.setAttributeNS( null, 'data-col', col );
-						bkgr.setAttributeNS( null, 'data-type', editableType );
-						bkgr.onmousedown = onTableFieldMouseDown;
-						text.style.cursor = 'pointer';
-						text.setAttributeNS( null, 'data-i', i );
-						text.setAttributeNS( null, 'data-col', col );
-						text.setAttributeNS( null, 'data-type', editableType );
-						text.onmousedown = onTableFieldMouseDown;
-					}
+					bkgr.style.cursor = 'pointer';
+					bkgr.setAttributeNS( null, 'data-i', i );
+					bkgr.setAttributeNS( null, 'data-col', col );
+					bkgr.setAttributeNS( null, 'data-type', editableType );
+					bkgr.onmousedown = onTableFieldMouseDown;
+					text.style.cursor = 'pointer';
+					text.setAttributeNS( null, 'data-i', i );
+					text.setAttributeNS( null, 'data-col', col );
+					text.setAttributeNS( null, 'data-type', editableType );
+					text.onmousedown = onTableFieldMouseDown;
 				}
 			}
 
@@ -329,9 +295,9 @@ function onTableFieldMouseDown(e) {
 
 	let col = this.getAttributeNS(null,'data-col');
 	if( e.which == 3 /*|| (_data.table[col].type == 'text' )*/ ) { // The right button has been clicked...
-		displayEditBoxWithData( this );
+		displayDataInEditBox( this );
 	} else { // The left one...
-		displayEditField( this );		
+		displayEditTableFieldBox( this );		
 	}
 }
 

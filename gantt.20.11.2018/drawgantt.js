@@ -264,11 +264,8 @@ function drawGantt( init=false, shiftOnly=false ) {
 
 			group.setAttributeNS( null, 'data-i', i );
 			if( 'editables' in _data ) {
-				if( !_inputOnly || 
-					(_inputOnly && (typeof(_data.operations[i].Level) === 'string' || _data.operations[i].Level === null)) ) {
-		 			group.onmousedown = function(e) { e.stopPropagation(); displayEditBoxWithData(this); };
-				}
-	 			//group.ontouchstart = function(e) { e.stopPropagation(); displayEditBoxWithData(this); };
+	 			group.onmousedown = function(e) { e.stopPropagation(); displayDataInEditBox(this); };
+	 			//group.ontouchstart = function(e) { e.stopPropagation(); displayDataInEditBox(this); };
 			}
 
 			text = createText( _data.operations[i].Name, rectStart, textY, // - fontSize * 0.25, 
@@ -383,7 +380,7 @@ function drawGanttHScroll( init=false ) {
 		_ganttHScrollSVG.appendChild( _ganttHScrollSVGSlider );
 		_ganttHScrollSVGSlider.onmouseover = function(e) { this.setAttributeNS(null,'fill',_settings.scrollSliderActiveColor); };
 		_ganttHScrollSVGSlider.onmouseout = function(e) { this.setAttributeNS(null,'fill',_settings.scrollSliderColor) };
-		_ganttHScrollSVGSlider.addEventListener('mousedown', onGanttHScrollSVGSlider, true );
+		_ganttHScrollSVGSlider.addEventListener('mousedown', onGanttHScrollSVGSlider );
 		//_ganttHScrollSVGSlider.addEventListener('touchstart', onGanttHScrollSVGSlider );
 	} else {
 		_ganttHScrollSVGBkgr.setAttributeNS(null,'width',_ganttHScrollSVGWidth);
@@ -422,7 +419,7 @@ function drawVerticalScroll( init ) {
 		_verticalScrollSVG.appendChild( _verticalScrollSVGSlider );
 		_verticalScrollSVGSlider.onmouseover = function(e) { this.setAttributeNS(null,'fill',_settings.scrollSliderActiveColor) };
 		_verticalScrollSVGSlider.onmouseout = function(e) { this.setAttributeNS(null,'fill',_settings.scrollSliderColor) };
-		_verticalScrollSVGSlider.addEventListener('mousedown', onVerticalScrollSVGSlider, true );
+		_verticalScrollSVGSlider.addEventListener('mousedown', onVerticalScrollSVGSlider );
 		//_verticalScrollSVGSlider.addEventListener('touchstart', onVerticalScrollSVGSlider );
 	} else {
 		_verticalScrollSVGSlider.setAttributeNS(null,'height',sliderSize);

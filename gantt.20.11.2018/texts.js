@@ -62,10 +62,7 @@ var _texts = {
 		enterUserDataMessage: 'ENTER USER DATA HERE',
 		errorUserData:'The data you\'ve entered are corrupted. Please contact your system administrator!',
 		synchronizedMessage: 'All the data presented are synchronized with Spider Project',
-		unsynchronizedMessage: 'The data you entered has not been uploaded into Spider Project yet!',
-		intError: 'Error: only integer numbers are allowed!',
-		floatError: 'Error: only floating point values are allowed (numbers and a decimal dot)!',
-		datetimeError: 'Error: the valid datetime format is "YYYY.MM.DD hh:mm"!' },
+		unsynchronizedMessage: 'The data you entered has not been uploaded into Spider Project yet!' },
 	'ru': { operation:'Операция', phase:'Фаза', status:'Состояние', resourse:'Ресурс(ы)', version: 'Версия',
 		expandColumn:'[]', Level:'Уровень', Name:'Название', Code:'Код', Start:'Старт', Fin:'Финиш', 
 		Notes:'Комментарий', status0:'Не начато', status100:'Завершено', statusNotFinished:'Не завершено',
@@ -85,10 +82,7 @@ var _texts = {
 		errorParsingUserData:'ЗАГРУЖЕННЫЕ ДАННЫЕ ИСКАЖЕНЫ...',
 		errorSavingData:'ОШИБКА ПРИ СОХРАНЕНИИ ДАННЫХ. ПОЖАЛУЙСТА, ПРОВЕРЬТЕ СОЕДИНЕНИЕ С ИНТЕРНЕТОМ!', 
 		enterUserDataMessage: 'USER DATA ВВОДЯТСЯ СЮДА',
-		errorUserData:'Введенные вами данные были искажены. Обратитесь к системному администратору!',
+		errorUserData:'Введенные вами данные были скажены. Обратитесь к системному администратору!',
 		synchronizedMessage: 'Все данные синхронизированы со Spider Project',
-		unsynchronizedMessage: 'Данные, которые вы ввели, еще не были загружены в Spider Project!',
-		intError: 'Ошибка: можно вводить только целые числа!',
-		floatError: 'Ошибка: можно вводить только десятичные числа (цифры и десятчиную точку)!',
-		datetimeError: 'Ошибка: допустимый формат ввода даты "YYYY.MM.DD hh:mm"!' }
+		unsynchronizedMessage: 'Данные, которые вы ввели, еще не были загружены в Spider Project!' }
 };

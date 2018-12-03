@@ -69,28 +69,28 @@
  {"Level":"A","Code":"bi","Name":"Бизнес аналитик","Type":"CH_BA","Notes":null,"Folder":null,"f_ColorBack":"14745599","f_ColorCom":"12500735","f_LastFin":null,"Start":"20.02.2007  08:19","Fin":"22.02.2007  08:19","AsapStart":"20.02.2007  08:19","AsapFin":"22.02.2007  08:19","FactStart":null,"FactFin":null,"DurPlan":"16","DurPlanD":"2","VolPlan":"100","VolFact":null,"Unit":null,"CostPlan":"1034"}
 ],
 "table": [
-{ "name":"[]", "ref":"expandColumn", "width":2, "visible":true, "type":null,"format":null },
-{"name":"Level","ref":"Level","visible":true,"width":2,"type":"int","format":0},
-{"name":"Code","ref":"Code","visible":true,"width":17,"type":"string","format":2},
-{"name":"Name","ref":"Name","visible":true,"width":40,"type":"string","format":0},
-{"name":"Type","ref":"Type","visible":true,"width":17,"type":"string","format":1},
-{"name":"Notes","ref":"Notes","visible":true,"width":17,"type":"text","format":0},
-{"name":"References to documents, sites, folders (URL)","ref":"Folder","visible":true,"width":17,"type":"string","format":0},
-{"name":"Start","ref":"Start","visible":true,"width":17,"type":"datetime","format":1},
-{"name":"Finish","ref":"Fin","visible":true,"width":17,"type":"datetime","format":1},
-{"name":"Start [ASAP]","ref":"AsapStart","visible":true,"width":17,"type":"datetime","format":0},
-{"name":"Finish [ASAP]","ref":"AsapFin","visible":true,"width":17,"type":"datetime","format":0},
-{"name":"Start [Actual]","ref":"FactStart","visible":true,"width":17,"type":"datetime","format":0},
-{"name":"Finish [Actual]","ref":"FactFin","visible":true,"width":17,"type":"datetime","format":0},
-{"name":"Duration, Hours [Remaining]","ref":"DurPlan","visible":true,"width":17,"type":"float","format":0},
-{"name":"Duration, Days [Remaining]","ref":"DurPlanD","visible":true,"width":17,"type":"float","format":0},
-{"name":"Volume [Remaining]","ref":"VolPlan","visible":true,"width":17,"type":"float","format":1},
-{"name":"Volume [Actual]","ref":"VolFact","visible":true,"width":17,"type":"float","format":1},
-{"name":"Unit of volume","ref":"Unit","visible":true,"width":17,"type":"string","format":0},
-{"name":"Total cost [Remaining]","ref":"CostPlan","visible":true,"width":17,"type":"float","format":2}
+{ "name":"[]", "ref":"expandColumn", "width":2, "visible":true, "type":null },
+{"name":"Level","ref":"Level","visible":true,"width":2,"type":"int"},
+{"name":"Code","ref":"Code","visible":true,"width":17,"type":"string"},
+{"name":"Name","ref":"Name","visible":true,"width":40,"type":"string"},
+{"name":"Type","ref":"Type","visible":true,"width":17,"type":"string"},
+{"name":"Notes","ref":"Notes","visible":true,"width":17,"type":"text"},
+{"name":"References to documents, sites, folders (URL)","ref":"Folder","visible":true,"width":17,"type":"string"},
+{"name":"Start","ref":"Start","visible":true,"width":17,"type":"datetime"},
+{"name":"Finish","ref":"Fin","visible":true,"width":17,"type":"datetime"},
+{"name":"Start [ASAP]","ref":"AsapStart","visible":true,"width":17,"type":"datetime"},
+{"name":"Finish [ASAP]","ref":"AsapFin","visible":true,"width":17,"type":"datetime"},
+{"name":"Start [Actual]","ref":"FactStart","visible":true,"width":17,"type":"datetime"},
+{"name":"Finish [Actual]","ref":"FactFin","visible":true,"width":17,"type":"datetime"},
+{"name":"Duration, Hours [Remaining]","ref":"DurPlan","visible":true,"width":17,"type":"float"},
+{"name":"Duration, Days [Remaining]","ref":"DurPlanD","visible":true,"width":17,"type":"float"},
+{"name":"Volume [Remaining]","ref":"VolPlan","visible":true,"width":17,"type":"float"},
+{"name":"Volume [Actual]","ref":"VolFact","visible":true,"width":17,"type":"float"},
+{"name":"Unit of volume","ref":"Unit","visible":true,"width":17,"type":"string"},
+{"name":"Total cost [Remaining]","ref":"CostPlan","visible":true,"width":17,"type":"float"}
 ],
 "editables": [ 
- { "ref":"Notes","name":"Notes","type":"text","format":0}
+ { "ref":"Notes","name":"Notes","type":"text"}
 ],
 "links": [
  {"PredCode":"spamrd01","SuccCode":"spamrd04","TypeSF2":"FS"},

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<style>
+:root {
+    --header-height:40px;
+    --half-header-height:20px;
+    --toolbox-table-height:22px;
+    --toolbox-td-height:20px;
+    --toolbox-font-size:16px;
+    --toolbox-input-width:44px;
+    --toolbox-input-font-size:14px;
+    --ok-color: #4f4f4f;
+    --cancel-color: #bf2f2f;
+    --error-color: #b2f2f2;
+}
+
+
+/* The checkbox-container */
+.checkbox-container {
+    display: block; position: relative; cursor: pointer;
+    padding-left: var(--toolbox-td-height); font-size: var(--toolbox-input-font-size);
+    -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.checkbox-container input {
+    display: none; position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0;
+}
+
+/* Create a custom checkbox */
+.checkbox-checkmark {
+    position: absolute;  background-color:#eee;
+    top:0; left:0; height:var(--toolbox-font-size); width:var(--toolbox-font-size);
+}
+
+/* On mouse-over, add a grey background color */
+.checkbox-container:hover input ~ .checkbox-checkmark {
+    background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.checkbox-container input:checked ~ .checkbox-checkmark {
+    background-color: var(--ok-color);
+}
+
+/* Create the checkbox-checkmark/indicator (hidden when not checked) */
+.checkbox-checkmark:after {
+    position: absolute; display:none; content: "✔"; font-size:var(--toolbox-font-size); padding:0px; 
+}
+
+/* Show the checkbox-checkmark when checked */
+.checkbox-container input:checked ~ .checkbox-checkmark:after {
+    display: block; color:white; 
+}
+
+</style>
+<body>
+
+<h1>Custom Checkboxes</h1>
+<label class="checkbox-container">One
+  <input type="checkbox" checked="checked">
+  <span class="checkbox-checkmark"></span>
+</label>
+<label class="checkbox-container">Two
+  <input type="checkbox">
+  <span class="checkbox-checkmark"></span>
+</label>
+<label class="checkbox-container">Three
+  <input type="checkbox">
+  <span class="checkbox-checkmark"></span>
+</label>
+<label class="checkbox-container">Four
+  <input type="checkbox">
+  <span class="checkbox-checkmark"></span>
+</label>
+
+</body>
+</html>

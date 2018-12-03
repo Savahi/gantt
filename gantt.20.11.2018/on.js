@@ -27,28 +27,12 @@ function onWindowContextMenu(e) {
 
 
 function onWindowMouseUp(e) { 
-	e.stopPropagation();
-	//e.preventDefault();
-	if( _ganttCaptured ) { 
-		_ganttCaptured = false;
-		if( _ganttSVG.style.cursor === _settings.ganttSVGCursor ) { // If the cursor currently defined indicates "magnification"...		
-			document.body.classList.add('wait');
-			let timeScaleClicked = (e.y < (_containerDivY + _timeSVGHeight)) ? true : false; // at is initially clicked: the time scale or gantt chart itself?
-			if( Math.abs(_ganttCapturedAtX - _ganttLastFoundAtX) < 2 && Math.abs(_ganttCapturedAtY - _ganttLastFoundAtY) < 2 ) {
-				if( e.which != 3 ) {
-					zoomXYR(e, true, timeScaleClicked);			
-				} else {
-					zoomXYR(e, false, timeScaleClicked);			
-				}
-			}		 
-			document.body.classList.remove('wait');
-		} else if( _ganttSVG.style.cursor === _settings.ganttSVGCapturedCursor ) { // If the gantt chart has been moved...
-			drawTableContent(); // ... adjusting table contents accordingly.
-		}
-	} 
-	if( _ganttSVG.style.cursor !== _settings.ganttSVGCursor ) {   // Restoring default cursors if required 
-		_ganttSVG.style.cursor = _settings.ganttSVGCursor;		  // (when mouse clicked and released in different areas)
-		_timeSVG.style.cursor = _settings.timeSVGCursor;
+	if( _ganttCaptured ) { _ganttCaptured = false; } 
+	if( _ganttSVG.style.cursor != "default" ) {
+		_ganttSVG.style.cursor = "default";
+	}
+	if( _timeSVG.style.cursor != "default" ) {
+		_timeSVG.style.cursor = "default";
 	}
 	if( _verticalSplitterCaptured ) { 
 		_verticalSplitterCaptured = false; 
@@ -114,7 +98,7 @@ function onWindowMouseMove(e) {
 	if( _tableSplitterCaptured >= 0 ) { // Table splitter captured - a table column width is being changing...
 		let el = document.getElementById('tableSplitter'+_tableSplitterCaptured);
 
-		let newX = e.x + _tableViewBoxLeft;
+		let newX = e.x
 		if( _tableSplitterCaptured > 0 ) { // To ensure not sliding too far to the left...
 			let leftEl = document.getElementById( 'tableSplitter'+(_tableSplitterCaptured-1) );
 			let leftX = parseInt( leftEl.getAttributeNS(null,'x') );
@@ -199,72 +183,25 @@ function onVerticalScrollSVGBkgr(e) {
 }
 
 function onGanttMouseDown(e) {
-	e.stopPropagation();
-	e.preventDefault();
 	_ganttCaptured = true; 
 	_ganttCapturedAtX = e.clientX;			
-	_ganttLastFoundAtX = e.clientX;			
-	_ganttCapturedAtY = e.clientY;			
-	_ganttLastFoundAtY = e.clientY;			
-	setTimeout( function() {
-		if( _ganttCaptured ) {
-			if( _ganttSVG.style.cursor !== _settings.ganttSVGCapturedCursor ) {
-				_ganttSVG.style.cursor = _settings.ganttSVGCapturedCursor;
-				_timeSVG.style.cursor = _settings.ganttSVGCapturedCursor;				
-			}
-		}
-	}, 1000 );
+	_ganttCapturedLeft = _ganttVisibleLeft;			
+	_ganttSVG.style.cursor = "pointer";	
+	_timeSVG.style.cursor = "pointer";	
 }
-
 
 function onGanttCapturedMouseMove(e) {
 	if( !_ganttCaptured ) {
 		return;
 	}
-	e.stopPropagation();
-	e.preventDefault();
-	if( _ganttSVG.style.cursor !== _settings.ganttSVGCapturedCursor ) { // If the cursor is still defined as a "maginfying" one...
-		if( Math.abs(_ganttCapturedAtX - _ganttLastFoundAtX) > 1 ||
-			Math.abs(_ganttCapturedAtY != _ganttLastFoundAtY) > 1 ) { // ...if moved at least 2 pixels...
-			_ganttSVG.style.cursor = _settings.ganttSVGCapturedCursor; // ...chaning the cursor to a "capturing" one...
-			_timeSVG.style.cursor = _settings.ganttSVGCapturedCursor;
-		}		
-	}
-
-	let deltaX = _ganttVisibleWidth * (e.clientX - _ganttLastFoundAtX) / _ganttSVGWidth;
-	let moveX = ( deltaX != 0 ) ? true : false; 
-	if( moveX ) {
-		_ganttVisibleLeft = validateGanttLeft( _ganttVisibleLeft - deltaX );
-		_ganttLastFoundAtX = e.clientX;				
-	}
-
-	let moveY = false;
-	let timeScaleClicked = (e.y < (_containerDivY + _timeSVGHeight)) ? true : false; // What is clicked: the time scale or gantt chart itself?
-	if( !timeScaleClicked ) {
-		let deltaY = _visibleHeight * (e.clientY - _ganttLastFoundAtY) / _ganttSVGHeight;
-		if( deltaY != 0 ) {
-			let newVisibleTop = _visibleTop - deltaY;
-			if( !(newVisibleTop < 0) && !(newVisibleTop + _visibleHeight > _notHiddenOperationsLength) ) {
-				_visibleTop = newVisibleTop;
-				moveY = true;
-			}
-			_ganttLastFoundAtY = e.clientY;
-		}
-	} 
-
-	if( moveX || moveY ) {
-		drawGantt();
-		if( moveX ) {
-			drawTimeScale();
-			drawGanttHScroll();					
-		}
-		if( moveY ) {
-			//drawTableContent();
-			drawVerticalScroll();
-		}
-	}
+	let deltaX = _ganttVisibleWidth * (e.clientX - _ganttCapturedAtX) / _ganttSVGWidth;
+	_ganttVisibleLeft = validateGanttLeft( _ganttCapturedLeft - deltaX );
+	_ganttCapturedLeft = _ganttVisibleLeft;
+	_ganttCapturedAtX = e.clientX;
+	drawGantt();
+	drawTimeScale();
+	drawGanttHScroll();
 }
-
 
 function onGanttDblClick(e) {
 	zoomX100();
@@ -287,22 +224,20 @@ function onTableHeaderMouseDown(e) {
 }
 
 function onTableColumnSplitterMouseDown(e) {
-	_tableSplitterCaptured=Number(this.dataset.columnNumber); 
-	_tableSplitterCapturedAtX=e.x;
+	_tableSplitterCaptured=Number(this.dataset.columnNumber); _tableSplitterCapturedAtX=e.x;
 }
 
 function onGanttHScrollSVGBkgr(e) {
 	let x = parseInt( _ganttHScrollSVGSlider.getAttributeNS(null,'x') ) + parseInt( _ganttHScrollSVG.getAttributeNS(null,'x') ) + _containerDivX;
 	let step = _ganttVisibleWidth * _settings.timeScaleScrollStep;
 	if( e.x < x ) {
-		moveXR( -step );		
+		moveX( -step );		
 	} else if( e.x > x + parseInt( _ganttHScrollSVGSlider.getAttributeNS(null,'width') ) ) {
-		moveXR( step );		
+		moveX( step );		
 	}
 }
 
 function onGanttHScrollSVGSlider(e) {
-	e.stopPropagation();
 	_ganttHScrollCaptured = true;
 	_ganttHScrollCapturedAtX = e.x;
 	_ganttHScrollXAtCapture = this.getBBox().x;
@@ -310,7 +245,6 @@ function onGanttHScrollSVGSlider(e) {
 
 
 function onVerticalScrollSVGSlider(e) {
-	e.stopPropagation();
 	_verticalScrollCaptured = true;
 	_verticalScrollCapturedAtY = e.y;
 	_verticalScrollYAtCapture = this.getBBox().y;
@@ -388,13 +322,4 @@ function onTimeWheel(e) {
 	}
 }
 
-
-
-function onZoomHorizontalInput(e) {
-	zoomXR( (parseInt(this.value) - parseInt(_data.visibleMaxWidth * 100.0 / _ganttVisibleWidth + 0.5)) / 100.0 );
-}
-
-function onZoomVerticalInput(e) {
-	zoomYR( (parseFloat(this.value) - (_notHiddenOperationsLength * 100.0 / _visibleHeight) ) / 100.0 ); 
-}
 

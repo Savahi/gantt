@@ -1,1 +1,1 @@
-<?php require('auth.php'); if( isAuthRequired() ) { auth(true); } ?>[{"operationCode":"ww","data":{"Start":"17.01.2007  08:00","Fin":"17.01.2007  08:00","Notes":null,"VolRest":20,"VolDone":"20","DurDone":null}}]
+<?php require('auth.php'); if( isAuthRequired() ) { auth(true); } ?>[{"operationCode":"me","data":{"f_WebExportLineNumber":3,"Start":"17.01.2007  08:00","Fin":"17.01.2007  08:01","Notes":null,"VolDone":null,"VolRest":null,"DurDone":null,"DurRest":null}}]

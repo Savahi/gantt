@@ -21,8 +21,9 @@ if( isAuthRequired() ) {
 <!-- Header -->
 <div class='header'>
 	<div class='menu' id='menu'>
-		<div data-menuid='main' id='menuMain'>☶</div> <!--☶ ☴ ⚎&#9870; -->
-		<div data-menuid='help' id='menuHelp'>&#8505;</div> <!-- ⚙ -->
+		<div data-menuid='main' id='menuMain'>&#9870;</div>
+		<!--<div data-menuid='settings' id='menuSettings'>&#9881;</div>-->
+		<div data-menuid='help' id='menuHelp' style='padding-top:4px;'>&#8505;</div>
 	</div>
 	<div class='project-details' id='projectDetails'>
 		<div class='project-name' id='projectName'>SPIDER PROJECT</div>
@@ -68,16 +69,8 @@ if( isAuthRequired() ) {
 				<div id='toolboxZoomVertically'>
 					&nbsp;&nbsp;<label for='toolboxVScale'>↕</label><input type='number' value='100' min='5' max='999' size=4 step=25 required id='toolboxVScale'/>%&nbsp;&nbsp;
 				</div>			
-				<!--
 				<div id='toolboxLinks' style='margin-right:24px;'>
 					&nbsp;&nbsp;<label for='toolboxDisplayLinks'>⤡</label><input id='toolboxDisplayLinks' type='checkbox'>&nbsp;&nbsp;
-				</div>				
-				-->
-				<div id='toolboxLinks' style='margin-right:24px;'>
-					<label class="checkbox-container">⤡
-						<input type="checkbox" id='toolboxDisplayLinks'>
-						<span class="checkbox-checkmark"></span>
-					</label>
 				</div>				
 			</td>
 		</tr></table>
@@ -97,7 +90,7 @@ if( isAuthRequired() ) {
 	</div>
 </div>
 
-<div id='blackOutBox' style='position:absolute; display:none; left:0; top:0; min-width:100%; min-height:100%; background-color:#4f4f4f; opacity:0.35;'></div>
+<div id='blackOutBox' style='position:absolute; display:none; left:0; top:0; min-width:100%; min-height:100%; background-color:#4f4f4f; opacity:0.75;'></div>
 
 <div id='messageBox' style='position:absolute; display:none; left:30%; top:30%; width:40%; height:40%;'>
 	<div id='messageBoxText' style='position:relative; display:table-cell; min-width:100%; min-height:100%; background-color:#ffffff; text-align:center; vertical-align:middle;'>
@@ -129,16 +122,12 @@ if( isAuthRequired() ) {
 	</div>
 </div>
 
-<div id='editField' style='position:absolute; display:none;'/>
-	<div style='width:100%; box-sizing:content-box; background-color:#dfdfdf; padding:0px; border:1px solid #4f4f4f;'>
-		<input id='editFieldInput' class='noArrow' style='display:none; font-size:12px; box-sizing:border-box;' autofocus /><textarea id='editFieldTextarea' style='display:none; font-size:12px; box-sizing:border-box;' rows=3 autofocus /></textarea>
-		<div>
-			<button id='editFieldCallCalendar' class='ok-color' style='float:left;'>☷</button> <!--☑✓✔ -->		
-			<button id='editFieldOk' class='ok' style='float:left;'>✔</button> <!--☑✓✔ -->
-			<button id='editFieldCancel' class='cancel'>☓</button>
-			<div id='editFieldMessage' class='cancel-color' 
-				style='overflow:ellipsis; background-color:#ffffff; font-size:12px;'></div>
-		</div>
+<div id='editTableFieldBox' style='position:absolute; display:none;'/>
+	<input id='editTableFieldBoxInput' style='display:none; font-size:12px;' autofocus /><textarea id='editTableFieldBoxTextarea' style='display:none; font-size:12px;' rows=3 autofocus /></textarea>
+	<div>
+		<button id='editTableFieldBoxCancel' class='cancel'>☓</button>
+		<div id='editTableFieldBoxMessage' class='cancel' 
+			style='overflow:ellipsis; background-color:#ffffff; font-size:12px;'></div>
 	</div>
 </div>
 
@@ -195,9 +184,6 @@ if( isAuthRequired() ) {
 </script>
 
 <script type="text/javascript" src="utils.js">
-</script>
-
-<script type="text/javascript" src="calendar.js">
 </script>
 
 <script type="text/javascript" src="texts.js">

@@ -28,9 +28,7 @@ var _settings = {
 	scrollThick:10, scrollSliderSize:10, timeScaleScrollStep:0.1, tableScrollStep:0.1, verticalSplitterInitialPosition:0.25,
 	verticalSplitterWidth:6, verticalSplitterStrokeColor:'#4f4f4f', verticalSplitterBkgrColor:'#dfdfdf',
 	zoomFactor:0.25, containerHPadding:2, 
-	minDayWidthOnTimeScale:12, minVisibleFontSize:6, minTableColumnWidth:4, hierarchyIndent:4,
-	webExportLineNumberColumnName:'f_WebExportLineNumber',
-	ganttSVGCursor:'zoom-in', ganttSVGCapturedCursor:'pointer', timeSVGCursor:'zoom-in'
+	minDayWidthOnTimeScale:12, minVisibleFontSize:6, minTableColumnWidth:4, hierarchyIndent:4
 }
 
 var _files = { gantt:"gantt.php", logout:"logout.php", userDataFile: "gantt_user_data.php", userDataSave:"gantt_save_user_data.php" };
@@ -82,13 +80,9 @@ var _tableHeaderOverallWidth=0;
 var _tableViewBoxLeft = 0; // 
 var _tableViewBoxTop = 0;
 
-var _ganttCaptured = false;
+var _ganttCaptured=false;
 var _ganttCapturedAtX;
-var _ganttLastFoundAtX;
-var _ganttCapturedAtY;
-var _ganttLastFoundAtY;
 var _ganttCapturedLeft;
-var _ganttCapturedTop;
 
 var _verticalSplitterSVGWidth;
 var _verticalSplitterSVGHeight;
@@ -545,22 +539,24 @@ function initLayout() {
 	//_ganttSVG.addEventListener( "touchstart", onGanttMouseDown );
 	_ganttSVG.addEventListener( "mousemove", onGanttCapturedMouseMove );
 	//_ganttSVG.addEventListener( "touchmove", onGanttCapturedMouseMove );
-	//_ganttSVG.addEventListener( "mouseup", onGanttCapturedMouseUp );
-	//_ganttSVG.addEventListener( "dblclick", onGanttDblClick );
+	_ganttSVG.addEventListener( "dblclick", onGanttDblClick );
 	addOnMouseWheel( _ganttSVG, onGanttWheel );
-	_ganttSVG.style.cursor = _settings.ganttSVGCursor;
+	_ganttSVG.style.cursor = "default";
 
 	// Time scale
 	_timeSVG.addEventListener('mousedown', onGanttMouseDown);
 	//_timeSVG.addEventListener('touchstart', onGanttMouseDown);
 	_timeSVG.addEventListener('mousemove', onGanttCapturedMouseMove);
 	//_timeSVG.addEventListener('touchmove', onGanttCapturedMouseMove);
-	//_timeSVG.addEventListener( "dblclick", onGanttDblClick );
+
+	_timeSVG.addEventListener( "dblclick", onGanttDblClick );
 	addOnMouseWheel( _timeSVG, onTimeWheel );	
-	_timeSVG.style.cursor = _settings.timeSVGCursor;
+	_timeSVG.style.cursor = "default";
 
 	// zoom tools
-	_zoomGanttHorizontalInput.oninput = onZoomHorizontalInput;
+	_zoomGanttHorizontalInput.oninput = function(e) { 
+		zoomXR( (parseInt(this.value) - parseInt(_data.visibleMaxWidth * 100.0 / _ganttVisibleWidth + 0.5)) / 100.0 );
+	};
 	_zoomGanttVerticalInput.oninput = onZoomVerticalInput;
 
 	_displayLinksCheckbox.onchange = function() { drawGantt(); };
@@ -570,30 +566,9 @@ function initLayout() {
 	return true;
 }
 
-
-function zoomXYR( e, zoomIn, xOnly=false ) {
-	let zoomFactorChange;
-	if( zoomIn ) {
-		zoomFactorChange = _settings.zoomFactor;
-	} else {
-		zoomFactorChange = -_settings.zoomFactor;
-	}
-	let x = (e.clientX - _ganttSVG.getAttributeNS(null,'x')); // To calculate x-location of click
-	zoomX( zoomFactorChange,  x / _ganttSVGWidth );
-	if( !xOnly ) {
-		let y = e.clientY - getElementPosition(_containerDiv).y - _ganttSVG.getAttributeNS(null,'y'); // To calculate y-location of click
-		zoomY( zoomFactorChange, y / _ganttSVGHeight );	
-	} 
-
-	drawGantt();
-	drawTimeScale();
-	drawGanttHScroll();	
-	if( !xOnly ) {
-		drawTableContent();		
-		drawVerticalScroll();
-	}
+function onZoomVerticalInput(e) {
+	zoomYR( (parseFloat(this.value) - (_notHiddenOperationsLength * 100.0 / _visibleHeight) ) / 100.0 ); 
 }
-
 
 function initLayoutCoords() {
 	_containerDivY = getElementPosition(_containerDiv).y;
@@ -827,9 +802,7 @@ function setUserData( userData ) { // Sets user data read from a file
 	try {
 		for( let i = 0 ; i < _data.operations.length ; i++ ) { // For all operations...
 			for( let iU = 0 ; iU < userData.length ; iU++ ) { // For all userData items...
-				let lineNumber = userData[iU].data[_settings.webExportLineNumberColumnName];	// The line number inside the exported csv-
-				// If the codes are the same and the numbers of lines are the same ...
-				if( _data.operations[i].Code == userData[iU].operationCode && i == lineNumber ) {
+				if( _data.operations[i].Code == userData[iU].operationCode ) { // If the codes are the same...
 					_data.operations[i].userData = {};
 					for( let iE=0 ; iE < _data.editables.length ; iE++ ) {
 						let ref = _data.editables[iE].ref;
@@ -847,6 +820,39 @@ function setUserData( userData ) { // Sets user data read from a file
 		ok = false;
 	}
 	return ok;
+}
+
+
+function createEditBoxInputs() {
+	let container = document.getElementById('editBoxInputs');
+	if( !container ) {
+		return;
+	}
+	container.style.height = '50vh';
+	for( let iE = 0 ; iE < _data.editables.length ; iE++ ) {
+		let ref = _data.editables[iE].ref;
+		let promptDiv = document.createElement('div');
+		promptDiv.id = 'editBoxInputPrompt' + ref;
+		promptDiv.innerText = _data.editables[iE].name; // _texts[_data.lang][ref];
+		promptDiv.className = 'editBoxPrompt';
+
+		let input;
+		if( _data.editables[iE].type == 'text' ) {
+			input = document.createElement('textarea');
+			input.rows = 4;
+		} else {
+			input = document.createElement('input');			
+			if( _data.editables[iE].type == 'string' || _data.editables[iE].type == 'datetime' ) {
+				input.setAttribute('type', 'text');
+			} else {
+				input.setAttribute('type', 'number');				
+			}
+		}
+		input.className = 'editBoxInput';
+		input.id = 'editBoxInput' + ref;
+		container.appendChild(promptDiv);
+		container.appendChild(input);
+	}
 }
 
 
@@ -884,7 +890,6 @@ function moveXR( positionChange ) {
 	moveX( positionChange );
 	drawGantt(false,true);
 	drawTimeScale();
-	drawGanttHScroll();
 }
 
 
@@ -1038,15 +1043,9 @@ function addOnMouseWheel(elem, handler) {
 }
 
 
-function timeToScreen( timeInSeconds, absoluteMin=true ) {
+function timeToScreen( timeInSeconds ) {
 	let availableSVGWidth = _ganttSVGWidth - _settings.ganttChartLeftMargin - _settings.ganttChartRightMargin;
-	let min;
-	if( absoluteMin ) {
-		min = _data.visibleMin;
-	} else {
-		min = _ganttVisibleLeft;
-	}
-	return _settings.ganttChartLeftMargin + (timeInSeconds - min) * availableSVGWidth / _ganttVisibleWidth; 
+	return _settings.ganttChartLeftMargin + (timeInSeconds - _data.visibleMin) * availableSVGWidth / _ganttVisibleWidth; 
 }
 
 function timeToScreenInt( timeInSeconds ) {

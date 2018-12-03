@@ -129,9 +129,6 @@ function createText( textString, x, y, properties ) {
     if( 'fontSize' in properties ) {
         text.setAttributeNS(null,'font-size', properties.fontSize );
     }
-    if( 'fontWeight' in properties ) {
-        text.setAttributeNS(null,'font-weight', properties.fontWeight );
-    }
     if( 'textAnchor' in properties ) {
         text.setAttributeNS(null,'text-anchor', properties.textAnchor );
     }
@@ -276,27 +273,16 @@ function parseDate( dateString ) {
         return null;
     }
     let date = null;
-    let y=null, m=null, d=null, hr=null, mn=null;
-    let parsedFull = dateString.match( /([0-9]+)[\.\-]([0-9]+)[\.\-]([0-9]+)[ T]+([0-9]+)\:([0-9]+)/ );
+    let parsedFull = dateString.match( /([0-9]+)\.([0-9]+)\.([0-9]+) +([0-9]+)\:([0-9]+)/ );
     if( parsedFull !== null ) {
         if( parsedFull.length == 6 ) {
-            y = parsedFull[3];
-            m = parsedFull[2];
-            d = parsedFull[1];
-            hr = parsedFull[4];
-            mn = parsedFull[5];
-            date = new Date(y, m-1, d, hr, mn, 0, 0);
+            date = new Date(parsedFull[3], parsedFull[2]-1, parsedFull[1], parsedFull[4], parsedFull[5], 0, 0);
         }
     } else {
-        let parsedShort = dateString.match( /([0-9]+)[\.\-]([0-9]+)[\.\-]([0-9]+)/ );
+        let parsedShort = dateString.match( /([0-9]+)\.([0-9]+)\.([0-9]+)/ );
         if( parsedShort !== null ) {
             if( parsedShort.length == 4 ) {
-                y = parsedShort[3];
-                m = parsedShort[2];
-                d = parsedShort[1];
-                hr = 0;
-                mn = 0;
-                date = new Date(y, m-1, d, hr, mn, 0, 0, 0, 0);
+                date = new Date(parsedShort[3], parsedShort[2]-1, parsedShort[1], 0, 0, 0, 0);
             }
         }
     }
@@ -305,85 +291,6 @@ function parseDate( dateString ) {
     }
     let timeInSeconds = date.getTime();
     return( { 'date':date, 'timeInSeconds':timeInSeconds/1000 } ); 
-}
-
-
-function parseJSDate( dateString ) {
-    if( typeof(dateString) === 'undefined' ) {
-        return null;
-    }
-    if( dateString == null ) {
-        return null;
-    }
-    let date = null;
-    let parsedFull = dateString.match( /([0-9]+)[\.\-]([0-9]+)[\.\-]([0-9]+)[ T]+([0-9]+)\:([0-9]+)/ );
-    if( parsedFull !== null ) {
-        if( parsedFull.length == 6 ) {
-            date = new Date(parsedFull[1], parsedFull[2]-1, parsedFull[3], parsedFull[4], parsedFull[5], 0, 0);
-        }
-    } else {
-        let parsedShort = dateString.match( /([0-9]+)[\.\-]([0-9]+)[\.\-]([0-9]+)/ );
-        if( parsedShort !== null ) {
-            if( parsedShort.length == 4 ) {
-                date = new Date(parsedShort[1], parsedShort[2]-1, parsedShort[3], 0, 0, 0, 0);
-            }
-        }
-    }
-    if( date === null ) {
-        return null;
-    }
-    let timeInSeconds = date.getTime();
-    return( { 'date':date, 'timeInSeconds':timeInSeconds/1000 } ); 
-}
-
-
-function dateIntoJSDateString( date ) {
-    let year = date.getFullYear(); 
-    let month = (date.getMonth()+1);
-    if( month < 10 ) {
-        month = "0" + month;
-    }
-    let day = date.getDate();
-    if( day < 10 ) {
-        day = "0" + day;
-    }
-    let hours = date.getHours();
-    if( hours < 10 ) {
-        hours = "0" + hours;
-    }
-    let minutes = date.getMinutes();
-    if( minutes < 10 ) {
-        minutes = "0" + minutes;
-    }
-    return( year + "-" + month + "-" + day + "T" + hours + ":" +  minutes + ":00" ); 
-}
-
-
-function dateIntoSpiderDateString( date, dateOnly=false ) {
-    let spiderDateString = null;
-
-    let year = date.getFullYear(); 
-    let month = (date.getMonth()+1);
-    if( month < 10 ) {
-        month = "0" + month;
-    }
-    let day = date.getDate();
-    if( day < 10 ) {
-        day = "0" + day;
-    }
-    spiderDateString = day + "." + month + "." + year; 
-    if( !dateOnly ) {
-        let hours = date.getHours();
-        if( hours < 10 ) {
-            hours = "0" + hours;
-        }
-        let minutes = date.getMinutes();
-        if( minutes < 10 ) {
-            minutes = "0" + minutes;
-        }
-        spiderDateString += " " + hours + ":" +  minutes;
-    }
-    return( spiderDateString ); 
 }
 
 

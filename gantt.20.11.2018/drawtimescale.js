@@ -112,10 +112,8 @@ function drawTimeScale() {
 	let textProperties = { fill:_settings.timeScaleFontColor, textAnchor:'middle', alignmentBaseline:'baseline' };
 	let rectProperties = { fill:'none', stroke:_settings.timeScaleStrokeColor, strokeWidth:0.25 };
 
-	//let minTime = _data.visibleMin * 1000; // screenToTime(0) * 1000;
-	//let maxTime = _data.visibleMax * 1000; // screenToTime( _timeSVGWidth ) * 1000;
-	let minTime = _ganttVisibleLeft * 1000; // screenToTime(0) * 1000;
-	let maxTime = minTime + _ganttVisibleWidth * 1000; // screenToTime( _timeSVGWidth ) * 1000;
+	let minTime = _data.visibleMin * 1000; // screenToTime(0) * 1000;
+	let maxTime = _data.visibleMax * 1000; // screenToTime( _timeSVGWidth ) * 1000;
 	let minDT = new Date(minTime);
 	let maxDT = new Date(maxTime);
 	let minY = minDT.getFullYear();
@@ -131,7 +129,7 @@ function drawTimeScale() {
 		rowNumber -= 1;
 	}
 
-	// Adjusting to the beginning of day
+	// Adjusting to the beginning of a day
 	minDT = new Date( minDT.getFullYear(), minDT.getMonth(), minDT.getDate(), 0, 0, 0, 0 );
 	maxDT = new Date( maxDT.getFullYear(), maxDT.getMonth(), maxDT.getDate(), 0, 0, 0, 0 );
 
@@ -186,8 +184,8 @@ function drawTimeScaleYears( rectProperties, textProperties, displayYears, minY,
 			let startOfYearInSeconds = startOfYear.getTime() / 1000;
 			let endOfYear = new Date(y,11,31,23,59,59,999);
 			let endOfYearInSeconds = endOfYear.getTime() / 1000;
-			let yearStartX = timeToScreen(startOfYearInSeconds, false);
-			let yearEndX = timeToScreen(endOfYearInSeconds, false);
+			let yearStartX = timeToScreen(startOfYearInSeconds);
+			let yearEndX = timeToScreen(endOfYearInSeconds);
 			let yearRect = createRect( yearStartX, top, yearEndX - yearStartX, height, rectProperties );		
 			_timeSVG.appendChild(yearRect);
 
@@ -221,8 +219,8 @@ function drawTimeScaleMonths( rectProperties, textProperties, displayMonths, min
 			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;
 			let endOfMonth = new Date(y,m+1,0,23,59,59,999);
 			let endOfMonthInSeconds = endOfMonth.getTime() / 1000;
-			let monthStartX = timeToScreen(startOfMonthInSeconds, false);
-			let monthEndX = timeToScreen(endOfMonthInSeconds, false);
+			let monthStartX = timeToScreen(startOfMonthInSeconds);
+			let monthEndX = timeToScreen(endOfMonthInSeconds);
 			let monthRect = createRect( monthStartX, top, monthEndX - monthStartX, height, rectProperties );		
 			_timeSVG.appendChild(monthRect);
 			let text;
@@ -266,8 +264,8 @@ function drawTimeScaleWeeks( rectProperties, textProperties, minDT, maxDT ) {
 	let endOfWeekInSeconds = startOfWeekInSeconds + numSecondsInWeek;
 	let endInSeconds = maxDT.getTime()/1000 + numSecondsInWeek - 1;		
 	for( ; startOfWeekInSeconds < endInSeconds ; ) {
-		let weekStartX = timeToScreen(startOfWeekInSeconds, false);
-		let weekEndX = timeToScreen(endOfWeekInSeconds, false);
+		let weekStartX = timeToScreen(startOfWeekInSeconds);
+		let weekEndX = timeToScreen(endOfWeekInSeconds);
 		let weekRect = createRect( weekStartX, top, weekEndX - weekStartX, height, rectProperties );		
 		_timeSVG.appendChild(weekRect);
 		let startOfWeekDate = new Date( startOfWeekInSeconds*1000 );
@@ -293,8 +291,8 @@ function drawTimeScaleDays( rectProperties, textProperties, minDT, maxDT ) {
 	let endOfDayInSeconds = startOfDayInSeconds + numSecondsInDay;
 	let endInSeconds = maxDT.getTime()/1000 + 1;		
 	for( ; startOfDayInSeconds < endInSeconds ; ) {
-		let dayStartX = timeToScreen(startOfDayInSeconds, false);
-		let dayEndX = timeToScreen(endOfDayInSeconds, false);
+		let dayStartX = timeToScreen(startOfDayInSeconds);
+		let dayEndX = timeToScreen(endOfDayInSeconds);
 		let dayRect = createRect( dayStartX, top, dayEndX - dayStartX, height, rectProperties );		
 		_timeSVG.appendChild(dayRect);
 		let startOfDayDate = new Date( startOfDayInSeconds*1000 );
@@ -324,8 +322,8 @@ function drawTimeScaleHours( rectProperties, textProperties, displayHours, minDT
 	let endOfHourInSeconds = startOfHourInSeconds + numSecondsInHour;
 	let endInSeconds = endDT.getTime()/1000 + 1;		
 	for( ; startOfHourInSeconds < endInSeconds ; ) {
-		let hourStartX = timeToScreen(startOfHourInSeconds, false);
-		let hourEndX = timeToScreen(endOfHourInSeconds, false);
+		let hourStartX = timeToScreen(startOfHourInSeconds);
+		let hourEndX = timeToScreen(endOfHourInSeconds);
 		let hourRect = createRect( hourStartX, top, hourEndX - hourStartX, height, rectProperties );		
 		_timeSVG.appendChild(hourRect);
 

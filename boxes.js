@@ -3,6 +3,8 @@ var	_messageBoxDiv=null;
 var	_messageBoxTextDiv=null;
 var	_editBoxDiv=null;
 var	_editBoxDetailsElem=null;
+var _editBoxDateFieldCurrentlyBeingEdited=null;
+var _editBoxDateFormat=null;
 
 function displayMessageBox( message ) {
 	_blackOutBoxDiv = document.getElementById("blackOutBox");
@@ -27,21 +29,110 @@ function hideEditBox() {
 	_blackOutBoxDiv.style.display='none';	
 	_editBoxDiv.style.display = 'none';
 	document.getElementById('editBoxMessage').innerText = '';			
+	calendarCancel();
 }
 
-var _editBoxOperationIndex = -1;
 
-function displayDataInEditBox( id ) {
+function createEditBoxInputs() {
 	_blackOutBoxDiv = document.getElementById("blackOutBox");
 	_editBoxDiv = document.getElementById('editBox');			
 	_editBoxDetailsElem = document.getElementById('editBoxDetails');			
 
+	let container = document.getElementById('editBoxInputs');
+	if( !container ) {
+		return;
+	}
+	container.style.height = '50vh';
+	for( let iE = 0 ; iE < _data.editables.length ; iE++ ) {
+		let ref = _data.editables[iE].ref;
+		let promptDiv = document.createElement('div');
+		promptDiv.id = 'editBoxInputPrompt' + ref;
+		promptDiv.innerText = _data.editables[iE].name; // _texts[_data.lang][ref];
+		promptDiv.className = 'editBoxPrompt';
+
+		let input;
+		if( _data.editables[iE].type == 'text' ) {
+			input = document.createElement('textarea');
+			input.rows = 4;
+		} else {
+			input = document.createElement('input');			
+			input.setAttribute('type', 'text');
+		}
+		input.className = 'editBoxInput';
+		input.id = 'editBoxInput' + ref;
+		input.onblur = function(e) { // To make sure data entered are valid...
+			let v = validateEditField( input, _data.editables[iE].type );
+			if( !v.ok ) {
+				document.getElementById('editBoxMessage').innerText = v.message;
+				input.focus();				
+			}
+		};
+
+		if( _data.editables[iE].type == 'datetime' ) {
+			let calendarContainer = document.createElement('div');
+			calendarContainer.style.marginBottom = '4px';
+			let callCalendar = document.createElement('div');
+			callCalendar.style.float = 'left';
+			callCalendar.style.cursor = 'pointer';
+			callCalendar.appendChild( document.createTextNode('☷'));
+			callCalendar.onclick = function(e) { callCalendarForEditBox(input, calendarContainer, iE); }
+			container.appendChild(callCalendar);
+			container.appendChild(promptDiv);
+			container.appendChild(input);		
+			container.appendChild(calendarContainer);
+			calendarSetFormat(_data.editables[iE].format);
+		} else {
+			container.appendChild(promptDiv);
+			container.appendChild(input);		
+		}
+	}
+
+	_editBoxDiv.addEventListener( "keyup", onEditBoxKey );
+	window.addEventListener( "keyup", onEditBoxKey );
+}
+
+function onEditBoxKey(event) {
+	if( _editBoxDiv.style.display !== 'none' ) {
+		event.preventDefault();
+		if( event.keyCode == 27 ) {
+			hideEditBox();
+		}			
+	}
+}
+
+
+function callCalendarForEditBox( input, container, indexInEditables ) {
+	let d = parseDate( input.value );
+	if( d !== null ) {
+		_editBoxDateFieldCurrentlyBeingEdited = input;
+		_editBoxDateFormat = _date.editables[indexInEditables];
+		calendar( container, updateEditBoxWithCalendarChoice, 20, 20, d.date, _texts[_data.lang].monthNames );
+	}
+}
+
+function updateEditBoxWithCalendarChoice(d) {
+	if( d !== null ) {
+		let flag;
+		if( !(_editBoxDateFormat > 0) ) { // Date only
+			flag = true;
+		} else {
+			flag = false;
+		}
+		_editBoxDateFieldCurrentlyBeingEdited.value = dateIntoSpiderDateString( d, flag );
+	}
+}
+
+
+var _editBoxOperationIndex = -1;
+
+// Displaying data related to an operation in the edit box 
+function displayEditBoxWithData( id ) {
 	let i = id.getAttributeNS(null, 'data-i');
 	_editBoxDetailsElem.innerHTML = formatTitleTextContent(i,true);
 	_editBoxOperationIndex = i;
-	for( let iE = 0 ; iE < _data.editables.length ; iE++ ) {
+	for( let iE = 0 ; iE < _data.editables.length ; iE++ ) { // For every editable field...
 		let ref = _data.editables[iE].ref;
-		let elem = document.getElementById( "editBoxInput" + ref );
+		let elem = document.getElementById( "editBoxInput" + ref ); // An element to input new value into
 		if( elem ) {
 			let valueSet = false;
 			if( 'userData' in _data.operations[i] ) {
@@ -54,9 +145,8 @@ function displayDataInEditBox( id ) {
 				elem.value = _data.operations[i][ ref ];
 			}
 
-			if( ref == 'VolDone' ) { // If this is a "VolDone" field recalculation af "VolRest" is required...
+			if( ref == 'VolDone' ) { // If this is a "VolDone" field changed, recalculation of "VolRest" is required...
 				elem.onblur = function(e) {
-					//let volDone = document.getElementById( "editBoxInputVolDone").value;
 					let volRest = recalculateVolRestAfterVolDoneChanged( this.value, _editBoxOperationIndex );					
 					if( volRest ) {
 						let elemVolRest = document.getElementById( 'editBoxInputVolRest');
@@ -66,6 +156,17 @@ function displayDataInEditBox( id ) {
 					}
 				}
 			}
+			if( ref == 'DurDone' ) { // If this is a "DurDone" field changed, recalculation of "DurRest" is required...
+				elem.onblur = function(e) {
+					let durRest = recalculateDurRestAfterDurDoneChanged( this.value, _editBoxOperationIndex );					
+					if( durRest ) {
+						let elemDurRest = document.getElementById( 'editBoxInputDurRest');
+						if( elemDurRest ) {
+							elemDurRest.value = durRest;
+						}
+					}
+				}
+			}			
 		}
 	}
 	displayEditBox();
@@ -73,6 +174,19 @@ function displayDataInEditBox( id ) {
 
 
 function saveUserDataFromEditBox() {
+
+	// Validating all the data are entered correctly...
+	for( let iE = 0 ; iE < _data.editables.length ; iE++ ) {
+		let ref = _data.editables[iE].ref;
+		let input = document.getElementById('editBoxInput' + ref);
+		let v = validateEditField( input, _data.editables[iE].type );
+		if( !v.ok ) {
+			document.getElementById('editBoxMessage').innerText = v.message;
+			input.focus();				
+			return; // If invalid data found - nothing happens...
+		}
+	}
+
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.onreadystatechange = function() {
 	    if (this.readyState == 4 ) {
@@ -82,7 +196,7 @@ function saveUserDataFromEditBox() {
 		    		if( !('userData' in _data.operations[i]) ) {
 						_data.operations[i].userData = {};
 					}
-					for( let iE = 0 ; iE < _data.editables.length ; iE++ ) { // For all editable field of the table...
+					for( let iE = 0 ; iE < _data.editables.length ; iE++ ) { // For all editable fields in the table...
 						let ref = _data.editables[iE].ref;
 						let elem = document.getElementById( 'editBoxInput' + ref ); // ... retrieving the element that stores a new value.
 						_data.operations[i].userData[ ref ] = elem.value; // Reading the value (possibly) changed.
@@ -138,22 +252,80 @@ function saveUserDataFromEditBox() {
 }
 
 
-var _editTableFieldBox = null;
-var _editTableFieldBoxInput = null;
-var _editTableFieldBoxValue = null;
-var _editTableFieldBoxOperationIndex = -1;
-var _editTableFieldBoxRef = null;
-var _editTableFieldBoxType = null;
-var _editTableFieldBoxChangesVolRestTo = null;
+function validateEditField( input, type, allowedEmpty=true ) {
+	let r = { ok:false, message:'ERROR!' };
+
+	let value = input.value;
+
+	if( allowedEmpty ) {
+		let pattern = new RegExp("[^ ]");
+		if( !pattern.test(value) ) {
+			r.ok = true;
+			r.message = 'EMPTY';
+			return r;
+		}
+	}
+
+	if( type === 'datetime' ) {
+		let pattern = new RegExp("[^ :\\.0-9]");
+    	let illegalCharacters = pattern.test(value);
+    	if( illegalCharacters ) { 
+    		r.message = _texts[_data.lang].datetimeError;
+    		return r;
+    	}		
+		let d = parseDate(value);
+		if( d == null ) {
+    		r.message = _texts[_data.lang].datetimeError;
+			return r;
+		}
+	} else if( type === 'int' ) {
+		let pattern = new RegExp("[^ 0-9]");
+    	let illegalCharacters = pattern.test(value);
+    	if( illegalCharacters ) { 
+    		r.message = _texts[_data.lang].intError;    		
+    		return r;
+    	}		
+    	if( isNaN( parseInt(value) ) ) {
+    		r.message = _texts[_data.lang].intError;    		
+    		return r;
+    	}
+	} else if( type === 'float' ) {
+		let pattern = new RegExp("[^ \\.0-9]");
+    	let illegalCharacters = pattern.test(value);
+    	if( illegalCharacters ) { 
+    		r.message = _texts[_data.lang].floatError;    		
+    		return r;
+    	}		
+    	if( isNaN( parseFloat(value) ) ) {
+    		r.message = _texts[_data.lang].floatError;    		
+    		return r;
+    	}
+	}
+	r.ok = true;
+	r.message = 'Ok';
+	return r;
+}
 
 
-function displayEditTableFieldBox( id ) {
+var _editField = null;
+var _editFieldInput = null;
+var _editFieldOldValue = null;
+var _editFieldOperationIndex = -1;
+var _editFieldRef = null;
+var _editFieldCol = null;
+var _editFieldType = null;
+var _editFieldChangesVolRestTo = null;
+var _editFieldChangesDurRestTo = null;
+var _editFieldCallCalendar = null;
+
+
+function displayEditField( id ) {
 	_blackOutBoxDiv.style.display='block';	
 
 	let i = id.getAttributeNS(null, 'data-i');
 	let col = id.getAttributeNS(null,'data-col');
 	let ref = _data.table[col].ref;
-	_editTableFieldBoxType = id.getAttributeNS(null,'data-type');
+	_editFieldType = id.getAttributeNS(null,'data-type');
 	let value = null;
 	if( 'userData' in _data.operations[i] ) {
 		if( ref in _data.operations[i].userData ) {
@@ -169,89 +341,153 @@ function displayEditTableFieldBox( id ) {
 	id = document.getElementById('tableColumn'+col+'Row'+i+'Bkgr');
 	let box = id.getBoundingClientRect();
 	
-	_editTableFieldBoxChangesVolRestTo = null; // If a "VolDone" value is edited this field is to be changed too
+	_editFieldChangesVolRestTo = null; // If a "VolDone" value is changed the "VolRest" field is to be changed too
+	_editFieldChangesDurRestTo = null; // If a "DurDone" value is changed the "DurRest" field is to be changed too
 
-	_editTableFieldBox = document.getElementById('editTableFieldBox');
-	_editTableFieldBoxMessage = document.getElementById('editTableFieldBoxMessage');
-	if( _editTableFieldBoxType == 'text' ) {
-		_editTableFieldBoxInput = document.getElementById('editTableFieldBoxTextarea');
+	_editField = document.getElementById('editField');
+	_editFieldCallCalendar = document.getElementById('editFieldCallCalendar');
+	_editFieldMessage = document.getElementById('editFieldMessage');
+	if( _editFieldType == 'text' ) {
+		_editFieldInput = document.getElementById('editFieldTextarea');
 	} else {
-		_editTableFieldBoxInput = document.getElementById('editTableFieldBoxInput');
-		if( _editTableFieldBoxType == 'string' || _editTableFieldBoxType == 'datetime' ) {
-			_editTableFieldBoxInput.setAttribute('type', 'text');
+		_editFieldInput = document.getElementById('editFieldInput');
+		if( _editFieldType == 'string' ) {
+			_editFieldInput.setAttribute('type', 'text');
 		} else {
-			_editTableFieldBoxInput.setAttribute('type', 'number');			
+			_editFieldInput.setAttribute('type', 'text');			
 		}
 	}
-	_editTableFieldBoxInput.style.display = 'block';
+	_editFieldInput.style.display = 'block';
 
-	_editTableFieldBox.style.left = parseInt(box.x) + "px";
-	_editTableFieldBox.style.top = parseInt(box.y) + "px";
-	_editTableFieldBox.style.width = parseInt(box.width) + "px";
-	_editTableFieldBox.style.height = parseInt(box.height) + "px";
-	_editTableFieldBox.style.display = 'block';
-	_editTableFieldBoxInput.value = value;
-	_editTableFieldBoxInput.style.width = '100%';
+	_editField.style.left = parseInt(box.x) + "px";
+	_editField.style.top = parseInt(box.y) + "px";
+	_editField.style.width = parseInt(box.width) + "px";
+	_editField.style.height = parseInt(box.height) + "px";
+	_editField.style.display = 'block';
+	_editFieldInput.value = value;
+	_editFieldInput.style.width = '100%';
 
-	_editTableFieldBoxValue = value; // Saving an old value to confirm it has been changed or to restore if required.
-	_editTableFieldBoxOperationIndex = i;
-	_editTableFieldBoxRef = ref;
-	_editTableFieldBoxInput.focus();
+	_editFieldOldValue = value; // Saving an old value to confirm it has been changed or to restore if required.
+	_editFieldOperationIndex = i;
+	_editFieldRef = ref;
+	_editFieldCol = col;
+	_editFieldInput.focus();
 
-	_editTableFieldBoxInput.addEventListener( "keyup", onEditTableFieldKey );
+	_editFieldInput.addEventListener( "keyup", onEditTableFieldKey );
 	window.addEventListener( "keyup", onEditTableFieldKey );
 
-	_blackOutBoxDiv.onclick = onEditTableFieldInputBlur; // On click saving changes.. 
+	_blackOutBoxDiv.onclick = onEditFieldInputOk; // On click saving changes.. 
 
-	document.getElementById('editTableFieldBoxCancel').onclick = hideEditTableFieldBox; // Cancel button hides  edit field 
+	document.getElementById('editFieldOk').onclick = onEditFieldInputOk; // Cancel button hides  edit field 
+	document.getElementById('editFieldCancel').onclick = hideEditField; // Cancel button hides  edit field 
+	if( _editFieldType === 'datetime')  {
+		_editFieldCallCalendar.style.display = 'block';
+		_editFieldCallCalendar.onclick = function(e) { callCalendarForEditField(_editFieldInput); }
+		setCalendarFormat(_data.table[col].format);
+	} else {
+		_editFieldCallCalendar.style.display = 'none';		
+	}
+}
+
+function setCalendarFormat( format ) {
+	if( !( format > 0) ) { // For dates the "format" specifies if time required (1) or not (0) 
+		calendarSetFormat( {'dateOnly':true} );
+	} else {
+		calendarSetFormat( {'dateOnly':false} );				
+	}			
+}
+
+function callCalendarForEditField( input ) {
+	if( calendarIsActive() ) {
+		return;
+	}
+	let d = parseDate( input.value );
+	if( d !== null ) {
+		calendar( _editField, updateEditFieldWithCalendarChoice, 20, 20, d.date, _texts[_data.lang].monthNames );
+	}
+}
+
+
+function updateEditFieldWithCalendarChoice( d ) {
+	if( d !== null ) {
+		let flag;
+		if( !(_data.table[_editFieldCol].format > 0) ) { // Date only
+			flag = true;
+		} else {
+			flag = false;
+		}
+		_editFieldInput.value = dateIntoSpiderDateString( d, flag );
+		onEditFieldInputOk();
+	} else {
+		hideEditField();
+	}
 }
 
 
 function onEditTableFieldKey(event) {
 	event.preventDefault();
-	if( event.keyCode == 13 && _editTableFieldBoxType != 'text' ) {
-		onEditTableFieldInputBlur();
+	if( event.keyCode == 13 && _editFieldType != 'text' ) {
+		onEditFieldInputOk();
 	}
 	if( event.keyCode == 27 ) {
-		hideEditTableFieldBox();
+		hideEditField();
 	}	
 }
 
-function onEditTableFieldInputBlur() {
-	if( !_editTableFieldBoxInput.value && !_editTableFieldBoxValue ) { // Nothing has been changed...
-		hideEditTableFieldBox();
+
+function onEditFieldInputOk() {
+	if( !_editFieldInput.value && !_editFieldOldValue ) { // Nothing has been changed...
+		hideEditField();
 		return;
 	}
-	if( _editTableFieldBoxInput.value == _editTableFieldBoxValue ) { // Nothing has been changed...
-		hideEditTableFieldBox();
+	if( _editFieldInput.value == _editFieldOldValue ) { // Nothing has been changed...
+		hideEditField();
 		return;
 	}
 
+	calendarCancel(); // If the "onEditFieldInputOk()" function is called not through a calendar event (e.g. on clicking blackOutDiv). 
+
+	let valid = validateEditField( _editFieldInput, _editFieldType );
+	if( !valid.ok ) {
+		_editFieldMessage.innerText = valid.message;
+		_editFieldMessage.style.display = 'block';
+		return;
+	}	
+
 	var xmlhttp = new XMLHttpRequest();
-	_editTableFieldBoxMessage.style.display = 'none';
+	_editFieldMessage.style.display = _texts[_data.lang].waitSaveUserDataText;
 	xmlhttp.onerror = function(e) { 
-		_editTableFieldBoxMessage.innerText = _texts[_data.lang].errorSavingData;
-		_editTableFieldBoxMessage.style.display = 'block';
+		_editFieldMessage.innerText = _texts[_data.lang].errorSavingData;
+		_editFieldMessage.style.display = 'block';
 	}
 
 	xmlhttp.onreadystatechange = function() {
 	    if (this.readyState == 4 ) {
 	    	if( this.status == 200 ) {
 		        if( this.responseText == "ok" ) { // The data has been successfully saved. Thus updating all corresponding data inside browser
-		        	let i = _editTableFieldBoxOperationIndex;
+		        	let i = _editFieldOperationIndex;
 		    		if( !('userData' in _data.operations[i]) ) {
 						_data.operations[i].userData = {};
 					}
-					let ref = _editTableFieldBoxRef;
-					_data.operations[i].userData[ ref ] = _editTableFieldBoxInput.value;
+					let ref = _editFieldRef;
+					_data.operations[i].userData[ ref ] = _editFieldInput.value; // _editFieldInput.value;
 					for( let col = 0 ; col < _data.table.length ; col++ ) { // Changing the value in the table...
 						if( _data.table[col].ref == ref ) {
-							writeNewValueFromInputElemIntoTable( _editTableFieldBoxInput.value, i, col, ref ); 
-							if( ref == 'VolDone' ) { // If it's a "VolDone" field that has been changed, the "VolRest" one should be updated too
+							writeNewValueFromInputElemIntoTable( _editFieldInput.value, i, col, ref ); 
+							if( ref == 'VolDone' ) { // If it's a "VolDone" field has been changed, the "VolRest" one should be updated too
 								for( let col2 = 0 ; col2 < _data.table.length ; col2++ ) { 
 									if( _data.table[col2].ref == 'VolRest' ) {					
-										_data.operations[i].userData['VolRest'] = _editTableFieldBoxChangesVolRestTo;			
-										writeNewValueFromInputElemIntoTable( _editTableFieldBoxChangesVolRestTo, i, col2, 'VolRest' );							
+										_data.operations[i].userData['VolRest'] = _editFieldChangesVolRestTo;			
+										writeNewValueFromInputElemIntoTable( _editFieldChangesVolRestTo, i, col2, 'VolRest' );							
+										break;
+									}
+								}	
+							}							
+							if( ref == 'DurDone' ) { // If it's a "DurDone" field has been changed, the "DurRest" one should be updated too
+								for( let col2 = 0 ; col2 < _data.table.length ; col2++ ) { 
+									if( _data.table[col2].ref == 'DurRest' ) {					
+										_data.operations[i].userData['DurRest'] = _editFieldChangesDurRestTo;			
+										writeNewValueFromInputElemIntoTable( _editFieldChangesDurRestTo, i, col2, 'DurRest' );							
 										break;
 									}
 								}	
@@ -263,7 +499,7 @@ function onEditTableFieldInputBlur() {
 			        	document.getElementById('ganttGroupTitle'+i).textContent = formatTitleTextContent(i); 
 					}
 					//console.log(JSON.stringify(_data.operations[i].userData));
-			        hideEditTableFieldBox();
+			        hideEditField();
 		        } else {
 		        	alert("Error: " + this.responseText); // this.responseText contains the error message. 
 		        }
@@ -271,7 +507,7 @@ function onEditTableFieldInputBlur() {
 		}
 	};
 
-	let userData = createUserDataObjectToSendAfterEditingInField( _editTableFieldBoxOperationIndex, _editTableFieldBoxRef );
+	let userData = createUserDataObjectToSendAfterEditingInField( _editFieldOperationIndex, _editFieldRef );
 	if( userData.length > 0 ) {
 		xmlhttp.open("POST", _files.userDataSave, true);
 		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
@@ -281,16 +517,18 @@ function onEditTableFieldInputBlur() {
 }
 
 
-function hideEditTableFieldBox() {
-	_editTableFieldBoxInput.removeEventListener( "keyup", onEditTableFieldKey );
+function hideEditField() {
+	calendarCancel();
+
+	_editFieldInput.removeEventListener( "keyup", onEditTableFieldKey );
 	window.removeEventListener( "keyup", onEditTableFieldKey );
 
 	_blackOutBoxDiv.style.display='none';	
-	_editTableFieldBox.style.display='none';
-	_editTableFieldBoxInput.style.display='none';
-	_editTableFieldBoxMessage.style.display = 'none';
-	document.getElementById('editTableFieldBoxInput').style.display = 'none';
-	document.getElementById('editTableFieldBoxMessage').style.display = 'none';
+	_editField.style.display='none';
+	_editFieldInput.style.display='none';
+	_editFieldMessage.style.display = 'none';
+	document.getElementById('editFieldInput').style.display = 'none';
+	document.getElementById('editFieldMessage').style.display = 'none';
 } 
 
 
@@ -299,6 +537,7 @@ function createUserDataObjectToSendAfterEditingInBox( editedOperationIndex ) {
 	for( let i = 0 ; i < _data.operations.length ; i++ ) {
 		if( 'userData' in _data.operations[i] || i == editedOperationIndex ) { // Data just edited comes from edit window
 			let userDataOfOperation = {};
+			userDataOfOperation[ _settings.webExportLineNumberColumnName ] = i;
 			for( let iE = 0 ; iE < _data.editables.length ; iE++ ) {
 				let ref = _data.editables[iE].ref;
 				let value;
@@ -318,31 +557,41 @@ function createUserDataObjectToSendAfterEditingInBox( editedOperationIndex ) {
 }
 
 
+
 function createUserDataObjectToSendAfterEditingInField( editedOperationIndex, editedFieldRef ) {
 	let userData = []; // Creating userData object with all the data entered but not synchronized
 	for( let i = 0 ; i < _data.operations.length ; i++ ) {
 		if( 'userData' in _data.operations[i] || i == editedOperationIndex ) {
 			let userDataOfOperation = {};
+			userDataOfOperation[ _settings.webExportLineNumberColumnName ] = i;			
 			for( let iE = 0 ; iE < _data.editables.length ; iE++ ) {
 				let ref = _data.editables[iE].ref;
 				let value;
 				if( i == editedOperationIndex ) { // This operation has just been edited
 					if( ref == editedFieldRef ) { // The value just edited
-						value = _editTableFieldBoxInput.value; 
+						value = _editFieldInput.value; 
 						if( ref == 'VolDone' ) { // Recalculation of the "VolRest" value is required 
 							let volRest = recalculateVolRestAfterVolDoneChanged( value, i );
-							//console.log(volRest);
 							if( volRest !== null ) {
-								//console.log("volRest=" + volRest);								
 								userDataOfOperation['VolRest'] = volRest;
-								_editTableFieldBoxChangesVolRestTo = volRest;
+								_editFieldChangesVolRestTo = volRest;
 							}
-						}
+						} 
+						if( ref == 'DurDone' ) { // Recalculation of the "DurRest" value is required 
+							let durRest = recalculateDurRestAfterDurDoneChanged( value, i );
+							if( durRest !== null ) {
+								userDataOfOperation['DurRest'] = durRest;
+								_editFieldChangesDurRestTo = durRest;
+							}
+						} 
 					} else if( editedFieldRef == 'VolDone' && ref == 'VolRest' ) { // 'VolRest' must be recalculated through 'VolDone' and not entered directly
+						continue;
+					} else if( editedFieldRef == 'DurDone' && ref == 'DurRest' ) { // 'DurRest' must be recalculated through 'DurDone' and not entered directly
 						continue;
 					} else { // A value of the same editedOperationIndex, yet not from edit field - thus not edited...
 						let valueSet = false;
 						if( 'userData' in _data.operations[i] ) { // If the value is set in 'userData'...
+							//console.log(`ref=${ref}`);
 							if( ref in _data.operations[i].userData ) {
 								value = _data.operations[i].userData[ ref ]; // ...copying.
 								valueSet = true;
@@ -357,6 +606,7 @@ function createUserDataObjectToSendAfterEditingInField( editedOperationIndex, ed
 				}
 				userDataOfOperation[ ref ] = value;
 			}
+			//console.log(JSON.stringify(userDataOfOperation)); 
 			userData.push( { "operationCode":_data.operations[i].Code, "data":userDataOfOperation } );				
 		}
 	}
@@ -377,14 +627,33 @@ function recalculateVolRestAfterVolDoneChanged( volDoneEntered, i ) {
 }
 
 
+function recalculateDurRestAfterDurDoneChanged( durDoneEntered, i ) {
+	let returnValue = null;
+	if( 'TeamDur' in _data.operations[i] && 'DurRest' in _data.operations[i] ) {
+		let teamDur = parseFloat( _data.operations[i]['TeamDur'] );
+		let durDone = parseFloat( durDoneEntered );
+		if( !isNaN(teamDur) && !isNaN(durDone) ) {
+			returnValue = teamDur - durDone;
+		}
+	}
+	return returnValue;
+}
+
+
 function writeNewValueFromInputElemIntoTable( inputElemValue, i, col, ref ) {
 	let destElem = document.getElementById( 'tableColumn'+col+'Row'+i );
-	if( ref != 'Name') {
-		destElem.childNodes[0].nodeValue = inputElemValue;
-	}
-	else { // Shifting according to hierarchy if it's a name
+	if( ref == 'Name') {
 		let hrh = _data.operations[i].parents.length;
 		destElem.childNodes[0].nodeValue = spacesToPadNameAccordingToHierarchy(hrh) + inputElemValue;
+	}
+	else { // Shifting according to hierarchy if it's a name
+		if( _data.table[col].type == 'float' ) {
+			let valueToTrim = parseFloat(inputElemValue);
+			if( !isNaN(valueToTrim) && typeof(_data.table[col].format) !== 'undefined' ) {
+				inputElemValue = valueToTrim.toFixed(_data.table[col].format);
+			}
+		}
+		destElem.childNodes[0].nodeValue = inputElemValue;
 	}
 	if( _data.operations[i][ref] != inputElemValue ) {
 		destElem.setAttributeNS( null, 'fill', _settings.editedColor );
