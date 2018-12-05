@@ -1,2 +1,2 @@
-var _inputOnly=false;
+var _inputOnly=true;
 var _lang="ru";

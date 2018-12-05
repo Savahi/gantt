@@ -80,7 +80,7 @@ function createEditBoxInputs() {
 			container.appendChild(promptDiv);
 			container.appendChild(input);		
 			container.appendChild(calendarContainer);
-			calendarSetFormat(_data.editables[iE].format);
+			setCalendarFormat(_data.editables[iE].format);
 		} else {
 			container.appendChild(promptDiv);
 			container.appendChild(input);		
@@ -105,7 +105,7 @@ function callCalendarForEditBox( input, container, indexInEditables ) {
 	let d = parseDate( input.value );
 	if( d !== null ) {
 		_editBoxDateFieldCurrentlyBeingEdited = input;
-		_editBoxDateFormat = _date.editables[indexInEditables];
+		_editBoxDateFormat = _data.editables[indexInEditables];
 		calendar( container, updateEditBoxWithCalendarChoice, 20, 20, d.date, _texts[_data.lang].monthNames );
 	}
 }
@@ -247,7 +247,7 @@ function saveUserDataFromEditBox() {
 		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
 		xmlhttp.setRequestHeader("Content-type", "plain/text" ); //"application/x-www-form-urlencoded");
 		xmlhttp.send( JSON.stringify(userData) );		
-		document.getElementById('editBoxMessage').innerText = _texts[_data.lang].waitSaveUserDataText;			
+		document.getElementById('editBoxMessage').innerText = _texts[_data.lang].waitSaveUserDataText; // Displaying the "wait" message. 
 	}
 }
 
@@ -513,6 +513,9 @@ function onEditFieldInputOk() {
 		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
 		xmlhttp.setRequestHeader("Content-type", "plain/text");
 		xmlhttp.send( JSON.stringify(userData) );		
+		// Displaying the "wait" message...
+		_editFieldMessage.innerText = valid.message;
+		_editFieldMessage.style.display = 'block';		
 	}
 }
 
@@ -642,9 +645,19 @@ function recalculateDurRestAfterDurDoneChanged( durDoneEntered, i ) {
 
 function writeNewValueFromInputElemIntoTable( inputElemValue, i, col, ref ) {
 	let destElem = document.getElementById( 'tableColumn'+col+'Row'+i );
+
+	let updated;
+	if( _data.operations[i][ref] != inputElemValue ) {
+		destElem.setAttributeNS( null, 'fontStyle', "italic" );
+		updated = '✎';
+	} else { // If user re-entered the old value
+		destElem.setAttributeNS( null, 'fontStyle', "normal" );										
+		updated = '';
+	}
+
 	if( ref == 'Name') {
 		let hrh = _data.operations[i].parents.length;
-		destElem.childNodes[0].nodeValue = spacesToPadNameAccordingToHierarchy(hrh) + inputElemValue;
+		destElem.childNodes[0].nodeValue = updated + spacesToPadNameAccordingToHierarchy(hrh) + inputElemValue;
 	}
 	else { // Shifting according to hierarchy if it's a name
 		if( _data.table[col].type == 'float' ) {
@@ -653,11 +666,6 @@ function writeNewValueFromInputElemIntoTable( inputElemValue, i, col, ref ) {
 				inputElemValue = valueToTrim.toFixed(_data.table[col].format);
 			}
 		}
-		destElem.childNodes[0].nodeValue = inputElemValue;
-	}
-	if( _data.operations[i][ref] != inputElemValue ) {
-		destElem.setAttributeNS( null, 'fill', _settings.editedColor );
-	} else { // If user re-entered the old value
-		destElem.setAttributeNS( null, 'fill', _settings.tableContentStrokeColor );										
+		destElem.childNodes[0].nodeValue = updated + inputElemValue;
 	}
 }

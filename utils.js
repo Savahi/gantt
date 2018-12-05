@@ -127,10 +127,16 @@ function createText( textString, x, y, properties ) {
         text.setAttributeNS(null, 'id', properties.id );        
     } 
     if( 'fontSize' in properties ) {
-        text.setAttributeNS(null,'font-size', properties.fontSize );
+        //text.setAttributeNS(null,'font-size', properties.fontSize );
+        text.style.fontSize = properties.fontSize;
     }
     if( 'fontWeight' in properties ) {
-        text.setAttributeNS(null,'font-weight', properties.fontWeight );
+        //text.setAttributeNS(null,'font-weight', properties.fontWeight );
+        text.style.fontWeight = properties.fontWeight;
+    }
+    if( 'fontStyle' in properties ) {
+        //text.setAttributeNS(null,'font-style', properties.fontStyle );        
+        text.style.fontStyle = properties.fontStyle;
     }
     if( 'textAnchor' in properties ) {
         text.setAttributeNS(null,'text-anchor', properties.textAnchor );
@@ -149,8 +155,13 @@ function createText( textString, x, y, properties ) {
     if( 'preserveAspectRatio' in properties ){
         text.setAttributeNS(null,'preserveAspectRatio', properties.preserveAspectRatio );
     }
-    if( 'stroke' in properties ) {
+    if( 'stroke' in properties) {
         text.setAttributeNS(null,'stroke', properties.stroke );
+    }
+    if( 'strokeWidth' in properties ) {
+        text.setAttributeNS(null,'stroke-width', properties.strokeWidth );
+    } else {
+        text.setAttributeNS(null,'stroke-width', 0 );
     }
     if( 'fill' in properties ) {
         text.setAttributeNS(null,'fill', properties.fill );

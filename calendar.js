@@ -14,6 +14,7 @@
 		if( format === null ) {
 			return;
 		}
+		console.log(format);
 		if( 'dateOnly' in format ) {
 			_calendarFormat.dateOnly = format.dateOnly;			
 		}
@@ -167,7 +168,6 @@
 		cancel.style.textAlign = 'center';
 		cancel.appendChild( document.createTextNode('✖')); // ✕
 		cancel.style.cursor = 'pointer';
-		cancel.className += ' cancel';
 		cancel.onclick = function(e) {
 			_calendarContainer.removeChild(_calendar);
 			_calendar = null;

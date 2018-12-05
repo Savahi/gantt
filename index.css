@@ -17,13 +17,9 @@
 }
 
 	body { 
-		background-color: white;
-		font-family: sans-serif; 
-		scroll-behavior: smooth;
-		margin:0; padding:0;
+		background-color:white; scroll-behavior:smooth;
+		font-family:arial; margin:0; padding:0;
 	}
-
-	body.wait, body.wait * { cursor:progress !important; }
 	
 	div { box-sizing: border-box; margin:0px; padding:0px; }
 	table { box-sizing: border-box; margin:0px; padding:0px; }
@@ -35,23 +31,24 @@
 
 	.header {
 		left:0; top:0; z-index:999; height:var(--header-height); width:100%; margin:0; padding:0; display:block; box-sizing:border-box;
-		border-bottom:0px solid var(--dark-color); background-image:linear-gradient(to right, rgb(100,100,100), rgb(40,40,40), rgb(100,100,100) );
+		border-bottom:0px solid var(--dark-color); 
+		background-image:linear-gradient(to right, rgb(120,120,120), rgb(20,20,20), rgb(120,120,120));
 	}
 	.menu {
 		width:15%; height:var(--header-height); margin:0px 0px 0px 0px; padding:0px; box-sizing:border-box; display:block; float:left; 
 		text-align:center; 
 	}
 	.menu div {
-		position:relative; width:33%; height:100%; margin:0px; padding:8px 0px 0px 0px; 
-		display:block; float:left;
-		white-space:nowrap; text-overflow:ellipsis; overflow:hidden; 
+		display:block; float:left; position:relative; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; 
+		width:33%; height:100%; margin:0px; padding:8px 0px 0px 0px; 
 		color:var(--lightgray-color); font-size:var(--half-header-height); text-align:center;
 	}
 	.menu div.normal { color:white; background-color:var(--darkgray-color); }
 	.menu div.active { color:white; background-color:var(--dark-color); }
+
 	.project-details {
 		width:65%; height:var(--header-height); margin:0px; display:block; float:left; 
-		text-align:center; font-size:11px; color:white; font-family:courier;
+		text-align:center; font-size:11px; color:white;
 	}
 	.project-details div.project-name {
 		width:100%; height:var(--half-header-height); margin:0px; padding-top:2px; display:block; 
@@ -60,20 +57,19 @@
 	}
 	.project-details div.project-time-and-version {
 		width:100%; height:var(--half-header-height); display:block; 
-		white-space:nowrap; text-overflow:ellipsis; overflow:hidden;  
-		text-align:center; font-size:11px; margin:0; padding:2px;
+		white-space:nowrap; text-overflow:ellipsis; overflow:hidden;
+		font-family:courier; text-align:center; font-size:11px; margin:0; padding:2px;
 	}
 
 	.project-user {
 		width:20%; height:var(--header-height); margin:0px; padding:2px; display:block; float:left;
 		white-space:nowrap; text-overflow:ellipsis; overflow:hidden;  
 		vertical-align:middle; color:white; text-align:center;
-		font-size:12px; font-family:courier;
+		font-size:12px;
 	}
 
 	.content {
-		width:100%; position: absolute; box-sizing:border-box; 
-		top:var(--header-height); left:0px;
+		width:100%; position:absolute; box-sizing:border-box; top:var(--header-height); left:0px;
 		border:0; margin:0; padding:0; background-color:white; text-align:center;
 	}		
 
@@ -152,11 +148,11 @@
 		color: black; font-size: 14px; cursor: pointer;
 	}
 
-	.ok { border-color:var(--ok-color); color:var(--ok-color); }
-	.ok:hover { background-color: var(--ok-color); color: white; }
+	button.ok { border-color:var(--ok-color); color:var(--ok-color); }
+	button.ok:hover { background-color: var(--ok-color); color: white; }
 
-	.cancel { border-color: var(--cancel-color); color: var(--cancel-color) }
-	.cancel:hover { background: var(--cancel-color); color: white; }
+	button.cancel { border-color: var(--cancel-color); color: var(--cancel-color) }
+	button.cancel:hover { background: var(--cancel-color); color: white; }
 
 	dim { border-color:var(--lightgray-color); color:var(--lightgray-color); }
 

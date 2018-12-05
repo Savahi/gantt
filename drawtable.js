@@ -192,18 +192,24 @@ function drawTableContent( init=false, shiftOnly=false ) {
 			for( let col = 1 ; col < _data.table.length ; col++ ) {
 				let ref = _data.table[col].ref;
 				let content = _data.operations[i][ref];
-				let color = _settings.tableContentStrokeColor;
+				let color = _data.operations[i].colorFont; // _settings.tableContentStrokeColor;
+				let fontStyle = null;
 				if( 'userData' in _data.operations[i] ) { // If the value has been changed by user and not saved
 					if( ref in _data.operations[i].userData ) {
 						if( _data.operations[i].userData[ref] != content ) {
 							content = _data.operations[i].userData[ref];
-							color = _settings.editedColor;
+							//color = _settings.editedColor;
+							fontStyle = "italic";
+							content = "✎" + content;
 						}
 					}
 				}
-				if( content === 'undefined' || content == null ) {
+				if( typeof(content) === 'undefined' ) {
+					content = '-';
+				} else if( content === null ) {
 					content = '-';
 				}
+
 				if( ref == "Level" ) { // To display no 'teams' or 'assignments' (phases only). 
 					if( typeof(content) == 'string' ) {
 						content = "";
@@ -218,7 +224,8 @@ function drawTableContent( init=false, shiftOnly=false ) {
 				el.appendChild( bkgr );
 
 				let textX = _settings.tableColumnTextMargin;
-				let textProperties = { id:('tableColumn'+col+'Row'+i), fill:color, textAnchor:'start', fontSize:fontSize };
+				let textProperties = { id:('tableColumn'+col+'Row'+i), fill:color, textAnchor:'start', 
+					fontSize:fontSize, fontStyle:fontStyle };
 				if( ref == 'Name' ) { // A name should be adjusted according to it's position in the hierarchy
 					// textX += _settings.hierarchyIndent * _data.operations[i].parents.length;
 					content = spacesToPadNameAccordingToHierarchy(_data.operations[i].parents.length) + content; 

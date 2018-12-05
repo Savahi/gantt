@@ -213,7 +213,7 @@ function onGanttMouseDown(e) {
 				_timeSVG.style.cursor = _settings.ganttSVGCapturedCursor;				
 			}
 		}
-	}, 1000 );
+	}, 500 );
 }
 
 

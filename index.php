@@ -22,7 +22,7 @@ if( isAuthRequired() ) {
 <div class='header'>
 	<div class='menu' id='menu'>
 		<div data-menuid='main' id='menuMain'>☶</div> <!--☶ ☴ ⚎&#9870; -->
-		<div data-menuid='help' id='menuHelp'>&#8505;</div> <!-- ⚙ -->
+		<div data-menuid='help' id='menuHelp'>i</div> <!-- &#8505; ⚙ -->
 	</div>
 	<div class='project-details' id='projectDetails'>
 		<div class='project-name' id='projectName'>SPIDER PROJECT</div>
@@ -109,7 +109,7 @@ if( isAuthRequired() ) {
 		<table style='width:100%' cellspacing=0 cellpadding=0>
 			<tr style='vertical-align:top;'>
 				<td style='width:40%; padding:12px;'>
-					<div id='editBoxDetails' style='padding:4px; text-align:left; overflow:auto; font-size:12px;'></div>
+					<div id='editBoxDetails' style='padding:4px; text-align:left; overflow:auto; color:#4f4f4f; font-size:12px;'></div>
 				</td>
 				<td style='width:60%; padding:12px;'>
 					<div id='editBoxInputs' style='overflow:auto; text-align:left;'>

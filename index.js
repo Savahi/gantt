@@ -328,6 +328,7 @@ function initData() {
 		}
 		d.color = decColorToString( d.f_ColorCom, _settings.ganttOperation0Color );
 		d.colorBack = decColorToString( d.f_ColorBack, "#ffffff" );
+		d.colorFont = decColorToString( d.f_FontColor, _settings.tableContentStrokeColor );
 		if( typeof( d.Level ) === 'string' ) {
 			if( digitsOnly(d.Level) ) {
 				d.Level = parseInt(d.Level);
@@ -776,9 +777,9 @@ function formatTitleTextContent( i, html=false ) {
 						if( content === 'undefined' || content === null ) {
 							content = '';
 						} else {
-							content = "<span style='color:#5f5f5f; text-decoration:line-through;'>" + content + "</span>"
+							content = "<span style='text-decoration:line-through;'>" + content + "</span>"
 						}
-						newValue = "<span style='color:" + _settings.editedColor + "'#af2f2f;'>" + newValue + "</span>";
+						newValue = "<span style='font-style:italic; color:" + _settings.editedColor + "'>" + '✎' + newValue + "</span>";
 					} else {
 						if( content === 'undefined' || content === null ) {
 							content = '';
@@ -791,7 +792,7 @@ function formatTitleTextContent( i, html=false ) {
 		// let name = _texts[_data.lang][ref];
 		let name = _data.table[col].name;
 		if( html ) {
-			name = "<span style='color:#5f5f5f; font-style:italic;'>" + name + "</span>";
+			name = "<span style='color:#7f7f7f;'>" + name + "</span>";
 		}
 		if( content === 'undefined' || content == null ) {
 			continue;
