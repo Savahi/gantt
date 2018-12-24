@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+
+<body>
+
+<Div id='x'></div>
+<div id='y'></div>
+
+<br/><br/>
+
+<div style='padding:24px;'>
+  <div style='padding:24px;'>
+    <div style='padding:24px;'>
+      <div style='padding:24px;'>
+        <img id="myImg" style='margin:0px; padding:0px; border:0px; width:300; height:200px;'
+          src="https://www.w3schools.com/howto/img_snow.jpg"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+
+function FindPosition(oElement)
+{
+  if(typeof( oElement.offsetParent ) != "undefined")
+  {
+    for(var posX = 0, posY = 0; oElement ; oElement = oElement.offsetParent )
+    {
+      posX += oElement.offsetLeft;
+      posY += oElement.offsetTop;
+      console.log(oElement.offsetTop);
+    }
+      return [ posX, posY ];
+    }
+    else
+    {
+      return [ oElement.x, oElement.y ];
+    }
+}
+
+function getCoordinatesOfClickOnElement(e, element) {
+  let parentX, parentY;
+  let oElement = element; 
+  if( typeof( oElement.offsetParent ) != "undefined" ) {
+    let cumulativePosX = 0, cumulativePosY = 0;
+    for( ; oElement ; oElement = oElement.offsetParent ) {
+      cumulativePosX += oElement.offsetLeft;
+      cumulativePosY += oElement.offsetTop;
+    }
+    parentX = cumulativePosX;
+    parentY = cumulativePosY;
+  } else {
+    parentX = oElement.x;
+    parentY = oElement.y;
+  }
+
+  if( !e ) {
+    var e = window.event;
+  }
+
+  let posX = 0, posY = 0;
+  if( e.pageX || e.pageY ) {
+    posX = e.pageX;
+    posY = e.pageY;
+  } else if( e.clientX || e.clientY ) {
+      posX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+      posY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+    }
+  posX -= parentX;
+  posY -= parentY;
+  return [posX, posY];
+}
+
+var targetImage = document.getElementById('myImg');
+
+targetImage.onmousemove = function(e) {
+  let c = getCoordinatesOfClickOnElement(e, targetImage);
+  document.getElementById("x").innerHTML = c[0];
+  document.getElementById("y").innerHTML = c[1];
+}
+
+</script>
+
+</body>
+</html>

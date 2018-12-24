@@ -2,22 +2,29 @@
 var NS = "http://www.w3.org/2000/svg";
 
 var _touchDevice = false;
+var _ganttMTime = -1;
+var _displayLinksOn = null;
+var _displayLinksDisabled = null;
+var _lockDataOn = null;
+var _lockDataDisabled = null;
+var _dataSynchronized = null;
 
 var _data;
 
 var _settings = {
 	ganttOperation0Color:'#2f8f2f', ganttOperation0Opacity:1.0, ganttOperation100Color:'#7f7f7f', ganttOperation100Opacity:1.0,
-	ganttPhaseColor:'#0f7f07f', ganttPhaseOpacity:1.0, ganttCriticalColor:'#bf2f2f', ganttOperationStrokeWidth:0, 
-	ganttCompareColor:'#cfcfdf', ganttCompareOpacity:0.75,
-	ganttFontColor:'#4f4f4f', timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf',
-	timeScaleMaxFontSize:12, minRectWidthOnTimeScale:14,
+	ganttPhaseColor:'#0f7f07f', ganttPhaseOpacity:1.0, 
+	ganttCriticalColor:'#bf2f2f', ganttCompareColor:'#cfcfdf', ganttCompareOpacity:0.75, ganttFontColor:'#4f4f4f', 
+	ganttOperationStrokeWidth:0, ganttMinFontSize:6, ganttMaxFontSize:14,
 	ganttLinkStrokeColor:'#000000',	ganttLinkStrokeWidth:0.5, ganttLinkStrokeDashArray:null, 
 	ganttLinkOpacity:0.50, ganttLinkArrowOpacity:1.0, ganttLinkArrowWidth:8, ganttLinkArrowHeight:8,
+	timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf',
+	timeScaleMaxFontSize:12, minRectWidthOnTimeScale:14, minDayWidthOnTimeScale:12, 
 	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', 
 	tableHeaderBorderColor:'#cfcfdf', tableHeaderActiveBorderColor:'#8f8f9f', 
 	tableContentFontColor:'#4f4f4f', tableContentFillColor:'#ffffff', tableContentStrokeColor:'#4f4f4f', 
 	tableColumnHMargin:1, tableColumnTextMargin:2, 
-	tableMaxFontSize:12, expandMaxFontSize:32,
+	tableMaxFontSize:14, tableMinFontSize:2, minTableColumnWidth:4, hierarchyIndent:4,	
 	scrollBkgrColor:'#cfcfcf', scrollRectColor:'#afafaf', scrollSliderColor:'#8f8f8f', scrollSliderActiveColor:'#000000',
 	gridColor:"#bfbfbf", gridStrokeWidth:0.5, gridOpacity:1, gridStrokeDashArray:'2,2', gridCurrentTimeColor:"#bf2f2f",
 	editedColor:"#bf2f2f",
@@ -28,9 +35,9 @@ var _settings = {
 	scrollThick:10, scrollSliderSize:10, timeScaleScrollStep:0.1, tableScrollStep:0.1, verticalSplitterInitialPosition:0.25,
 	verticalSplitterWidth:6, verticalSplitterStrokeColor:'#4f4f4f', verticalSplitterBkgrColor:'#dfdfdf',
 	zoomFactor:0.25, containerHPadding:2, 
-	minDayWidthOnTimeScale:12, minVisibleFontSize:6, minTableColumnWidth:4, hierarchyIndent:4,
 	webExportLineNumberColumnName:'f_WebExportLineNumber',
-	ganttSVGCursor:'zoom-in', ganttSVGCapturedCursor:'pointer', timeSVGCursor:'zoom-in'
+	ganttSVGCursor:'zoom-in', ganttSVGCapturedCursor:'pointer', timeSVGCursor:'zoom-in',
+	readableNumberOfOperations:28
 }
 
 var _files = { gantt:"gantt.php", logout:"logout.php", userDataFile: "gantt_user_data.php", userDataSave:"gantt_save_user_data.php" };
@@ -38,7 +45,10 @@ var _files = { gantt:"gantt.php", logout:"logout.php", userDataFile: "gantt_user
 var _zoomGanttHorizontalInput = null;
 var _zoomGanttVerticalInput = null; 
 var _zoomTableVerticalInput = null; 
-var _displayLinksCheckbox = null; 
+var _displayLinksDiv = null; 
+var _displayLinksIcon = null; 
+var _lockDataDiv = null;
+var _lockDataIcon = null;
 
 var _containerDiv = null;
 var _containerSVG = null;
@@ -135,11 +145,13 @@ window.addEventListener( "contextmenu", onWindowContextMenu );
 
 window.addEventListener( "resize", onWindowResize );
 
+/*
 window.addEventListener( "wheel", function(event) {
 	if( event.ctrlKey ) {
 		event.preventDefault();//prevent zoom
 	}
 });
+*/
 
 window.addEventListener( 'mouseup', onWindowMouseUp, true );
 //window.addEventListener( 'touchcancel', onWindowMouseUp, true );
@@ -161,7 +173,7 @@ function loadData() {
 			    		errorParsingData = true;
 			    	}
 			    	if( errorParsingData ) {
-			    		alert(this.responseText);
+			    		//alert(this.responseText);
 						displayMessageBox( _texts['en'].errorParsingData ); 
 			    	} else if( !('editables' in _data) ) {
 					    hideMessageBox();		    
@@ -169,7 +181,7 @@ function loadData() {
 						displayData();		 
 			        } else {
 			        	createEditBoxInputs();
-			        	_data.synchronized = null; // To assign later with a synchronization status.
+			        	_dataSynchronized = null; // To assign later with a synchronization status.
 				        var xmlhttpUserData = new XMLHttpRequest();
 						xmlhttpUserData.onreadystatechange = function() {
 				    		if (this.readyState == 4 ) {
@@ -182,18 +194,17 @@ function loadData() {
 				    					errorParsingUserData = true;
 				    				}
 				    				if( errorParsingUserData ) {
-						        		_data.synchronized = -1;
+						        		_dataSynchronized = -1;
 					        		} else {
-					      				_data.synchronized = 0;
+					      				_dataSynchronized = 0;
 					        			setUserData( userData );
 					        		}
 					        	} else if( status == 404 ) {
-					        		_data.synchronized = 1;
+					        		_dataSynchronized = 1;
 					        	}
-					        	displaySynchronizedStatus( _data.synchronized ); 
 							    hideMessageBox();		    
 								initData();
-								displayData();		 
+								displayData();
 				        	} 
 				        }
 				        xmlhttpUserData.open("GET", _files.userDataFile, true);
@@ -422,8 +433,12 @@ function initData() {
 	calcNotHiddenOperationsLength();
 
 	// Initializing vertical zoom
-	_visibleTop = 0;
-	_visibleHeight = _notHiddenOperationsLength;
+	let newZoom = calculateHorizontalZoomByVerticalZoom( 0, _settings.readableNumberOfOperations );
+	_visibleTop = newZoom[0];
+	_visibleHeight = newZoom[1];
+	_ganttVisibleLeft = newZoom[2];
+	_ganttVisibleWidth = newZoom[3];
+
 	let gvh = getCookie('ganttVisibleHeight', 'float');
 	if( gvh ) {
 		if( gvh > 0 ) {
@@ -436,13 +451,12 @@ function initData() {
 			_visibleTop = gvt;
 		}	
 	}
-	let zoomFactorY = _notHiddenOperationsLength / _visibleHeight;
-	_zoomGanttVerticalInput.value = parseInt(zoomFactorY*100.0 + 0.5);
-	_zoomTableVerticalInput.value = _zoomGanttVerticalInput.value;
+	displayYZoomFactor();
+	//let zoomFactorY = _notHiddenOperationsLength / _visibleHeight;
+	//_zoomGanttVerticalInput.value = parseInt(zoomFactorY*100.0 + 0.5);
+	//_zoomTableVerticalInput.value = _zoomGanttVerticalInput.value;
 
 	// Initializing horizontal zoom
-	_ganttVisibleLeft = _data.visibleMin;
-	_ganttVisibleWidth = _data.visibleMaxWidth;
 	let gvw = getCookie('ganttVisibleWidth', 'float');
 	if( gvw ) {
 		if( gvw > 60*60 ) {
@@ -455,8 +469,9 @@ function initData() {
 			_ganttVisibleLeft = gvl;
 		}	
 	}
-	let zoomFactorX = _data.visibleMaxWidth / _ganttVisibleWidth;
-	_zoomGanttHorizontalInput.value = parseInt(zoomFactorX*100.0 + 0.5);
+	displayXZoomFactor();
+	//let zoomFactorX = _data.visibleMaxWidth / _ganttVisibleWidth;
+	//_zoomGanttHorizontalInput.value = parseInt(zoomFactorX*100.0 + 0.5);
 
 	calcTableHeaderOverallWidth();
 }
@@ -500,7 +515,10 @@ function initLayout() {
 	_zoomGanttHorizontalInput = document.getElementById('toolboxHScale');
 	_zoomGanttVerticalInput = document.getElementById('toolboxVScale'); 
 	_zoomTableVerticalInput = document.getElementById('toolboxVScaleT'); 
-	_displayLinksCheckbox = document.getElementById('toolboxDisplayLinks'); 
+	_displayLinksDiv = document.getElementById('toolboxDisplayLinksDiv'); 
+	_displayLinksIcon = document.getElementById('toolboxDisplayLinksIcon'); 
+	_lockDataDiv = document.getElementById('toolboxLockDataDiv'); 
+	_lockDataIcon = document.getElementById('toolboxLockDataIcon'); 
 
 	_containerDiv = document.getElementById("containerDiv");
 	_containerSVG = document.getElementById("containerSVG");
@@ -520,7 +538,7 @@ function initLayout() {
 		}
 	}	
 	_verticalSplitterPosition = _settings.verticalSplitterInitialPosition;
-
+	
 	initLayoutCoords();
 
 	_containerDiv.addEventListener('selectstart', function() { event.preventDefault(); return false; } );
@@ -531,10 +549,10 @@ function initLayout() {
 	// To scroll the table vertically - using the same handler as for the gantt chart... 
 	addOnMouseWheel( _tableContentSVG, onGanttWheel );
 	if( _inputOnly ) {
-		document.getElementById('toolboxZoom100').style.display = 'none';
-		document.getElementById('toolboxZoomHorizontally').style.display = 'none';
-		document.getElementById('toolboxZoomVertically').style.display = 'none';
-		document.getElementById('toolboxLinks').style.display = 'none';
+		//document.getElementById('toolboxZoom100Div').style.display = 'none';
+		document.getElementById('toolboxZoomHorizontallyDiv').style.display = 'none';
+		document.getElementById('toolboxZoomVerticallyDiv').style.display = 'none';
+		document.getElementById('toolboxDisplayLinksDiv').style.display = 'none';
 		return;
 	}
 
@@ -564,13 +582,10 @@ function initLayout() {
 	_zoomGanttHorizontalInput.oninput = onZoomHorizontalInput;
 	_zoomGanttVerticalInput.oninput = onZoomVerticalInput;
 
-	_displayLinksCheckbox.onchange = function() { drawGantt(); };
-
 	createDefs( _containerSVG );
 
 	return true;
 }
-
 
 function zoomXYR( e, zoomIn, xOnly=false ) {
 	let zoomFactorChange;
@@ -597,22 +612,10 @@ function zoomXYR( e, zoomIn, xOnly=false ) {
 
 
 function initLayoutCoords() {
-	_containerDivY = getElementPosition(_containerDiv).y;
-	if( window.innerHeight < 600 ) {
-		document.documentElement.style.setProperty('--toolbox-table-height', '42px');
-		document.documentElement.style.setProperty('--toolbox-td-height', '38px');
-		document.documentElement.style.setProperty('--toolbox-font-size', '18px');
-		document.documentElement.style.setProperty('--toolbox-input-width', '64px');
-		document.documentElement.style.setProperty('--toolbox-input-font-size', '18px');
-		_containerDivHeight = window.innerHeight - _containerDivY - _settings.scrollThick - 42;
-	} else {
-		document.documentElement.style.setProperty('--toolbox-table-height', '22px');
-		document.documentElement.style.setProperty('--toolbox-td-height', '20px');
-		document.documentElement.style.setProperty('--toolbox-font-size', '14px');
-		document.documentElement.style.setProperty('--toolbox-input-width', '44px');
-		document.documentElement.style.setProperty('--toolbox-input-font-size', '14px');
-		_containerDivHeight = window.innerHeight - _containerDivY - _settings.scrollThick - 22;
-	}
+	let htmlStyles = window.getComputedStyle(document.querySelector("html"));
+	let headerHeight = parseInt( htmlStyles.getPropertyValue('--header-height') );
+	let toolboxTableHeight = parseInt( htmlStyles.getPropertyValue('--toolbox-table-height') );
+	_containerDivHeight = window.innerHeight - headerHeight - _settings.scrollThick - toolboxTableHeight;
 
 	_containerDiv.style.height = _containerDivHeight;
 	_containerDiv.style.width = window.innerWidth;
@@ -634,7 +637,7 @@ function initLayoutCoords() {
 		_tableHeaderSVGWidth = _containerDivWidth - _settings.scrollThick - _settings.verticalSplitterWidth;
 	}
 	_tableHeaderSVG.setAttributeNS(null, 'width', _tableHeaderSVGWidth ); // window.innerWidth * 0.1 );
-	_tableHeaderSVGHeight = _containerDivHeight * 0.07;
+	_tableHeaderSVGHeight = parseInt(_containerDivHeight * 0.07);
 	_tableHeaderSVG.setAttributeNS(null, 'height', _tableHeaderSVGHeight ); 
     _tableHeaderSVG.setAttribute('viewBox', `${_tableViewBoxLeft} 0 ${_tableHeaderSVGWidth} ${_tableHeaderSVGHeight}`);
 
@@ -647,6 +650,8 @@ function initLayoutCoords() {
 	_tableContentSVG.setAttributeNS(null, 'height', _tableContentSVGHeight ); 
     _tableContentSVG.setAttribute('viewBox', `${_tableViewBoxLeft} ${_tableViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`);
 
+    //console.log(`wih = ${window.innerHeight}, divh=${_containerDivHeight}, th=${_tableHeaderSVGHeight}, tc=${_tableContentSVGHeight}`);
+	
 	// Vertical Splitter
 	_verticalSplitterSVG.setAttributeNS(null, 'x', _tableContentSVGWidth );
 	_verticalSplitterSVG.setAttributeNS(null, 'y', 0 ); 
@@ -712,17 +717,28 @@ function displayHeaderAndFooterInfo() {
 	document.getElementById('projectTimeAndVersion').innerText = timeAndVersion;
 	if( _data.userName !== null ) {
 		let el = document.getElementById('projectUser');
-		el.innerHTML = _data.userName + "<br/><a href='" + _files.logout + "' title='Logout'>[&rarr;]</a>";
+		el.innerHTML = _data.userName + "<br/><a href='" + _files.logout + "' title='Logout'>[&rarr;]</a>"; // ➜ ➡ ➝ ➲ ➠ ➞ ➩ ➯ →
 	}
 
 	document.getElementById('helpTitle').innerText = _texts[_data.lang].helpTitle; // Initializing help text	
 	document.getElementById('helpText').innerHTML = _texts[_data.lang].helpText; // Initializing help text	
 
-	document.getElementById('toolboxResetTableDimensions').title = _texts[_data.lang].resetTableDimensionsTitle;
-	document.getElementById('toolboxZoom100').title = _texts[_data.lang].zoom100Title;
-	document.getElementById('toolboxZoomVertically').title = _texts[_data.lang].zoomVerticallyTitle;
-	document.getElementById('toolboxZoomHorizontally').title = _texts[_data.lang].zoomHorizontallyTitle;
-	document.getElementById('toolboxLinks').title = _texts[_data.lang].displayLinksTitle;
+	document.getElementById('toolboxResetTableDimensionsDiv').title = _texts[_data.lang].resetTableDimensionsTitle;
+	document.getElementById('toolboxResetTableDimensionsIcon').setAttribute('src',_iconExportSettings);
+	document.getElementById('toolboxZoom100Div').title = _texts[_data.lang].zoom100Title;
+	document.getElementById('toolboxZoom100Icon').setAttribute('src',_iconZoom100);
+	document.getElementById('toolboxZoomReadableDiv').title = _texts[_data.lang].zoomReadableTitle;
+	document.getElementById('toolboxZoomReadableIcon').setAttribute('src',_iconZoomReadable);
+	document.getElementById('toolboxZoomVerticallyDiv').title = _texts[_data.lang].zoomVerticallyTitle;
+	document.getElementById('toolboxZoomVerticallyIcon').setAttribute('src',_iconZoomVertically);
+	document.getElementById('toolboxZoomVerticallyDivT').title = _texts[_data.lang].zoomVerticallyTitle;
+	document.getElementById('toolboxZoomVerticallyIconT').setAttribute('src',_iconZoomVertically);
+	document.getElementById('toolboxZoomHorizontallyDiv').title = _texts[_data.lang].zoomHorizontallyTitle;
+	document.getElementById('toolboxZoomHorizontallyIcon').setAttribute('src',_iconZoomHorizontally);
+
+	displayLinksStatus(false); 			// Initializing display/hide links tool
+	lockData( null, lockDataSuccessFunction, lockDataErrorFunction ); 		// Initializing lock data tool
+	displaySynchronizedStatus(); 		// Initializing syncho-data tool
 }
 
 
@@ -779,7 +795,8 @@ function formatTitleTextContent( i, html=false ) {
 						} else {
 							content = "<span style='text-decoration:line-through;'>" + content + "</span>"
 						}
-						newValue = "<span style='font-style:italic; color:" + _settings.editedColor + "'>" + '✎' + newValue + "</span>";
+						let color = ('colorFont' in _data.operations[i]) ? _data.operations[i].colorFont : _settings.editedColor;					
+						newValue = "<span style='font-style:italic; color:" + color + "'>" + '✎' + newValue + "</span>";
 					} else {
 						if( content === 'undefined' || content === null ) {
 							content = '';
@@ -892,7 +909,7 @@ function moveXR( positionChange ) {
 function zoomX( zoomFactorChange, centerOfZoom=0.5 ) {
 	let currentZoomFactor = _data.visibleMaxWidth / _ganttVisibleWidth;
 	let newZoomFactor = currentZoomFactor + zoomFactorChange;
-	if( !(newZoomFactor > 0) ) {
+	if( newZoomFactor < 0.5 ) {
 		return;
 	}
 	if( centerOfZoom < 0.1 ) {
@@ -909,10 +926,19 @@ function zoomX( zoomFactorChange, centerOfZoom=0.5 ) {
 	}
 	_ganttVisibleLeft = newLeft;
 	_ganttVisibleWidth = newWidth;
-	_zoomGanttHorizontalInput.value = parseInt(newZoomFactor*100.0 + 0.5);
+	displayXZoomFactor( newZoomFactor );
+}
+
+
+function displayXZoomFactor( zoomFactor=null ) {
+	if( zoomFactor === null ) {
+		zoomFactor = _data.visibleMaxWidth / _ganttVisibleWidth;
+	} 
+	_zoomGanttHorizontalInput.value = parseInt(zoomFactor*100.0 + 0.5);
 	setCookie("ganttVisibleLeft",_ganttVisibleLeft);
 	setCookie("ganttVisibleWidth",_ganttVisibleWidth);
 }
+
 
 function zoomXR( factorChange, centerOfZoom=0.5 ) { // Zoom and redraw
 	zoomX( factorChange, centerOfZoom );		
@@ -961,13 +987,18 @@ function moveYR( positionChange ) {
 function zoomY( zoomFactorChange, centerOfZoom=0.5 ) {
 	let currentZoomFactor = _notHiddenOperationsLength / _visibleHeight;
 	let newZoomFactor = currentZoomFactor + zoomFactorChange;
-	if( !(newZoomFactor > 0) ) {
-		return;
+
+	let minZoomFactor = 1.0;
+	if( newZoomFactor < minZoomFactor ) { 
+		newZoomFactor = minZoomFactor;
 	}
+	let maxZoomFactor = _notHiddenOperationsLength / 5.0;
+	if( newZoomFactor > maxZoomFactor ) { 
+		newZoomFactor = maxZoomFactor;
+	}
+	
 	let newHeight = _notHiddenOperationsLength / newZoomFactor;
-	if( newHeight < 1 && zoomFactorChange < 1.0 ) {
-		return;
-	}
+	
 	if( centerOfZoom < 0.1 ) {
 		centerOfZoom = 0.0;
 	} else if ( centerOfZoom > 0.9 ) {
@@ -981,14 +1012,24 @@ function zoomY( zoomFactorChange, centerOfZoom=0.5 ) {
 	}
 	_visibleTop = newY;
 	_visibleHeight = newHeight;
-	_zoomGanttVerticalInput.value = parseInt(newZoomFactor*100.0 + 0.5);
-	_zoomTableVerticalInput.value = parseInt(newZoomFactor*100.0 + 0.5);
-	setCookie("ganttVisibleTop",_visibleTop);
-	setCookie("ganttVisibleHeight",_visibleHeight);
+	displayYZoomFactor( newZoomFactor );
 }
 
-function zoomYR( factorChange, centerOfZoom=0.5 ) {
-	zoomY( factorChange, centerOfZoom );		
+
+function displayYZoomFactor( zoomFactor=null ) {
+	if( zoomFactor === null ) {
+		zoomFactor = _notHiddenOperationsLength / _visibleHeight;
+	}
+	_zoomGanttVerticalInput.value = parseInt(zoomFactor*100.0 + 0.5);
+	_zoomTableVerticalInput.value = parseInt(zoomFactor*100.0 + 0.5);
+	setCookie("ganttVisibleTop",_visibleTop);
+	setCookie("ganttVisibleHeight",_visibleHeight);
+
+}
+
+
+function zoomYR( factorChange, centerOfZoom=0.5, setZoomFactor=null ) {
+	zoomY( factorChange, centerOfZoom, setZoomFactor );		
 	drawTableContent();
 	drawGantt();
 	drawVerticalScroll();
@@ -1100,4 +1141,59 @@ function restoreTableColumnOrderAndWidths() {
 			deleteCookie( cname );
 		}
 	}
+}
+
+function zoom100(e) {
+	zoomX100();
+	zoomY100();
+	drawGantt();
+	drawTimeScale();
+	drawGanttHScroll();
+	drawTableContent();
+	drawVerticalScroll();
+}
+
+
+function calculateHorizontalZoomByVerticalZoom( top, height ) {
+	let newVisibleHeight = (_notHiddenOperationsLength < height) ? _notHiddenOperationsLength : height;
+	let newVisibleTop = (top + newVisibleHeight) <= _notHiddenOperationsLength ? top : (_notHiddenOperationsLength - newVisibleHeight);
+	
+	if( _notHiddenOperationsLength > height ) {		
+		let min = _data.operations[0].displayStartInSeconds;
+		let max = _data.operations[0].displayFinInSeconds;
+		for( let i = 1 ; i < newVisibleHeight ; i++ ) {
+			d = _data.operations[i];
+			if( d. displayStartInSeconds < min ) {
+				min = d.displayStartInSeconds;
+			} 
+			if( d.displayFinInSeconds > max ) {
+				max = d.displayFinInSeconds;
+			}
+
+		}
+		newVisibleLeft = min;
+		newVisibleWidth = max - min;
+	} else {		
+		newVisibleLeft = _data.visibleMin;
+		newVisibleWidth = _data.visibleMaxWidth;
+	}
+	return [ newVisibleTop, newVisibleHeight, newVisibleLeft, newVisibleWidth ];
+}
+
+
+function zoomReadable(e) {
+	let newZoom = calculateHorizontalZoomByVerticalZoom( 0, _settings.readableNumberOfOperations );
+	_visibleTop = newZoom[0];
+	_visibleHeight = newZoom[1];
+	_ganttVisibleLeft = newZoom[2];
+	_ganttVisibleWidth = newZoom[3];
+
+	displayXZoomFactor();
+	displayYZoomFactor();
+
+	drawGantt();
+	drawTimeScale();
+	drawGanttHScroll();	
+	drawTableContent();		
+	drawVerticalScroll();
 }

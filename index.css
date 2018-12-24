@@ -1,11 +1,11 @@
 :root {
 	--header-height:40px;
-	--half-header-height:20px;
-	--toolbox-table-height:22px;
-	--toolbox-td-height:20px;
-	--toolbox-font-size:16px;
-	--toolbox-input-width:44px;
-	--toolbox-input-font-size:14px;
+	--half-header-height:calc( var(--header-height) / 2 );
+	--toolbox-table-height:24px;
+	--toolbox-td-height:calc( var(--toolbox-table-height) - 2px );
+	--toolbox-font-size:calc( var(--toolbox-table-height) - 6px );
+	--toolbox-input-width:calc( var(--toolbox-table-height) * 2.5 );
+	--toolbox-input-font-size:calc( var(--toolbox-table-height) - 8px );
 	--ok-color: #4f4f4f;
 	--cancel-color: #bf2f2f;
 	--error-color: #b2f2f2;
@@ -14,6 +14,7 @@
 	--gray-color:#7f7f7f;
 	--darkgray-color:#4f4f4f;
 	--dark-color:#2f2f2f;
+	--black-color:#000000;
 }
 
 	body { 
@@ -30,7 +31,7 @@
 	}
 
 	.header {
-		left:0; top:0; z-index:999; height:var(--header-height); width:100%; margin:0; padding:0; display:block; box-sizing:border-box;
+		height:var(--header-height); width:100%; margin:0; padding:0; display:block; box-sizing:border-box;
 		border-bottom:0px solid var(--dark-color); 
 		background-image:linear-gradient(to right, rgb(120,120,120), rgb(20,20,20), rgb(120,120,120));
 	}
@@ -40,11 +41,19 @@
 	}
 	.menu div {
 		display:block; float:left; position:relative; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; 
-		width:33%; height:100%; margin:0px; padding:8px 0px 0px 0px; 
+		width:25%; height:100%; margin:0px; padding:4px 0px 4px 0px; 
 		color:var(--lightgray-color); font-size:var(--half-header-height); text-align:center;
 	}
-	.menu div.normal { color:white; background-color:var(--darkgray-color); }
-	.menu div.active { color:white; background-color:var(--dark-color); }
+	.menu div.normal { color:white; border:0px dotted var(--gray-color); }
+	.menu div.active { color:white; /*background-color:var(--black-color);*/ }
+
+	/*
+	.menu div img { outline:1px solid var(--gray-color); border:1px solid var(--darkgray-color); height:var(--half-header-height); padding:4px; }
+	.menu div.active img { outline:1px solid var(--gray-color); border:1px solid var(--dark-color); }
+	*/
+	.menu div img { border:1px dotted var(--black-color); border-radius:4px; height:var(--half-header-height); padding:4px; opacity:0.5; }
+	.menu div img:hover { opacity:0.75; }
+	.menu div.active img { border:1px dotted var(--black-color); opacity:1.0; }
 
 	.project-details {
 		width:65%; height:var(--header-height); margin:0px; display:block; float:left; 
@@ -69,7 +78,7 @@
 	}
 
 	.content {
-		width:100%; position:absolute; box-sizing:border-box; top:var(--header-height); left:0px;
+		width:100%; box-sizing:border-box; top:var(--header-height);
 		border:0; margin:0; padding:0; background-color:white; text-align:center;
 	}		
 
@@ -77,23 +86,41 @@
 		display:none; width:100%; border:0; margin:0; padding:0; background-color:white;
 	}
 
-	button { border:1px dotted var(--darkgray-color); border-radius:4px; }
+	.toolbox div img { border:1px dotted var(--black-color); border-radius:4px; height:var(--toolbox-font-size); 
+		cursor:pointer; padding:2px; opacity:0.75; }
+	.toolbox div img:hover { border:1px dotted var(--black-color); opacity:1.0; }
+
+	button { box-sizing:border-box; margin:0px; border:1px dotted var(--darkgray-color); 
+		border-radius:4px; background-color:var(--lightgray-color); 
+		cursor: pointer; text-align:center; }
+
+	button.ok { border-color:var(--ok-color); color:var(--ok-color); }
+	button.ok:hover { background-color: var(--ok-color); color: white; }
+
+	button.cancel { border-color: var(--cancel-color); color: var(--cancel-color) }
+	button.cancel:hover { background: var(--cancel-color); color: white; }
 
 	table.toolbox {
 		width:100%; margin:0; padding:0; box-sizing:border-box; 
 		height:var(--toolbox-table-height); font-size:var(--toolbox-font-size);
+		background-color:white;
 	}
+
+	table.toolbox button {
+		box-sizing:border-box; margin:0px; text-align:center;
+		width:var(--toolbox-input-width); height:var(--toolbox-td-height); font-size:var(--toolbox-input-font-size); 
+	}
+
 	table.toolbox td.toolbox-left {
 		width:50%; height:var(--toolbox-td-height); padding:0px 0px 0px 24px; text-align:left;
 	}
 	table.toolbox td.toolbox-left div {
 		float:left; height:var(--toolbox-td-height); box-sizing:border-box; 
-		margin:0px 2px 0px 2px; padding:0px; border:0;
+		margin:0px 2px 0px 2px; padding-left:18px; padding-right:18px; border-left:4px solid var(--lightgray-color);
 		cursor:default; text-align:center; font-size:var(--toolbox-font-size);
 	}
-	table.toolbox td.toolbox-left div button {
-		box-sizing:border-box; margin:0px; text-align:center;
-		width:var(--toolbox-input-width); height:var(--toolbox-td-height); font-size:var(--toolbox-input-font-size); 
+	table.toolbox td.toolbox-left div:first-child {
+		border:0px;
 	}
 	table.toolbox td.toolbox-left div input[type=number] {
 		width:var(--toolbox-input-width); height:var(--toolbox-td-height); box-sizing:border-box; 
@@ -105,13 +132,12 @@
 		width:50%; height:var(--toolbox-td-height); padding:0px 24px 0px 0px; text-align:right;
 	}
 	table.toolbox td.toolbox-right div {
-		float:right; box-sizing:border-box; 
-		margin:0px 2px 0px 2px; height:var(--toolbox-td-height); padding:0px;
-		text-align:center;
+		float:right; height:var(--toolbox-td-height); padding:0px; box-sizing:border-box; 
+		margin:0px 2px 0px 2px; padding-left:18px; padding-right:18px; border-right:4px solid var(--lightgray-color);
+		cursor:default; text-align:center; font-size:var(--toolbox-font-size);
 	}
-	table.toolbox td.toolbox-right div button {
-		box-sizing:border-box; margin:0px; padding:1px; text-align:center; 
-		width:var(--toolbox-input-width); height:var(--toolbox-td-height); font-size:var(--toolbox-input-font-size); 	
+	table.toolbox td.toolbox-right div:first-child {
+		border:0px;
 	}
 
 	table.toolbox td.toolbox-right div input[type=number] {
@@ -143,17 +169,6 @@
 		
 	h1 { margin:2% 1% 1% 1%; font-size:140%; color:var(--dark-color); font-variant:small-caps; }
 
-	.btn {
-		border: 2px solid black; background-color: white; padding: 7px 14px;
-		color: black; font-size: 14px; cursor: pointer;
-	}
-
-	button.ok { border-color:var(--ok-color); color:var(--ok-color); }
-	button.ok:hover { background-color: var(--ok-color); color: white; }
-
-	button.cancel { border-color: var(--cancel-color); color: var(--cancel-color) }
-	button.cancel:hover { background: var(--cancel-color); color: white; }
-
 	dim { border-color:var(--lightgray-color); color:var(--lightgray-color); }
 
 	.clearfix::after {
@@ -181,40 +196,48 @@
 	    appearance: none;
 	}
 
-	/* The checkbox-container */
+
+	.helpText {
+		padding:24px 20vw 0px 20vw; text-align:left; line-height:150%; font-size:14px;
+	}
+
+	.helpText div {
+		margin-bottom:24px;
+	}
+
+	.helpText div img {
+		display:inline-block; height:20px; position:relative; top:4px;
+	}
+
+/*
 	.checkbox-container {
 	    display:block; position:relative; cursor:pointer;
 	    padding-left:var(--toolbox-td-height); font-size:var(--toolbox-input-font-size);
 	    -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 	}
 
-	/* Hide the browser's default checkbox */
 	.checkbox-container input {
 	    display:none; position:absolute; opacity:0; cursor:pointer; height:0; width:0;
 	}
 
-	/* Create a custom checkbox */
 	.checkbox-checkmark {
 	    position: absolute; background-color:var(--lightgray-color); border:1px solid var(--darkgray-color); border-radius:2px;
 	    top:0; left:0; height:var(--toolbox-font-size); width:var(--toolbox-font-size);
 	}
 
-	/* On mouse-over, add a grey background color */
 	.checkbox-container:hover input ~ .checkbox-checkmark {
 	    background-color: var(--darkgray-color);
 	}
 
-	/* When the checkbox is checked, add a blue background */
 	.checkbox-container input:checked ~ .checkbox-checkmark {
 	    background-color: var(--ok-color);
 	}
 
-	/* Create the checkbox-checkmark/indicator (hidden when not checked) */
 	.checkbox-checkmark:after {
 	    position: absolute; display:none; content: "✔"; font-size:var(--toolbox-font-size); padding:0px; 
 	}
 
-	/* Show the checkbox-checkmark when checked */
 	.checkbox-container input:checked ~ .checkbox-checkmark:after {
 	    display: block; color:white; 
 	}
+*/

@@ -43,8 +43,10 @@ function onWindowMouseUp(e) {
 			}		 
 			document.body.classList.remove('wait');
 		} else if( _ganttSVG.style.cursor === _settings.ganttSVGCapturedCursor ) { // If the gantt chart has been moved...
+			_ganttSVG.style.cursor = _settings.ganttSVGCursor;
 			drawTableContent(); // ... adjusting table contents accordingly.
 		}
+		return;
 	} 
 	if( _ganttSVG.style.cursor !== _settings.ganttSVGCursor ) {   // Restoring default cursors if required 
 		_ganttSVG.style.cursor = _settings.ganttSVGCursor;		  // (when mouse clicked and released in different areas)
@@ -265,16 +267,6 @@ function onGanttCapturedMouseMove(e) {
 	}
 }
 
-
-function onGanttDblClick(e) {
-	zoomX100();
-	zoomY100();
-	drawGantt();
-	drawTimeScale();
-	drawGanttHScroll();
-	drawTableContent();
-	drawVerticalScroll();
-}
 
 function onTableHeaderMouseDown(e) {
 	_tableHeaderColumnSwapper = this.cloneNode(true);

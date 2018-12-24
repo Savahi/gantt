@@ -51,7 +51,7 @@ function drawTableHeader( init=false, shiftOnly=false ) {
 			let svg = document.getElementById('tableHeaderColumnNameSVG'+col);
 			svg.setAttributeNS(null,'x',left+1);
 			svg.setAttributeNS(null,'width',_data.table[col].width-2);			
-			svg.setAttributeNS(null,'display','block');
+			//svg.setAttributeNS(null,'display','block');
 			let rect = document.getElementById('tableHeaderColumnNameBkgr'+col);
 			rect.setAttributeNS(null,'width',_data.table[col].width-2);			
 			let text = document.getElementById('tableHeaderColumnNameText'+col);
@@ -64,7 +64,7 @@ function drawTableHeader( init=false, shiftOnly=false ) {
 
 function drawTableContent( init=false, shiftOnly=false ) {
 
-    _tableViewBoxTop = operToScreen( _visibleTop );
+    _tableViewBoxTop = Math.round( operToScreen( _visibleTop ) );
     let tcViewBox = `${_tableViewBoxLeft} ${_tableViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`;
     _tableContentSVG.setAttributeNS(null,'viewBox',tcViewBox);
     if( shiftOnly ) {
@@ -122,8 +122,7 @@ function drawTableContent( init=false, shiftOnly=false ) {
 	// Doing fields inside columns
 	let rectCounter = 0;
 	let rectHeight = (operToScreen(1) - operToScreen(0));
-	let fontSize = (rectHeight < 16) ? rectHeight * 0.75 : _settings.tableMaxFontSize;
-	let expandFontSize = fontSize; //(rectHeight < 32) ? rectHeight*1.2 : _settings.expandMaxFontSize;
+	let fontSize = (rectHeight < 16) ? parseInt(rectHeight * 0.75) : _settings.tableMaxFontSize;
 	for( let i = 0 ; i < _data.operations.length ; i++ ) {
 		let lineTop = operToScreen(rectCounter);
 		let lineBottom = lineTop + rectHeight;
@@ -136,9 +135,9 @@ function drawTableContent( init=false, shiftOnly=false ) {
 		let expand='';
 		if( _data.operations[i].expandable ) {
 			if( _data.operations[i].expanded ) {
-				expand='▼';
-			} else {
-				expand= '▶';				
+				expand='▼'; // ▼
+ 			} else {
+				expand= '►'; // ▶				
 			}
 		}
 		let expandText;
@@ -146,7 +145,7 @@ function drawTableContent( init=false, shiftOnly=false ) {
 
 		if( init ) {			
 			expandText = createText( expand, _data.table[0].width/2.0, lineMiddle, 
-				{ id:expandTextId, fontSize:expandFontSize, textAnchor:'middle', alignmentBaseline:'baseline' } );
+				{ id:expandTextId, fontSize:fontSize, textAnchor:'middle', alignmentBaseline:'baseline' } );
 	 		document.getElementById('tableColumnSVG0').appendChild(expandText);
 	 		expandText.dataset.operationNumber=i;
 	 		if( _data.operations[i].expandable ) {
@@ -186,6 +185,11 @@ function drawTableContent( init=false, shiftOnly=false ) {
 		 			drawGantt();
 		 		};
 		 	}
+			if( fontSize >= _settings.tableMinFontSize ) { // If font size is too small to make text visible at screen.
+				expandText.setAttributeNS(null,'display','block');
+			} else {
+				expandText.setAttributeNS(null,'display','none');				
+			}
 
 		 	// Fields inside columns
 			let left = _data.table[0].width;
@@ -205,9 +209,9 @@ function drawTableContent( init=false, shiftOnly=false ) {
 					}
 				}
 				if( typeof(content) === 'undefined' ) {
-					content = '-';
+					content = '';
 				} else if( content === null ) {
-					content = '-';
+					content = '';
 				}
 
 				if( ref == "Level" ) { // To display no 'teams' or 'assignments' (phases only). 
@@ -218,10 +222,10 @@ function drawTableContent( init=false, shiftOnly=false ) {
 
 				let columnWidthToUse = _data.table[col].width - _settings.tableColumnHMargin*2;
 
-				let el = document.getElementById('tableColumnSVG'+col);
+				let tableColumnSVG = document.getElementById('tableColumnSVG'+col);
 				let bkgr = createRect( 0, lineTop, columnWidthToUse, rectHeight,  
 					{ id:('tableColumn'+col+'Row'+i+'Bkgr'), fill:_data.operations[i].colorBack } );
-				el.appendChild( bkgr );
+				tableColumnSVG.appendChild( bkgr );
 
 				let textX = _settings.tableColumnTextMargin;
 				let textProperties = { id:('tableColumn'+col+'Row'+i), fill:color, textAnchor:'start', 
@@ -267,7 +271,12 @@ function drawTableContent( init=false, shiftOnly=false ) {
 					}
 				}
 				let text = createText( content, textX, lineMiddle, textProperties );
-				el.appendChild( text );
+				tableColumnSVG.appendChild( text );
+				if( fontSize >= _settings.tableMinFontSize ) { // If font size is too small to make text visible at screen.
+					text.setAttributeNS(null,'display','block');
+				} else {
+					text.setAttributeNS(null,'display','none');				
+				}
 				let editableType = isEditable(_data.table[col].ref); // To confirm the field is editable...
 				// If it's editable and it's neither team nor assignment...
 				if( editableType != null ) {
@@ -286,39 +295,48 @@ function drawTableContent( init=false, shiftOnly=false ) {
 					}
 				}
 			}
-
 		} else {
 			expandText = document.getElementById(expandTextId);
-			expandText.setAttributeNS(null,'x',_data.table[0].width/2.0);
-			expandText.setAttributeNS(null,'y',lineMiddle);
-			expandText.firstChild.nodeValue = expand;
-			expandText.setAttributeNS(null,'font-size',expandFontSize);
+			if( fontSize >= _settings.tableMinFontSize ) { // If font size is big enough to make text visible at screen.
+				expandText.setAttributeNS(null,'x',_data.table[0].width/2.0);
+				expandText.setAttributeNS(null,'y',lineMiddle);
+				expandText.firstChild.nodeValue = expand;
+				expandText.style.fontSize = fontSize;
+				expandText.setAttributeNS(null,'display','block');				
+			} else {
+				expandText.setAttributeNS(null,'display','none');
+			}
 
 			let left = _data.table[0].width;
 			for( let col = 1 ; col < _data.table.length ; col++ ) {
 				let columnWidthToUse = _data.table[col].width - _settings.tableColumnHMargin*2;
 
-				let id = 'tableColumn'+col+'Row'+i;
-				let el = document.getElementById(id);
-				el.setAttributeNS(null,'y',lineMiddle);
-				el.setAttributeNS(null,'font-size',fontSize);
-				if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
-					el.setAttributeNS( null, 'x', columnWidthToUse - _settings.tableColumnTextMargin*2 );
+				let textId = 'tableColumn'+col+'Row'+i;
+				let textEl = document.getElementById(textId);
+				if( fontSize >= _settings.tableMinFontSize ) { // If font size is big enough to make text visible at screen.
+					textEl.setAttributeNS(null,'y',lineMiddle);
+					textEl.style.fontSize = fontSize;
+					if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
+						textEl.setAttributeNS( null, 'x', columnWidthToUse - _settings.tableColumnTextMargin*2 );
+					}
+					textEl.setAttributeNS(null,'display','block');				
+				} else {
+					textEl.setAttributeNS(null,'display','none');					
 				}
-				let bkgrEl = document.getElementById(id+'Bkgr');
+				let bkgrEl = document.getElementById(textId+'Bkgr');
 				bkgrEl.setAttributeNS(null,'y',lineTop);
 				bkgrEl.setAttributeNS(null,'width',columnWidthToUse);
 				bkgrEl.setAttributeNS(null,'height',rectHeight);
 			}
 		}
 
-		if( _data.operations[i].visible /*&& document.getElementById(expandTextId).style.visibility == 'hidden'*/ ) {
+		if( _data.operations[i].visible && expandText.style.display == 'none' && (fontSize >= _settings.tableMinFontSize) ) {
 			for( let col = 0 ; col < _data.table.length ; col++ ) {
 				let id = 'tableColumn'+col+'Row'+i;
 				let el = document.getElementById(id);
 				el.setAttributeNS(null,'display','block');
 			}
-		} else if( !_data.operations[i].visible /*&& document.getElementById(expandTextId).style.visibility != 'hidden'*/ ) {
+		} else if( !_data.operations[i].visible && expandText.style.display != 'none' && (fontSize < _settings.tableMinFontSize) ) {
 			for( let col = 0 ; col < _data.table.length ; col++ ) {
 				let id = 'tableColumn'+col+'Row'+i;
 				let el = document.getElementById(id);

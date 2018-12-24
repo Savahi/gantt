@@ -32,7 +32,7 @@ function auth( $bAjax=false ) {
 	if( !isset( $_SERVER['PHP_AUTH_USER'] ) ) {
 	  header("WWW-Authenticate: Basic realm=\"Passwords\"");
 	  header("HTTP/1.0 401 Unauthorized");
-	  echo $s_AuthorizationFailedHML;
+	  echo $s_AuthorizationFailedHTML;
 	  exit();
 	} 
 	$status = isAuthUserAndPasswordCorrect( $_SERVER["PHP_AUTH_USER"], $_SERVER['PHP_AUTH_PW'] );

@@ -1,10 +1,45 @@
 var	_blackOutBoxDiv=null;
+
 var	_messageBoxDiv=null;
 var	_messageBoxTextDiv=null;
+
+var	_confirmationBoxDiv=null;
+var	_confirmationBoxTextDiv=null;
+var _confirmationBoxOk=null;
+var _confirmationBoxCancel=null;
+
 var	_editBoxDiv=null;
 var	_editBoxDetailsElem=null;
 var _editBoxDateFieldCurrentlyBeingEdited=null;
 var _editBoxDateFormat=null;
+
+
+function displayConfirmationBox( message, okFunction=null ) {
+	_blackOutBoxDiv = document.getElementById("blackOutBox");
+	_confirmationBoxDiv = document.getElementById("confirmationBox");
+	_confirmationBoxTextDiv = document.getElementById("confirmationBoxText");
+	_confirmationBoxOk = document.getElementById("confirmationBoxOk");
+	_confirmationBoxCancel = document.getElementById("confirmationBoxCancel");
+
+	_blackOutBoxDiv.style.display='block';	
+	_blackOutBoxDiv.onclick = hideConfirmationBox;
+	_confirmationBoxDiv.style.display = 'table';
+	_confirmationBoxTextDiv.innerHTML = message;
+	if( okFunction === null ) {
+		_confirmationBoxCancel.style.visibility = 'hidden';
+		_confirmationBoxOk.onclick = hideConfirmationBox;
+	} else {
+		_confirmationBoxCancel.style.visibility = 'visible';
+		_confirmationBoxCancel.onclick = hideConfirmationBox;
+		_confirmationBoxOk.onclick = function() { hideConfirmationBox(); okFunction(); };
+	}
+}
+
+function hideConfirmationBox() {
+	_blackOutBoxDiv.style.display='none';	
+	_blackOutBoxDiv.onclick = null;
+	_confirmationBoxDiv.style.display = 'none';
+}
 
 function displayMessageBox( message ) {
 	_blackOutBoxDiv = document.getElementById("blackOutBox");
@@ -13,7 +48,7 @@ function displayMessageBox( message ) {
 
 	_blackOutBoxDiv.style.display='block';	
 	_messageBoxDiv.style.display = 'table';
-	_messageBoxTextDiv.innerText = message;
+	_messageBoxTextDiv.innerHTML = message;
 }
 
 function hideMessageBox() {
@@ -127,6 +162,25 @@ var _editBoxOperationIndex = -1;
 
 // Displaying data related to an operation in the edit box 
 function displayEditBoxWithData( id ) {
+	if( _lockDataDisabled ) {
+		displayConfirmationBox(_texts[_data.lang].noConnectionWithServerMessage );
+		return;
+	} else if( !_lockDataOn ) {
+		displayConfirmationBox( 
+			_texts[_data.lang].dataNotLockedMessage, 
+			function() { 
+				lockData( 1, 
+					function(status) { 
+						lockDataSuccessFunction(status); 
+						if(_lockDataOn) { 
+							displayEditBoxWithData(id); 
+						} 
+					}, 
+					lockDataErrorFunction ); 
+			} );
+			return;
+	}
+
 	let i = id.getAttributeNS(null, 'data-i');
 	_editBoxDetailsElem.innerHTML = formatTitleTextContent(i,true);
 	_editBoxOperationIndex = i;
@@ -306,7 +360,6 @@ function validateEditField( input, type, allowedEmpty=true ) {
 	return r;
 }
 
-
 var _editField = null;
 var _editFieldInput = null;
 var _editFieldOldValue = null;
@@ -320,6 +373,25 @@ var _editFieldCallCalendar = null;
 
 
 function displayEditField( id ) {
+	if( _lockDataDisabled ) {
+		displayConfirmationBox(_texts[_data.lang].noConnectionWithServerMessage );
+		return;
+	} else if( !_lockDataOn ) {
+		displayConfirmationBox( 
+			_texts[_data.lang].dataNotLockedMessage, 
+			function() { 
+				lockData( 1, 
+					function(status) { 
+						lockDataSuccessFunction(status); 
+						if(_lockDataOn) { 
+							displayEditField(id); 
+						} 
+					}, 
+					lockDataErrorFunction ); 
+			} );
+			return;
+	}
+
 	_blackOutBoxDiv.style.display='block';	
 
 	let i = id.getAttributeNS(null, 'data-i');
@@ -527,6 +599,7 @@ function hideEditField() {
 	window.removeEventListener( "keyup", onEditTableFieldKey );
 
 	_blackOutBoxDiv.style.display='none';	
+	_blackOutBoxDiv.onclick = null;
 	_editField.style.display='none';
 	_editFieldInput.style.display='none';
 	_editFieldMessage.style.display = 'none';

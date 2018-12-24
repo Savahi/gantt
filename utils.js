@@ -1,22 +1,69 @@
 
-function displaySynchronizedStatus( synchronized ) {
-    if( typeof(synchronized) !== 'undefined' ) {
-        if( synchronized != null ) {
-            let el = document.getElementById('synchronized');
-            if( synchronized == -1 ) {
-                el.innerHTML =  '×'; // ⚠ '&#9888;'
-                el.className = 'error-color';
-                el.title = _texts[_data.lang].errorUserData;
-            } else if( synchronized == 0 ) {
-                el.innerHTML =  '⚠'; // '&#9888;';
-                el.className = 'cancel-color';
-                el.title = _texts[_data.lang].unsynchronizedMessage;
-            } else {
-                el.innerHTML =  '⟳'; // '&#8634;' '&#9888;';
-                el.className = 'ok-color';
-                el.title = _texts[_data.lang].synchronizedMessage;
+function displaySynchronizedStatus() {
+    let container = document.getElementById('toolboxSynchronizedDiv');
+    let icon = document.getElementById('toolboxSynchronizedIcon');
+
+    if( !('editables' in _data) ) {
+        icon.setAttribute('src',_iconEmpty);
+        return;        
+    } 
+    if( _data.editables.length == 0 ) {
+        icon.setAttribute('src',_iconEmpty);
+        return;        
+    } 
+
+    if( _dataSynchronized != null ) {
+        if( _dataSynchronized == -1 ) {
+            icon.setAttribute('src', _iconNotSynchronized);
+            container.title = _texts[_data.lang].errorUserData;
+        } else if( _dataSynchronized == 0 ) {
+            icon.setAttribute('src', _iconNotSynchronized);
+            container.title = _texts[_data.lang].unsynchronizedMessage;
+        } else {
+            icon.setAttribute('src', _iconEmpty);
+            container.title = _texts[_data.lang].synchronizedMessage;
+        }
+    }
+} 
+
+
+function displayLinksStatus( setStatus = null ) {
+    if( _displayLinksDisabled === null ) {
+
+        let disable = false;
+        if( !( 'links' in _data ) ) {
+            disable = true;
+        } else {
+            if( _data.links.length == 0 ) {
+                disable = true;
             }
         }
+        if( disable ) {
+            _displayLinksDisabled = true;
+            _displayLinksIcon.setAttribute('src',_iconEmpty);
+            _displayLinksDiv.style.cursor = 'default';
+            _displayLinksDiv.onclick = null;
+        } else {
+            _displayLinksDisabled = false;
+        }
+    }
+    if( _displayLinksDisabled === true ) {
+        return;
+    }
+
+    if( setStatus !== null ) {
+        _displayLinksOn = setStatus;
+    }
+
+    if( _displayLinksOn === true ) {
+        _displayLinksIcon.setAttribute('src', _iconDisplayLinks);
+         _displayLinksDiv.title = _texts[_data.lang].notDisplayLinksTitle;
+    } else if( _displayLinksOn === false ) {
+        _displayLinksIcon.setAttribute('src', _iconNotDisplayLinks);
+        _displayLinksDiv.title = _texts[_data.lang].displayLinksTitle;
+    }
+    if( !_displayLinksDiv.onclick ) {
+        _displayLinksDiv.onclick = function() { _displayLinksOn = !_displayLinksOn; displayLinksStatus(); drawGantt(); };                   
     }
 } 
 
@@ -124,7 +171,12 @@ function createText( textString, x, y, properties ) {
     text.setAttributeNS(null,'x', x );
     text.setAttributeNS(null,'y', y );
     if( 'id' in properties ) {
+        let temp = document.getElementById(properties.id);
+        if( temp ) {
+            alert(temp);
+        }
         text.setAttributeNS(null, 'id', properties.id );        
+
     } 
     if( 'fontSize' in properties ) {
         //text.setAttributeNS(null,'font-size', properties.fontSize );
@@ -420,14 +472,16 @@ function setCookie( cname, cvalue, exdays=3650 ) {
         let d = new Date();
         d.setTime(d.getTime() + (exdays*24*60*60*1000));
         let expires = "expires="+ d.toUTCString();        
-        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        //document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        document.cookie = cname + "=" + cvalue + ";" + expires;
     }
 
 }
 
 
 function deleteCookie( cname ) {
-    document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    //document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 }
 
 function getCookie( cname, type='string' ) {
@@ -552,4 +606,66 @@ function spacesToPadNameAccordingToHierarchy( hierarchy ) {
         s += '   '; // figure space: ' ', '·‧', '•', '⁌','|'
     }
     return s;
+}
+
+
+function removeClassFromElement( element, className ) {
+    let replace = '\\b' + className + '\\b';
+    let re = new RegExp(replace,'g');
+    element.className = element.className.replace(re, '');
+}
+
+function addClassToElement( element, className ) {
+    let classArray;
+    classArray = element.className.split(' ');
+    if( classArray.indexOf( className ) == -1 ) {
+        element.className += " " + className;
+    }
+}
+
+function printSVG() {
+    let header = document.getElementById('header');
+    let headerDisplayStyle = header.style.display;
+    header.style.display = 'none';
+
+    let toolbox = document.getElementById('toolbox');
+    let toolboxDisplayStyle = toolbox.style.display;
+    toolbox.style.display = 'none';
+
+    let htmlStyles = window.getComputedStyle(document.querySelector("html"));
+    let headerHeight = htmlStyles.getPropertyValue('--header-height');
+    let toolboxTableHeight = htmlStyles.getPropertyValue('--toolbox-table-height');
+
+    document.documentElement.style.setProperty('--header-height', '0px');
+    document.documentElement.style.setProperty('--toolbox-table-height', '0px');
+
+    let scrollThick = _settings.scrollThick;
+    _settings.scrollThick = 1;
+    _tableScrollSVG.setAttributeNS(null, 'height', 1 );
+    _ganttHScrollSVG.setAttributeNS(null, 'height', 1 );
+    _verticalScrollSVG.setAttributeNS(null, 'width', 1 );
+
+    initLayoutCoords();
+    drawTableHeader();
+    drawTableContent();
+    drawTimeScale();
+    drawGantt();
+
+    window.print(); 
+
+    _settings.scrollThick = scrollThick;
+    _tableScrollSVG.setAttributeNS(null, 'height', scrollThick );
+    _ganttHScrollSVG.setAttributeNS(null, 'height', scrollThick );
+    _verticalScrollSVG.setAttributeNS(null, 'width', scrollThick );
+    document.documentElement.style.setProperty('--header-height', headerHeight);
+    document.documentElement.style.setProperty('--toolbox-table-height', toolboxTableHeight);
+
+    initLayoutCoords();
+    drawTableHeader();
+    drawTableContent();
+    drawTimeScale();
+    drawGantt();
+
+    header.style.display = headerDisplayStyle;
+    toolbox.style.display = toolboxDisplayStyle;
 }

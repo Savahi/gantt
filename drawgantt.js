@@ -23,8 +23,6 @@ function drawGantt( init=false, shiftOnly=false ) {
 		_ganttSVGBkgr.setAttributeNS(null,'height',operToScreen(_data.operations.length));
 	}
 
-	let displayLinks = _displayLinksCheckbox.checked; // Display links?
-
 	// Drawing grid...
   	for( let i = 0 ;  ; i++ ) {
 		let el = document.getElementById( 'ganttGrid' + i );
@@ -51,10 +49,13 @@ function drawGantt( init=false, shiftOnly=false ) {
 
 	// Calculating the coordinates...
 	let fontSize = (operToScreen(_settings.ganttCompareTopMargin) - operToScreen(0)) * 0.75;	
-	let rectBottomMargin = (fontSize > _settings.minVisibleFontSize) ? _settings.ganttRectBottomMargin : _settings.ganttRectBottomMarginTitleFree;
-	let rectTopMargin = (fontSize > _settings.minVisibleFontSize) ? _settings.ganttRectTopMargin : _settings.ganttRectTopMarginTitleFree;
-	let compareBottomMargin = (fontSize > _settings.minVisibleFontSize) ? _settings.ganttCompareBottomMargin : _settings.ganttCompareBottomMarginTitleFree;
-	let compareTopMargin = (fontSize > _settings.minVisibleFontSize) ? _settings.ganttCompareTopMargin : _settings.ganttCompareTopMarginTitleFree;
+	if( fontSize > _settings.ganttMaxFontSize ) {
+		fontSize = _settings.ganttMaxFontSize;
+	}
+	let rectBottomMargin = (fontSize > _settings.ganttMinFontSize) ? _settings.ganttRectBottomMargin : _settings.ganttRectBottomMarginTitleFree;
+	let rectTopMargin = (fontSize > _settings.ganttMinFontSize) ? _settings.ganttRectTopMargin : _settings.ganttRectTopMarginTitleFree;
+	let compareBottomMargin = (fontSize > _settings.ganttMinFontSize) ? _settings.ganttCompareBottomMargin : _settings.ganttCompareBottomMarginTitleFree;
+	let compareTopMargin = (fontSize > _settings.ganttMinFontSize) ? _settings.ganttCompareTopMargin : _settings.ganttCompareTopMarginTitleFree;
 	let rectCounter = 0;
 	_data.operationDims = {}; // To store recalculated values such as : rectangle width and height etc
 	_data.operationDims.height = operToScreen(1) - operToScreen(0);
@@ -144,7 +145,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 				arrowLine.setAttributeNS(null,'y1',lineY2);
 				arrowLine.setAttributeNS(null,'y2',arrowY);
 			}
-			if( !_data.operations[predOp].visible || !_data.operations[succOp].visible || !displayLinks ) {
+			if( !_data.operations[predOp].visible || !_data.operations[succOp].visible || !_displayLinksOn ) {
 				line.setAttributeNS(null,'display','none');
 				arrowLine.setAttributeNS(null,'display','none');
 			} else {				
@@ -236,7 +237,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 
 				if( xLastFin < xRestart ) { // A gap between 
 					op100Properties.id = 'ganttOpBetweenFinishedAndNotStarted'+i;
-					opBetween = createRect( xLastFin, rectTop+rectHeight*0.33, xRestart - xLastFin, rectHeight*0.2, op100Properties  ); // Rectangle
+					opBetween = createRect( xLastFin, rectTop+rectHeight*0.33, xRestart - xLastFin, 1 /*rectHeight*0.2*/, op100Properties  ); // Rectangle
 					group.appendChild(opBetween);				
 				} 
 				
@@ -264,9 +265,11 @@ function drawGantt( init=false, shiftOnly=false ) {
 
 			group.setAttributeNS( null, 'data-i', i );
 			if( 'editables' in _data ) {
-				if( !_inputOnly || 
-					(_inputOnly && (typeof(_data.operations[i].Level) === 'string' || _data.operations[i].Level === null)) ) {
-		 			group.onmousedown = function(e) { e.stopPropagation(); displayEditBoxWithData(this); };
+				if( _data.editables.length > 0 ) {
+					if( !_inputOnly || 
+						(_inputOnly && (typeof(_data.operations[i].Level) === 'string' || _data.operations[i].Level === null)) ) {
+			 			group.onmousedown = function(e) { e.stopPropagation(); displayEditBoxWithData(this); };
+					}
 				}
 	 			//group.ontouchstart = function(e) { e.stopPropagation(); displayEditBoxWithData(this); };
 			}
@@ -280,7 +283,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 			text = document.getElementById( 'ganttText'+i );
 			text.setAttributeNS(null,'x',rectStart);
 			text.setAttributeNS(null,'y',textY);
-			text.setAttributeNS(null,'font-size',fontSize);
+			text.style.fontSize = fontSize;
 			if( displayCompare ) {
 				setRectCoords( document.getElementById('ganttOpCompare' + i), 
 					rectCompareStart, rectCompareTop, rectCompareEnd - rectCompareStart, rectCompareBottom - rectCompareTop );
@@ -319,7 +322,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 				} 
 				if( xLastFin < xRestart ) {
 					let elBetween = document.getElementById( 'ganttOpBetweenFinishedAndNotStarted'+i );
-					setRectCoords( elBetween, xLastFin, rectTop + rectHeight*0.33, xRestart - xLastFin, rectHeight*0.2 );
+					setRectCoords( elBetween, xLastFin, rectTop + rectHeight*0.33, xRestart - xLastFin, 1 /*rectHeight*0.2*/ );
 				}
 				if( !(width0 > 0) ) { // Zero width
 					el0.setAttributeNS( null,'points', calcRhombCoords( rectEnd, rectTop, rectHeight ) );					
@@ -332,7 +335,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 			}
 		}
 
-		if( fontSize < _settings.minVisibleFontSize ) { // If font size is too small to make text visible at screen.
+		if( fontSize < _settings.ganttMinFontSize ) { // If font size is too small to make text visible at screen.
 			text.setAttributeNS(null,'display','none');
 		} else {
 			text.setAttributeNS(null,'display','block');				

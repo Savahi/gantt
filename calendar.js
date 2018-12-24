@@ -14,7 +14,6 @@
 		if( format === null ) {
 			return;
 		}
-		console.log(format);
 		if( 'dateOnly' in format ) {
 			_calendarFormat.dateOnly = format.dateOnly;			
 		}
