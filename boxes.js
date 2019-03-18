@@ -82,7 +82,7 @@ function createEditBoxInputs() {
 		let ref = _data.editables[iE].ref;
 		let promptDiv = document.createElement('div');
 		promptDiv.id = 'editBoxInputPrompt' + ref;
-		promptDiv.innerText = _data.editables[iE].name; // _texts[_data.lang][ref];
+		promptDiv.innerText = _data.editables[iE].name; // _texts[_lang][ref];
 		promptDiv.className = 'editBoxPrompt';
 
 		let input;
@@ -141,7 +141,7 @@ function callCalendarForEditBox( input, container, indexInEditables ) {
 	if( d !== null ) {
 		_editBoxDateFieldCurrentlyBeingEdited = input;
 		_editBoxDateFormat = _data.editables[indexInEditables];
-		calendar( container, updateEditBoxWithCalendarChoice, 20, 20, d.date, _texts[_data.lang].monthNames );
+		calendar( container, updateEditBoxWithCalendarChoice, 20, 20, d.date, _texts[_lang].monthNames );
 	}
 }
 
@@ -163,11 +163,11 @@ var _editBoxOperationIndex = -1;
 // Displaying data related to an operation in the edit box 
 function displayEditBoxWithData( id ) {
 	if( _lockDataDisabled ) {
-		displayConfirmationBox(_texts[_data.lang].noConnectionWithServerMessage );
+		displayConfirmationBox(_texts[_lang].noConnectionWithServerMessage );
 		return;
 	} else if( !_lockDataOn ) {
 		displayConfirmationBox( 
-			_texts[_data.lang].dataNotLockedMessage, 
+			_texts[_lang].dataNotLockedMessage, 
 			function() { 
 				lockData( 1, 
 					function(status) { 
@@ -228,7 +228,6 @@ function displayEditBoxWithData( id ) {
 
 
 function saveUserDataFromEditBox() {
-
 	// Validating all the data are entered correctly...
 	for( let iE = 0 ; iE < _data.editables.length ; iE++ ) {
 		let ref = _data.editables[iE].ref;
@@ -266,7 +265,7 @@ function saveUserDataFromEditBox() {
 					}
 			        hideEditBox();
 		        } else {
-		        	document.getElementById('editBoxMessage').innerText = _texts[_data.lang].errorLoadingData + ": " + this.responseText;
+		        	document.getElementById('editBoxMessage').innerText = _texts[_lang].errorLoadingData + ": " + this.responseText;
 		        }
 		    }
 	    }
@@ -301,7 +300,7 @@ function saveUserDataFromEditBox() {
 		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
 		xmlhttp.setRequestHeader("Content-type", "plain/text" ); //"application/x-www-form-urlencoded");
 		xmlhttp.send( JSON.stringify(userData) );		
-		document.getElementById('editBoxMessage').innerText = _texts[_data.lang].waitSaveUserDataText; // Displaying the "wait" message. 
+		document.getElementById('editBoxMessage').innerText = _texts[_lang].waitSaveUserDataText; // Displaying the "wait" message. 
 	}
 }
 
@@ -324,34 +323,34 @@ function validateEditField( input, type, allowedEmpty=true ) {
 		let pattern = new RegExp("[^ :\\.0-9]");
     	let illegalCharacters = pattern.test(value);
     	if( illegalCharacters ) { 
-    		r.message = _texts[_data.lang].datetimeError;
+    		r.message = _texts[_lang].datetimeError;
     		return r;
     	}		
 		let d = parseDate(value);
 		if( d == null ) {
-    		r.message = _texts[_data.lang].datetimeError;
+    		r.message = _texts[_lang].datetimeError;
 			return r;
 		}
 	} else if( type === 'int' ) {
 		let pattern = new RegExp("[^ 0-9]");
     	let illegalCharacters = pattern.test(value);
     	if( illegalCharacters ) { 
-    		r.message = _texts[_data.lang].intError;    		
+    		r.message = _texts[_lang].intError;    		
     		return r;
     	}		
     	if( isNaN( parseInt(value) ) ) {
-    		r.message = _texts[_data.lang].intError;    		
+    		r.message = _texts[_lang].intError;    		
     		return r;
     	}
 	} else if( type === 'float' ) {
 		let pattern = new RegExp("[^ \\.0-9]");
     	let illegalCharacters = pattern.test(value);
     	if( illegalCharacters ) { 
-    		r.message = _texts[_data.lang].floatError;    		
+    		r.message = _texts[_lang].floatError;    		
     		return r;
     	}		
     	if( isNaN( parseFloat(value) ) ) {
-    		r.message = _texts[_data.lang].floatError;    		
+    		r.message = _texts[_lang].floatError;    		
     		return r;
     	}
 	}
@@ -374,11 +373,11 @@ var _editFieldCallCalendar = null;
 
 function displayEditField( id ) {
 	if( _lockDataDisabled ) {
-		displayConfirmationBox(_texts[_data.lang].noConnectionWithServerMessage );
+		displayConfirmationBox(_texts[_lang].noConnectionWithServerMessage );
 		return;
 	} else if( !_lockDataOn ) {
 		displayConfirmationBox( 
-			_texts[_data.lang].dataNotLockedMessage, 
+			_texts[_lang].dataNotLockedMessage, 
 			function() { 
 				lockData( 1, 
 					function(status) { 
@@ -475,7 +474,7 @@ function callCalendarForEditField( input ) {
 	}
 	let d = parseDate( input.value );
 	if( d !== null ) {
-		calendar( _editField, updateEditFieldWithCalendarChoice, 20, 20, d.date, _texts[_data.lang].monthNames );
+		calendar( _editField, updateEditFieldWithCalendarChoice, 20, 20, d.date, _texts[_lang].monthNames );
 	}
 }
 
@@ -527,9 +526,9 @@ function onEditFieldInputOk() {
 	}	
 
 	var xmlhttp = new XMLHttpRequest();
-	_editFieldMessage.style.display = _texts[_data.lang].waitSaveUserDataText;
+	_editFieldMessage.style.display = _texts[_lang].waitSaveUserDataText;
 	xmlhttp.onerror = function(e) { 
-		_editFieldMessage.innerText = _texts[_data.lang].errorSavingData;
+		_editFieldMessage.innerText = _texts[_lang].errorSavingData;
 		_editFieldMessage.style.display = 'block';
 	}
 

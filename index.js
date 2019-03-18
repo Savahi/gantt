@@ -1,14 +1,16 @@
 
 var NS = "http://www.w3.org/2000/svg";
 
+var _redrawAllMode=false;
 var _touchDevice = false;
+var _dateDMY=true;
 var _ganttMTime = -1;
 var _displayLinksOn = null;
 var _displayLinksDisabled = null;
+var _titlesPositioning = 'r';
 var _lockDataOn = null;
 var _lockDataDisabled = null;
 var _dataSynchronized = null;
-
 var _data;
 
 var _settings = {
@@ -18,37 +20,42 @@ var _settings = {
 	ganttOperationStrokeWidth:0, ganttMinFontSize:6, ganttMaxFontSize:14,
 	ganttLinkStrokeColor:'#000000',	ganttLinkStrokeWidth:0.5, ganttLinkStrokeDashArray:null, 
 	ganttLinkOpacity:0.50, ganttLinkArrowOpacity:1.0, ganttLinkArrowWidth:8, ganttLinkArrowHeight:8,
-	timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf',
+	timeScaleFontColor:'#4f4f4f', timeScaleFillColor:'#cfcfdf', timeScaleStrokeColor:'#afafaf', ganttBkgrColor:'#ffffff',
 	timeScaleMaxFontSize:12, minRectWidthOnTimeScale:14, minDayWidthOnTimeScale:12, 
-	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf',	tableHeaderStrokeColor:'#4f4f4f', 
+	tableHeaderFontColor:'#4f4f4f',	tableHeaderFillColor:'#cfcfdf', tableHeaderColumnSplitterColor:'#bfbfcf',
 	tableHeaderBorderColor:'#cfcfdf', tableHeaderActiveBorderColor:'#8f8f9f', 
-	tableContentFontColor:'#4f4f4f', tableContentFillColor:'#ffffff', tableContentStrokeColor:'#4f4f4f', 
-	tableColumnHMargin:1, tableColumnTextMargin:2, 
+	tableContentFontColor:'#4f4f4f', tableContentFillColor:'#efefff', tableContentStrokeColor:'#4f4f4f', 
+	tableHeaderColumnHMargin:2, tableColumnHMargin:2, tableColumnTextMargin:2, 
 	tableMaxFontSize:14, tableMinFontSize:2, minTableColumnWidth:4, hierarchyIndent:4,	
 	scrollBkgrColor:'#cfcfcf', scrollRectColor:'#afafaf', scrollSliderColor:'#8f8f8f', scrollSliderActiveColor:'#000000',
-	gridColor:"#bfbfbf", gridStrokeWidth:0.5, gridOpacity:1, gridStrokeDashArray:'2,2', gridCurrentTimeColor:"#bf2f2f",
+	gridColor:"#7f7f7f", gridStrokeWidth:0.25, gridStrokeDashArray:'1,2', gridCurrentTimeColor:"#bf2f2f",
 	editedColor:"#bf2f2f",
 	ganttChartLeftMargin:8, ganttChartRightMargin:8, 
-	ganttRectTopMargin:0.7, ganttRectBottomMargin:0.0, ganttRectTopMarginTitleFree:0.5, ganttRectBottomMarginTitleFree:0.0,
-	ganttCompareTopMargin:0.5, ganttCompareBottomMargin:0.3, ganttCompareTopMarginTitleFree:0.1, ganttCompareBottomMarginTitleFree:0.5,
+	ganttRectTopMargin:0.6, ganttRectBottomMargin:0.125, ganttRectTopMarginTitleFree:0.1, ganttRectBottomMarginTitleFree:0.3,
+	ganttCompareTopMargin:0.8, ganttCompareBottomMargin:0.0, ganttCompareTopMarginTitleFree:0.6, ganttCompareBottomMarginTitleFree:0.1,
 	ganttRectBracketRelHeight:0.25,	ganttRectBracketThick:5,
 	scrollThick:10, scrollSliderSize:10, timeScaleScrollStep:0.1, tableScrollStep:0.1, verticalSplitterInitialPosition:0.25,
 	verticalSplitterWidth:6, verticalSplitterStrokeColor:'#4f4f4f', verticalSplitterBkgrColor:'#dfdfdf',
-	zoomFactor:0.25, containerHPadding:2, 
+	zoomFactor:0.25, minXZoomFactor:1.0, minSecondsZoomed:43200, ganttVisibleWidthExtra:0.5,  containerHPadding:2, 
 	webExportLineNumberColumnName:'f_WebExportLineNumber',
 	ganttSVGCursor:'zoom-in', ganttSVGCapturedCursor:'pointer', timeSVGCursor:'zoom-in',
-	readableNumberOfOperations:28
+	readableNumberOfOperations:28, maxNumberOfOperationOnScreen:50
 }
 
 var _files = { gantt:"gantt.php", logout:"logout.php", userDataFile: "gantt_user_data.php", userDataSave:"gantt_save_user_data.php" };
 
-var _zoomGanttHorizontalInput = null;
-var _zoomGanttVerticalInput = null; 
-var _zoomTableVerticalInput = null; 
+var _zoomHorizontallyInput = null;
+var _zoomHorizontallyIcon = null;
+var _zoomVerticallyInput = null; 
+var _zoomVerticallyIcon = null;
+var _zoomVerticallyInputT = null; 
+var _zoomVerticallyIconT = null;
 var _displayLinksDiv = null; 
 var _displayLinksIcon = null; 
 var _lockDataDiv = null;
 var _lockDataIcon = null;
+var _titlesPositioningDiv = null;
+var _titlesPositioningIcon = null;
 
 var _containerDiv = null;
 var _containerSVG = null;
@@ -170,56 +177,84 @@ function loadData() {
 			    	try{
 				        _data = JSON.parse(this.responseText);
 			    	} catch(e) {
+			    		//alert('Error: ' + e.name + ":" + e.message + "\n" + e.stack + "\n" + e.cause);
 			    		errorParsingData = true;
 			    	}
-			    	if( errorParsingData ) {
-			    		//alert(this.responseText);
-						displayMessageBox( _texts['en'].errorParsingData ); 
-			    	} else if( !('editables' in _data) ) {
+			    	if( errorParsingData ) { // To ensure data are parsed ok... // alert(this.responseText);
+						displayMessageBox( _texts[_lang].errorParsingData ); 
+						return;
+			    	}
+
+			    	let noOperations=false; 
+			    	if( !('operations' in _data) ) { // To ensure there are operations in data...
+			    		noOperations = true;
+			    	} else if( _data.operations.length == 0 ) {
+			    		noOperations = true;
+			    	} 
+			    	if( noOperations ) {
+						displayMessageBox( _texts[_lang].errorParsingData ); 
+						return;
+			    	}
+
+			    	if( _data.operations.length > 400 ) {
+			    		_redrawAllMode = true;
+			    	}
+
+			    	let noEditables=false; // To check if some data are editable or not...
+			    	if( !('editables' in _data) ) {
+			    		noEditables = true;
+			    	} else if( _data.editables.length == 0 ) {
+			    		noEditables = true;
+			    	} 
+			    	if( noEditables ) {
+			    		_data.noEditables = true;
 					    hideMessageBox();		    
-						initData();
-						displayData();		 
-			        } else {
-			        	createEditBoxInputs();
-			        	_dataSynchronized = null; // To assign later with a synchronization status.
-				        var xmlhttpUserData = new XMLHttpRequest();
-						xmlhttpUserData.onreadystatechange = function() {
-				    		if (this.readyState == 4 ) {
-				    			if( this.status == 200) {		    				
-				    				let errorParsingUserData = false;
-				    				let userData;
-				    				try {
-				    					userData = JSON.parse(this.responseText);
-				    				} catch(e) {
-				    					errorParsingUserData = true;
-				    				}
-				    				if( errorParsingUserData ) {
-						        		_dataSynchronized = -1;
-					        		} else {
-					      				_dataSynchronized = 0;
-					        			setUserData( userData );
-					        		}
-					        	} else if( status == 404 ) {
-					        		_dataSynchronized = 1;
-					        	}
-							    hideMessageBox();		    
-								initData();
+						if( initData() == 0 ) {
+							displayData();		
+						}
+						return; 
+			    	}
+		    		_data.noEditables = false;			        	
+		        	createEditBoxInputs();
+		        	_dataSynchronized = null; // To assign later with a synchronization status.
+			        var xmlhttpUserData = new XMLHttpRequest();
+					xmlhttpUserData.onreadystatechange = function() {
+			    		if (this.readyState == 4 ) {
+			    			if( this.status == 200) {		    				
+			    				let errorParsingUserData = false;
+			    				let userData;
+			    				try {
+			    					userData = JSON.parse(this.responseText);
+			    				} catch(e) {
+			    					errorParsingUserData = true;
+			    				}
+			    				if( errorParsingUserData ) {
+					        		_dataSynchronized = -1;
+				        		} else {
+				      				_dataSynchronized = 0;
+				        			setUserData( userData );
+				        		}
+				        	} else if( status == 404 ) {
+				        		_dataSynchronized = 1;
+				        	}
+						    hideMessageBox();		    
+							if( initData() == 0 ) {
 								displayData();
-				        	} 
-				        }
-				        xmlhttpUserData.open("GET", _files.userDataFile, true);
-				        xmlhttpUserData.setRequestHeader("Cache-Control", "no-cache");
-						xmlhttpUserData.send();
-				    }
+							}
+			        	}
+			        }; 
+			        xmlhttpUserData.open("GET", _files.userDataFile, true);
+			        xmlhttpUserData.setRequestHeader("Cache-Control", "no-cache");
+					xmlhttpUserData.send();
 				} else {
-					displayMessageBox( _texts['en'].errorLoadingData ); 
+					displayMessageBox( _texts[_lang].errorLoadingData ); 
 				}
 		    }
 		};
 		xmlhttp.open("GET", _files.gantt, true);
 		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
 		xmlhttp.send();
-		displayMessageBox( _texts['en'].waitDataText ); 
+		displayMessageBox( _texts[_lang].waitDataText ); 
 	} 
 }
 
@@ -231,8 +266,8 @@ function displayData() {
 function drawAll() {
 	drawTableHeader(true);
 	drawTableContent(true);
-	drawTimeScale();
 	drawGantt(true);
+	drawTimeScale();
 	drawTableScroll( true );
 	drawGanttHScroll( true );
 	drawVerticalScroll( true );			
@@ -240,8 +275,6 @@ function drawAll() {
 }
 
 function initData() {
-	_data.userName = ( typeof(userName) !== 'undefined' ) ? userName : null;
-
 	var curTimeParsed = parseDate( _data.proj.CurTime );
 	if( curTimeParsed != null ) {
 		_data.proj.curTimeInSeconds = curTimeParsed.timeInSeconds;
@@ -346,15 +379,23 @@ function initData() {
 			}
 		}
 	}
+	if( _data.startMinInSeconds == -1 || _data.finMaxInSeconds == -1 ) {
+		displayMessageBox( _texts[_lang].errorParsingData );
+		return(-1);
+	}
+
+
 	_data.startFinSeconds = _data.finMaxInSeconds - _data.startMinInSeconds;
 	_data.visibleMin = _data.startMinInSeconds; // - (_data.finMaxInSeconds-_data.startMinInSeconds)/20.0;
 	_data.visibleMax = _data.finMaxInSeconds; // + (_data.finMaxInSeconds-_data.startMinInSeconds)/20.0;
 	_data.visibleMaxWidth = _data.visibleMax - _data.visibleMin;
 
-	// Initializing the parent-children structure 
+	// Initializing the parent-children structure and the link structure
 	for( let i = 0 ; i < _data.operations.length ; i++ ) {
 		_data.operations[i].id = 'ganttRect' + i; // Id
 		initParents(i);
+		_data.operations[i]._isPhase = (typeof(_data.operations[i].Level) === 'number') ? true : false;
+		_data.operations[i].hasLinks = false;
 	}
 
 	// Marking 'expandables'
@@ -381,10 +422,33 @@ function initData() {
 		_data.operations[i].visible = true;
 	}
 
+	// Searching for the linked operations, assigning links with operation indexes and marking the operations to know they are linked...
+	for( let l = 0 ; l < _data.links.length ; l++ ) {
+		let predOp = null;
+		let succOp = null;
+		for( let op = 0 ; op < _data.operations.length ; op++ ) {
+			if( !predOp ) { 
+				if( _data.operations[op].Code == _data.links[l].PredCode ) { predOp = op; }
+			}
+			if( !succOp ) {
+				if( _data.operations[op].Code == _data.links[l].SuccCode ) { succOp = op; }
+			}
+			if( predOp && succOp ) {
+				break;
+			}
+		}
+		if( predOp && succOp ) {
+			_data.links[l].predOp = predOp;
+			_data.links[l].succOp = succOp;
+			_data.operations[predOp].hasLinks = true;
+			_data.operations[succOp].hasLinks = true;			
+		}
+	}
+
 	// Handling table columns widths
 	for( let col = 0 ; col < _data.table.length ; col++ ) { // Recalculating widths in symbols into widths in points 
 		let add = _settings.tableColumnHMargin*2 + _settings.tableColumnTextMargin*2;
-		_data.table[col].width = _data.table[col].width * _settings.tableMaxFontSize*0.8 + add;
+		_data.table[col].width = _data.table[col].width * _settings.tableMaxFontSize*0.5 + add;
 	}
 	_data.initialTable = []; // Saving table settings loaded from a local version of Spider Project
 	copyArrayOfObjects( _data.table, _data.initialTable );
@@ -432,48 +496,41 @@ function initData() {
 
 	calcNotHiddenOperationsLength();
 
-	// Initializing vertical zoom
+	// Initializing zoom
 	let newZoom = calculateHorizontalZoomByVerticalZoom( 0, _settings.readableNumberOfOperations );
 	_visibleTop = newZoom[0];
 	_visibleHeight = newZoom[1];
 	_ganttVisibleLeft = newZoom[2];
 	_ganttVisibleWidth = newZoom[3];
 
-	let gvh = getCookie('ganttVisibleHeight', 'float');
-	if( gvh ) {
-		if( gvh > 0 ) {
-			_visibleHeight = gvh;
-		}	
-	}
+	// Reading and validating top and height saved in cookies
 	let gvt = getCookie('ganttVisibleTop', 'float');
-	if( gvt ) {
-		if( (gvt + _visibleHeight) <= _data.operations.length ) {
-			_visibleTop = gvt;
-		}	
+	let gvh = getCookie('ganttVisibleHeight', 'float');
+	if( gvt || gvh ) {
+		if( !gvt ) { gvt = _visibleTop; }
+		if( !gvh ) { gvh = _visibleHeight; }
+		let validated = validateTopAndHeight( gvt, gvh );
+		_visibleTop = validated[0];
+		_visibleHeight = validated[1];
 	}
 	displayYZoomFactor();
-	//let zoomFactorY = _notHiddenOperationsLength / _visibleHeight;
-	//_zoomGanttVerticalInput.value = parseInt(zoomFactorY*100.0 + 0.5);
-	//_zoomTableVerticalInput.value = _zoomGanttVerticalInput.value;
 
 	// Initializing horizontal zoom
 	let gvw = getCookie('ganttVisibleWidth', 'float');
 	if( gvw ) {
-		if( gvw > 60*60 ) {
+		if( gvw > 60*60 && !(gvw >_data.visibleMaxWidth) ) {
 			_ganttVisibleWidth = gvw;
 		}	
 	}
 	let gvl = getCookie('ganttVisibleLeft', 'float');
 	if( gvl ) {
-		if( (gvl + _ganttVisibleWidth) <= _data.visibleMaxWidth ) {
-			_ganttVisibleLeft = gvl;
-		}	
+		_ganttVisibleLeft = validateGanttLeft(gvl);
 	}
 	displayXZoomFactor();
-	//let zoomFactorX = _data.visibleMaxWidth / _ganttVisibleWidth;
-	//_zoomGanttHorizontalInput.value = parseInt(zoomFactorX*100.0 + 0.5);
 
 	calcTableHeaderOverallWidth();
+
+	return(0);
 }
 
 
@@ -512,13 +569,18 @@ function initParents( iOperation ) {
 
 
 function initLayout() {
-	_zoomGanttHorizontalInput = document.getElementById('toolboxHScale');
-	_zoomGanttVerticalInput = document.getElementById('toolboxVScale'); 
-	_zoomTableVerticalInput = document.getElementById('toolboxVScaleT'); 
+	_zoomHorizontallyInput = document.getElementById('toolboxZoomHorizontallyInput');
+	_zoomHorizontallyIcon = document.getElementById('toolboxZoomHorizontallyIcon');
+	_zoomVerticallyInput = document.getElementById('toolboxZoomVerticallyInput'); 
+	_zoomVerticallyIcon = document.getElementById('toolboxZoomVerticallyIcon'); 
+	_zoomVerticallyInputT = document.getElementById('toolboxZoomVerticallyInputT');
+	_zoomVerticallyIconT = document.getElementById('toolboxZoomVerticallyIconT');
 	_displayLinksDiv = document.getElementById('toolboxDisplayLinksDiv'); 
 	_displayLinksIcon = document.getElementById('toolboxDisplayLinksIcon'); 
 	_lockDataDiv = document.getElementById('toolboxLockDataDiv'); 
 	_lockDataIcon = document.getElementById('toolboxLockDataIcon'); 
+	_titlesPositioningDiv = document.getElementById('toolboxTitlesPositioningDiv'); 
+	_titlesPositioningIcon = document.getElementById('toolboxTitlesPositioningIcon'); 
 
 	_containerDiv = document.getElementById("containerDiv");
 	_containerSVG = document.getElementById("containerSVG");
@@ -544,15 +606,19 @@ function initLayout() {
 	_containerDiv.addEventListener('selectstart', function() { event.preventDefault(); return false; } );
 	_containerDiv.addEventListener('selectend', function() { event.preventDefault(); return false; } );
 
-	_zoomTableVerticalInput.oninput = onZoomVerticalInput;
-
+	_zoomVerticallyInputT.addEventListener('input', function() { filterInput(this); } );
+	_zoomVerticallyInputT.addEventListener('blur', function(e) { onZoomVerticallyBlur(this); } );
+	_zoomVerticallyIconT.addEventListener('mousedown', 
+		function(e) { onZoomVerticallyIcon(this, e, _zoomVerticallyInput); } );
+	
 	// To scroll the table vertically - using the same handler as for the gantt chart... 
 	addOnMouseWheel( _tableContentSVG, onGanttWheel );
 	if( _inputOnly ) {
 		//document.getElementById('toolboxZoom100Div').style.display = 'none';
 		document.getElementById('toolboxZoomHorizontallyDiv').style.display = 'none';
 		document.getElementById('toolboxZoomVerticallyDiv').style.display = 'none';
-		document.getElementById('toolboxDisplayLinksDiv').style.display = 'none';
+		_displayLinksDiv.style.display = 'none';
+		_titlesPositioningDiv.style.display = 'none';		
 		return;
 	}
 
@@ -579,8 +645,16 @@ function initLayout() {
 	_timeSVG.style.cursor = _settings.timeSVGCursor;
 
 	// zoom tools
-	_zoomGanttHorizontalInput.oninput = onZoomHorizontalInput;
-	_zoomGanttVerticalInput.oninput = onZoomVerticalInput;
+	_zoomHorizontallyInput.addEventListener('input', function() { filterInput(this); } );
+	_zoomHorizontallyInput.addEventListener('blur', function(e) { onZoomHorizontallyBlur(this); } );
+	_zoomHorizontallyIcon.addEventListener('mousedown', 
+		function(e) { onZoomHorizontallyIcon(this, e, _zoomHorizontallyInput); } );
+	
+	_zoomVerticallyInput.addEventListener('input', function() { filterInput(this); } );
+	_zoomVerticallyInput.addEventListener('blur', function(e) { onZoomVerticallyBlur(this); } );
+	_zoomVerticallyIcon.addEventListener('mousedown', 
+		function(e) { onZoomVerticallyIcon(this, e, _zoomVerticallyInput); } );
+
 
 	createDefs( _containerSVG );
 
@@ -601,8 +675,8 @@ function zoomXYR( e, zoomIn, xOnly=false ) {
 		zoomY( zoomFactorChange, y / _ganttSVGHeight );	
 	} 
 
-	drawGantt();
 	drawTimeScale();
+	drawGantt();
 	drawGanttHScroll();	
 	if( !xOnly ) {
 		drawTableContent();		
@@ -620,6 +694,7 @@ function initLayoutCoords() {
 	_containerDiv.style.height = _containerDivHeight;
 	_containerDiv.style.width = window.innerWidth;
 	_containerDivX = _settings.containerHPadding;
+	_containerDivY = headerHeight;
 	_containerDivWidth = window.innerWidth - _settings.containerHPadding*2;
 	_containerDiv.style.padding=`0px ${_settings.containerHPadding}px 0px ${_settings.containerHPadding}px`;
 
@@ -713,27 +788,28 @@ function displayHeaderAndFooterInfo() {
 	let projectName = document.getElementById('projectName');
 	projectName.innerText = _data.proj.Name;
 
-	let timeAndVersion = _data.proj.CurTime + " | " + _texts[_data.lang].version + ": " + _data.proj.ProjVer;
+	let timeAndVersion = _data.proj.CurTime + " | " + _texts[_lang].version + ": " + _data.proj.ProjVer;
 	document.getElementById('projectTimeAndVersion').innerText = timeAndVersion;
-	if( _data.userName !== null ) {
+	if( _userName !== null ) {
 		let el = document.getElementById('projectUser');
-		el.innerHTML = _data.userName + "<br/><a href='" + _files.logout + "' title='Logout'>[&rarr;]</a>"; // ➜ ➡ ➝ ➲ ➠ ➞ ➩ ➯ →
+		//el.innerHTML = _userName + "<br/><a href='" + _files.logout + "' title='Logout'>[&rarr;]</a>"; // ➜ ➡ ➝ ➲ ➠ ➞ ➩ ➯ →
+		el.innerHTML = _userName + "<br/><span style='cursor:pointer;' onclick='logout();'>[&rarr;]</span>"; // ➜ ➡ ➝ ➲ ➠ ➞ ➩ ➯ →
 	}
 
-	document.getElementById('helpTitle').innerText = _texts[_data.lang].helpTitle; // Initializing help text	
-	document.getElementById('helpText').innerHTML = _texts[_data.lang].helpText; // Initializing help text	
+	document.getElementById('helpTitle').innerText = _texts[_lang].helpTitle; // Initializing help text	
+	document.getElementById('helpText').innerHTML = _texts[_lang].helpText; // Initializing help text	
 
-	document.getElementById('toolboxResetTableDimensionsDiv').title = _texts[_data.lang].resetTableDimensionsTitle;
+	document.getElementById('toolboxResetTableDimensionsDiv').title = _texts[_lang].resetTableDimensionsTitle;
 	document.getElementById('toolboxResetTableDimensionsIcon').setAttribute('src',_iconExportSettings);
-	document.getElementById('toolboxZoom100Div').title = _texts[_data.lang].zoom100Title;
+	document.getElementById('toolboxZoom100Div').title = _texts[_lang].zoom100Title;
 	document.getElementById('toolboxZoom100Icon').setAttribute('src',_iconZoom100);
-	document.getElementById('toolboxZoomReadableDiv').title = _texts[_data.lang].zoomReadableTitle;
+	document.getElementById('toolboxZoomReadableDiv').title = _texts[_lang].zoomReadableTitle;
 	document.getElementById('toolboxZoomReadableIcon').setAttribute('src',_iconZoomReadable);
-	document.getElementById('toolboxZoomVerticallyDiv').title = _texts[_data.lang].zoomVerticallyTitle;
+	document.getElementById('toolboxZoomVerticallyDiv').title = _texts[_lang].zoomVerticallyTitle;
 	document.getElementById('toolboxZoomVerticallyIcon').setAttribute('src',_iconZoomVertically);
-	document.getElementById('toolboxZoomVerticallyDivT').title = _texts[_data.lang].zoomVerticallyTitle;
+	document.getElementById('toolboxZoomVerticallyDivT').title = _texts[_lang].zoomVerticallyTitle;
 	document.getElementById('toolboxZoomVerticallyIconT').setAttribute('src',_iconZoomVertically);
-	document.getElementById('toolboxZoomHorizontallyDiv').title = _texts[_data.lang].zoomHorizontallyTitle;
+	document.getElementById('toolboxZoomHorizontallyDiv').title = _texts[_lang].zoomHorizontallyTitle;
 	document.getElementById('toolboxZoomHorizontallyIcon').setAttribute('src',_iconZoomHorizontally);
 
 	displayLinksStatus(false); 			// Initializing display/hide links tool
@@ -767,11 +843,11 @@ function formatTitleTextContent( i, html=false ) {
 
 	let statusText;
 	if( _data.operations[i].status == 0 ) {
-		statusText = _texts[_data.lang].status0;
+		statusText = _texts[_lang].status0;
 	} else if( _data.operations[i].status < 100 ) {
 		statusText = _data.operations[i].status + "%";
 	} else {
-		statusText = _texts[_data.lang].status100;				
+		statusText = _texts[_lang].status100;				
 	}
 	textContent += "[ " + statusText + " ]" + endl + endl;
 
@@ -779,7 +855,10 @@ function formatTitleTextContent( i, html=false ) {
 		if( !_data.table[col].visible ) {
 			continue;
 		}		
-		if( _data.table[col].ref == 'Name' ) {
+		if( _data.table[col].ref === 'Name' ) {
+			continue;
+		}
+		if( _data.table[col].type === 'signal' ) {
 			continue;
 		}
 		let ref = _data.table[col].ref;
@@ -806,7 +885,7 @@ function formatTitleTextContent( i, html=false ) {
 				}
 			}
 		}
-		// let name = _texts[_data.lang][ref];
+		// let name = _texts[_lang][ref];
 		let name = _data.table[col].name;
 		if( html ) {
 			name = "<span style='color:#7f7f7f;'>" + name + "</span>";
@@ -887,7 +966,7 @@ function drawVerticalSplitter( init=false ) {
 function zoomX100() {
 	_ganttVisibleLeft = _data.visibleMin;
 	_ganttVisibleWidth = _data.visibleMaxWidth;
-	_zoomGanttHorizontalInput.value = 100;
+	_zoomHorizontallyInput.value = 100;
 	setCookie("ganttVisibleLeft",_ganttVisibleLeft);
 	setCookie("ganttVisibleWidth",_ganttVisibleWidth);	
 }
@@ -901,6 +980,7 @@ function moveX( positionChange ) {
 function moveXR( positionChange ) {
 	moveX( positionChange );
 	drawGantt(false,true);
+	//drawGantt(true,false);
 	drawTimeScale();
 	drawGanttHScroll();
 }
@@ -908,10 +988,27 @@ function moveXR( positionChange ) {
 
 function zoomX( zoomFactorChange, centerOfZoom=0.5 ) {
 	let currentZoomFactor = _data.visibleMaxWidth / _ganttVisibleWidth;
-	let newZoomFactor = currentZoomFactor + zoomFactorChange;
-	if( newZoomFactor < 0.5 ) {
-		return;
+
+	let newZoomFactor;
+	if( typeof(zoomFactorChange) == 'string' ) { // Changing logarithmically...
+		if( zoomFactorChange === '+' ) {
+			newZoomFactor = currentZoomFactor * (1.0 + _settings.zoomFactor);
+		} else {
+			newZoomFactor = currentZoomFactor / (1.0 + _settings.zoomFactor);			
+		}
+	} else { // Changing incrementally...
+		newZoomFactor = currentZoomFactor + zoomFactorChange;
 	}
+
+	if( newZoomFactor < _settings.minXZoomFactor ) {
+		newZoomFactor = _settings.minXZoomFactor;
+	}
+
+	let maxZoomFactor = _data.visibleMaxWidth / _settings.minSecondsZoomed;
+	if( newZoomFactor > maxZoomFactor ) {
+		newZoomFactor = maxZoomFactor;
+	}
+
 	if( centerOfZoom < 0.1 ) {
 		centerOfZoom = 0.0;
 	} else if( centerOfZoom > 0.9 ) {
@@ -922,7 +1019,7 @@ function zoomX( zoomFactorChange, centerOfZoom=0.5 ) {
 	if( newLeft < _data.visibleMin ) {
 		newLeft = _data.visibleMin;
 	} else if( newLeft + newWidth > _data.visibleMax ) {
-		newLeft = _data.visibleMin;
+		newLeft = _data.visibleMax - newWidth; //_data.visibleMin;
 	}
 	_ganttVisibleLeft = newLeft;
 	_ganttVisibleWidth = newWidth;
@@ -934,7 +1031,7 @@ function displayXZoomFactor( zoomFactor=null ) {
 	if( zoomFactor === null ) {
 		zoomFactor = _data.visibleMaxWidth / _ganttVisibleWidth;
 	} 
-	_zoomGanttHorizontalInput.value = parseInt(zoomFactor*100.0 + 0.5);
+	_zoomHorizontallyInput.value = parseInt(zoomFactor*100.0 + 0.5);
 	setCookie("ganttVisibleLeft",_ganttVisibleLeft);
 	setCookie("ganttVisibleWidth",_ganttVisibleWidth);
 }
@@ -942,25 +1039,32 @@ function displayXZoomFactor( zoomFactor=null ) {
 
 function zoomXR( factorChange, centerOfZoom=0.5 ) { // Zoom and redraw
 	zoomX( factorChange, centerOfZoom );		
-	drawTimeScale();
 	drawGantt();
+	drawTimeScale();
 	drawGanttHScroll();	
 }
 
 function validateGanttLeft( left ) {
+	let maxLeft = getGanttMaxLeft(); 
+	if( left > maxLeft ) {
+		left = maxLeft;
+	}
 	if( left < _data.visibleMin ) {
 		left = _data.visibleMin;
-	} else if( left + _ganttVisibleWidth > _data.visibleMax ) {
-		left = _data.visibleMax - _ganttVisibleWidth;
 	}
 	return left;
+}
+
+function getGanttMaxLeft() {
+	let maxLeft = _data.visibleMax - _ganttVisibleWidth * (1.0 - _settings.ganttVisibleWidthExtra);
+	return maxLeft; 	
 }
 
 function zoomY100() {
 	_visibleTop = 0;
 	_visibleHeight = _notHiddenOperationsLength; // _data.operations.length;
-	_zoomGanttVerticalInput.value = 100;
-	_zoomTableVerticalInput.value = 100;
+	_zoomVerticallyInput.value = 100;
+	_zoomVerticallyInputT.value = 100;
 	setCookie("ganttVisibleTop",_visibleTop);
 	setCookie("ganttVisibleHeight",_visibleHeight);
 } 
@@ -984,17 +1088,40 @@ function moveYR( positionChange ) {
 }
 
 
+function calcMinVisibleHeight() {
+	return (_notHiddenOperationsLength > 5) ? 5.0 : _notHiddenOperationsLength;	
+}
+
+
+function calcMaxVisibleHeight() {
+	let maxOp = _settings.maxNumberOfOperationOnScreen;
+	return (_notHiddenOperationsLength >= maxOp) ? maxOp : _notHiddenOperationsLength;
+
+}
+
 function zoomY( zoomFactorChange, centerOfZoom=0.5 ) {
 	let currentZoomFactor = _notHiddenOperationsLength / _visibleHeight;
-	let newZoomFactor = currentZoomFactor + zoomFactorChange;
+	let minVisibleHeight = calcMinVisibleHeight();
+	let maxZoomFactor = _notHiddenOperationsLength / minVisibleHeight;
+	let maxVisibleHeight = calcMaxVisibleHeight();
+	let minZoomFactor = _notHiddenOperationsLength / maxVisibleHeight;
 
-	let minZoomFactor = 1.0;
-	if( newZoomFactor < minZoomFactor ) { 
-		newZoomFactor = minZoomFactor;
+	let newZoomFactor;
+	if( typeof(zoomFactorChange) == 'string' ) { // Changing logarthmically...
+		if( zoomFactorChange === '+' ) {
+			newZoomFactor = currentZoomFactor * (1.0 + _settings.zoomFactor);
+		} else {
+			newZoomFactor = currentZoomFactor / (1.0 + _settings.zoomFactor);			
+		}
+	} else { // Changing incrementally...
+		newZoomFactor = currentZoomFactor + zoomFactorChange;
 	}
-	let maxZoomFactor = _notHiddenOperationsLength / 5.0;
+
 	if( newZoomFactor > maxZoomFactor ) { 
 		newZoomFactor = maxZoomFactor;
+	}
+	if( newZoomFactor < minZoomFactor ) { 
+		newZoomFactor = minZoomFactor;
 	}
 	
 	let newHeight = _notHiddenOperationsLength / newZoomFactor;
@@ -1020,8 +1147,8 @@ function displayYZoomFactor( zoomFactor=null ) {
 	if( zoomFactor === null ) {
 		zoomFactor = _notHiddenOperationsLength / _visibleHeight;
 	}
-	_zoomGanttVerticalInput.value = parseInt(zoomFactor*100.0 + 0.5);
-	_zoomTableVerticalInput.value = parseInt(zoomFactor*100.0 + 0.5);
+	_zoomVerticallyInput.value = parseInt(zoomFactor*100.0 + 0.5);
+	_zoomVerticallyInputT.value = parseInt(zoomFactor*100.0 + 0.5);
 	setCookie("ganttVisibleTop",_visibleTop);
 	setCookie("ganttVisibleHeight",_visibleHeight);
 
@@ -1031,8 +1158,9 @@ function displayYZoomFactor( zoomFactor=null ) {
 function zoomYR( factorChange, centerOfZoom=0.5, setZoomFactor=null ) {
 	zoomY( factorChange, centerOfZoom, setZoomFactor );		
 	drawTableContent();
+	drawTimeScale();
 	drawGantt();
-	drawVerticalScroll();
+	drawVerticalScroll();	
 }
 
 
@@ -1088,7 +1216,7 @@ function timeToScreen( timeInSeconds, absoluteMin=true ) {
 	} else {
 		min = _ganttVisibleLeft;
 	}
-	return _settings.ganttChartLeftMargin + (timeInSeconds - min) * availableSVGWidth / _ganttVisibleWidth; 
+	return parseInt( _settings.ganttChartLeftMargin + (timeInSeconds - min) * availableSVGWidth / _ganttVisibleWidth + 0.5); 
 }
 
 function timeToScreenInt( timeInSeconds ) {
@@ -1102,7 +1230,7 @@ function screenToTime( screenX ) {
 
 
 function operToScreen( n ) {
-	return n * _ganttSVGHeight / (_visibleHeight+0.5); 
+	return parseInt( n * _ganttSVGHeight / (_visibleHeight+0.5) + 0.5); 
 } 
 
 
@@ -1137,26 +1265,34 @@ function restoreTableColumnOrderAndWidths() {
 			deleteCookie( cname );
 		}
 		cname = _data.table[cookie].ref+"Width";
-		if( getCookie(cname) != null ) {
-			deleteCookie( cname );
-		}
+		setCookie( cname, _data.table[cookie].width );
 	}
 }
 
-function zoom100(e) {
-	zoomX100();
-	zoomY100();
-	drawGantt();
-	drawTimeScale();
-	drawGanttHScroll();
-	drawTableContent();
-	drawVerticalScroll();
+
+function validateTopAndHeight( top, height ) {
+	let minVisibleHeight = calcMinVisibleHeight();
+	let maxVisibleHeight = calcMaxVisibleHeight();
+	let newVisibleHeight;
+	if( height < minVisibleHeight ) {
+		newVisibleHeight = minVisibleHeight;
+	} else if( height > maxVisibleHeight ) {
+		newVisibleHeight = maxVisibleHeight;
+	} else {
+		newVisibleHeight = height;
+	}
+	if( top < 0 ) {
+		top = 0;
+	}
+	let newVisibleTop = (top + newVisibleHeight) <= _notHiddenOperationsLength ? top : (_notHiddenOperationsLength - newVisibleHeight);
+	return [newVisibleTop, newVisibleHeight ]	
 }
 
 
 function calculateHorizontalZoomByVerticalZoom( top, height ) {
-	let newVisibleHeight = (_notHiddenOperationsLength < height) ? _notHiddenOperationsLength : height;
-	let newVisibleTop = (top + newVisibleHeight) <= _notHiddenOperationsLength ? top : (_notHiddenOperationsLength - newVisibleHeight);
+	let th = validateTopAndHeight( top, height );
+	let newVisibleHeight = th[1]; // (_notHiddenOperationsLength < height) ? _notHiddenOperationsLength : height;
+	let newVisibleTop = th[0]; (top + newVisibleHeight) <= _notHiddenOperationsLength ? top : (_notHiddenOperationsLength - newVisibleHeight);
 	
 	if( _notHiddenOperationsLength > height ) {		
 		let min = _data.operations[0].displayStartInSeconds;
@@ -1182,11 +1318,28 @@ function calculateHorizontalZoomByVerticalZoom( top, height ) {
 
 
 function zoomReadable(e) {
-	let newZoom = calculateHorizontalZoomByVerticalZoom( 0, _settings.readableNumberOfOperations );
-	_visibleTop = newZoom[0];
-	_visibleHeight = newZoom[1];
-	_ganttVisibleLeft = newZoom[2];
-	_ganttVisibleWidth = newZoom[3];
+	zoomR( false );
+}
+
+function zoom100(e) {
+	zoomR( true );
+}
+
+function zoomR( zoomH100 = true ) {
+	if( zoomH100 ) {
+		let th = validateTopAndHeight( 0, _settings.maxNumberOfOperationOnScreen );
+		_visibleTop = th[0];
+		_visibleHeight = th[1];
+		_ganttVisibleLeft = _data.visibleMin;
+		_ganttVisibleWidth = _data.visibleMaxWidth;
+
+	} else {
+		let newZoom = calculateHorizontalZoomByVerticalZoom( 0, _settings.readableNumberOfOperations );
+		_visibleTop = newZoom[0];
+		_visibleHeight = newZoom[1];
+		_ganttVisibleLeft = newZoom[2];
+		_ganttVisibleWidth = newZoom[3];
+	}
 
 	displayXZoomFactor();
 	displayYZoomFactor();
@@ -1196,4 +1349,21 @@ function zoomReadable(e) {
 	drawGanttHScroll();	
 	drawTableContent();		
 	drawVerticalScroll();
+}
+
+
+function logout() {
+	if( document.location.host ) {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.onreadystatechange = function() {
+		    if (this.readyState == 4 ) {
+		    	if( this.status == 401 ) {
+		    		window.location.replace('http://www.spiderproject.com/');
+				}
+		    }
+		};
+		xmlhttp.open("GET", _files.logout, true);
+		xmlhttp.setRequestHeader("Cache-Control", "no-cache");
+		xmlhttp.send();
+	} 
 }

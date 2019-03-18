@@ -3,7 +3,7 @@ require('auth.php');
 
 if( isAuthRequired() ) {
 	$userName = auth(false);
-}
+} 
 ?>
 
 <!DOCTYPE HTML>
@@ -57,24 +57,20 @@ if( isAuthRequired() ) {
 			</svg>
 		</div>
 		<table cellspacing="0" cellpadding="0" class='toolbox' id='toolbox'><tr valign="top">
-			<td class='toolbox-left'>
-				<div id='toolboxSynchronizedDiv' title=''>
-					<img id='toolboxSynchronizedIcon' src='' 
-						style='float:left; border:0; display:inline; cursor:default; opacity:0.75;'/>
-				</div> <!-- ↺ ↻ ↶ ↷ ⇆ ⇅ ⇎ -->
-				<div id='toolboxLockDataDiv'>
+			<td class='toolbox-left'>'
+				<div id='toolboxLockDataDiv' title=''>
 					<img id='toolboxLockDataIcon' src=''/>
 				</div>				
-
 				<div id='toolboxResetTableDimensionsDiv' title='' onclick='restoreTableColumnOrderAndWidths();'>
-					<!-- <button class='ok' onclick='restoreTableColumnOrderAndWidths();'>↶</button> -->
 					<img id='toolboxResetTableDimensionsIcon' src=''/>
 				</div>					
 				<div id='toolboxZoomVerticallyDivT' title=''>
-					<img id='toolboxZoomVerticallyIconT' src=''
-						style='float:left; border:0; display:inline; cursor:default; opacity:0.75;'/>
-					<input type='number' value='100' min='100' max='10000' size=5 step=25 required id='toolboxVScaleT'/>
+					<img id='toolboxZoomVerticallyIconT' src=''/>
+					<input type='text' value='100' min='100' max='10000' size=5 step=25 required id='toolboxZoomVerticallyInputT'/>
 				</div>			
+				<div id='toolboxSynchronizedDiv' title=''>
+					<img id='toolboxSynchronizedIcon' src='' style='border:0; cursor:default;'/>
+				</div>
 			</td><td class='toolbox-right'>
 				<div id='toolboxZoom100Div' title='' onclick='zoom100();'>
 					<img id='toolboxZoom100Icon' src=''>
@@ -83,17 +79,18 @@ if( isAuthRequired() ) {
 					<img id='toolboxZoomReadableIcon' src=''>					
 				</div>	
 				<div id='toolboxZoomHorizontallyDiv'>
-					<img id='toolboxZoomHorizontallyIcon' src=''
-						style='float:left; border:0; display:inline; cursor:default; opacity:0.75;'/>
-					<input type='number' value='100' min='100' max='10000' size=5 step=25 required id='toolboxHScale'/>
+					<img id='toolboxZoomHorizontallyIcon' src=''/>
+					<input type='text' value='100' min='50' max='10000' size=5 step=25 required id='toolboxZoomHorizontallyInput'/>
 				</div>
 				<div id='toolboxZoomVerticallyDiv'>
-					<img id='toolboxZoomVerticallyIcon' src=''
-						style='float:left; border:0; display:inline; cursor:default; opacity:0.75;' />
-					<input type='number' value='100' min='100' max='10000' size=5 step=25 required id='toolboxVScale'/>
+					<img id='toolboxZoomVerticallyIcon' src=''/>
+					<input type='text' value='100' min='100' max='10000' size=5 step=25 required id='toolboxZoomVerticallyInput'/>
 				</div>			
 				<div id='toolboxDisplayLinksDiv' style='cursor:pointer;'>
 					<img id='toolboxDisplayLinksIcon' src=''/>
+				</div>				
+				<div id='toolboxTitlesPositioningDiv' style='cursor:pointer;'>
+					<img id='toolboxTitlesPositioningIcon' src=''/>
 				</div>				
 			</td>
 		</tr></table>
@@ -168,7 +165,13 @@ if( isAuthRequired() ) {
 	</div>
 </div>
 
-	<?php echo "<script>var userName = '" . $userName . "';</script>"; ?>
+	<?php 
+		if( isset($userName) ) { 
+			echo "<script>var _userName = '" . $userName . "';</script>"; 
+		} else {
+			echo "<script>var _userName = null;</script>"; 			
+		} 
+	?>
 	
 	<script type='text/javascript'>
 		
@@ -220,13 +223,13 @@ if( isAuthRequired() ) {
 <script type="text/javascript" src="parameters.js">
 </script>
 
+<script type="text/javascript" src="texts.js">
+</script>
+
 <script type="text/javascript" src="utils.js">
 </script>
 
 <script type="text/javascript" src="calendar.js">
-</script>
-
-<script type="text/javascript" src="texts.js">
 </script>
 
 <script type="text/javascript" src="lockdata.js">

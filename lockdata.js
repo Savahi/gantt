@@ -5,18 +5,13 @@ var _lockDataProcessingRequest;
 
 function lockData( locked=null, success_fn=null, error_fn=null ) {
 	if( _lockDataDisabled === null ) {
-		let disable = false;
-		if( !( 'editables' in _data ) ) { 			// If there are no data to edit...
-			disable = true;
-		} else {
-			if( _data.editables.length == 0 ) {
-				disable = true;
-			}
-		}
-		if( disable ) {
+		if( _data.noEditables ) {
 			_lockDataDisabled = true;		// ... disabling this tool
 			_lockDataDiv.style.cursor = 'default';
 			_lockDataIcon.style.cursor = 'default';
+			_lockDataIcon.style.border = '0';			
+			_lockDataDiv.title = _texts[_lang].readOnlyModeText;
+			_lockDataIcon.setAttribute('src',_iconNotLocked);
 		} else {
 			_lockDataDisabled = false;			
 		}
@@ -57,16 +52,16 @@ function lockData( locked=null, success_fn=null, error_fn=null ) {
 					errorParsingStatusData = true;
 				}
 				if( errorParsingStatusData || !('locked' in statusData) || !('ganttmtime' in statusData) ) {
-					error_fn( _texts[_data.lang].statusErrorMessage );
+					error_fn( _texts[_lang].statusErrorMessage );
         		} else {
         			success_fn( statusData );
         		}
 			} else if( _lockDataRequestReceived && _lockDataProcessingRequest ) {
 				//console.log( 'The site has been accessed but the file hasn\'t been found!' );
-				error_fn( _texts[_data.lang].statusErrorMessage );
+				error_fn( _texts[_lang].statusErrorMessage );
 			} else {
 				//console.log( 'Error occured!' );				
-				error_fn( _texts[_data.lang].noConnectionWithServerMessage );
+				error_fn( _texts[_lang].noConnectionWithServerMessage );
 			}
 			//hideMessageBox();
 			return;
@@ -84,7 +79,7 @@ function lockData( locked=null, success_fn=null, error_fn=null ) {
 		}
 	};
 
-	//displayMessageBox( _texts[_data.lang].waitWhileLockingMessage );
+	//displayMessageBox( _texts[_lang].waitWhileLockingMessage );
 	
 	_lockDataDisabled = true; // To prevent from doubling requests...
 
@@ -114,7 +109,7 @@ function lockDataSuccessFunction( statusData ) {
 		_lockDataIcon.setAttribute('src',_iconNotLocked);      // ... it means to editing allowed from now on ...
 		_lockDataOn = false;
 		_lockDataDisabled = true; 
-		errorMessage = _texts[_data.lang].serverDataChangedMessage; 		// ... it means the user must reload the data.
+		errorMessage = _texts[_lang].serverDataChangedMessage; 		// ... it means the user must reload the data.
 	} else {
 		let locked = parseInt( statusData.locked );
 		if( locked == 1 ) {
@@ -151,10 +146,10 @@ function lockDataSetStyling( errorMessage = null ) {
 			_lockDataIcon.style.cursor = 'default';
 			_lockDataDiv.onclick = null;
 		} else {
-			_lockDataDiv.setAttribute( 'title', _texts[_data.lang].dataNotLockedTitle );
+			_lockDataDiv.setAttribute( 'title', _texts[_lang].dataNotLockedTitle );
 		}
 	} else {
-		_lockDataDiv.setAttribute( 'title', _texts[_data.lang].dataLockedTitle );
+		_lockDataDiv.setAttribute( 'title', _texts[_lang].dataLockedTitle );
 	}
 	if( errorMessage !== null ) {
 		displayConfirmationBox( errorMessage );

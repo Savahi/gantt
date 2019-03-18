@@ -1,8 +1,15 @@
+// drawgantt.js
+
 function drawGantt( init=false, shiftOnly=false ) {
 	if( _inputOnly ) {
 		return;
 	}
 
+	if( _redrawAllMode ) { 		// If optimization is required to cope with a huge number of operations... 
+		init=true; 				// ..."init" if always true and...
+		shiftOnly=false;		// ...as well no shifting.
+	}  
+    
     _ganttViewBoxLeft = timeToScreen( _ganttVisibleLeft ) - _settings.ganttChartLeftMargin;
     _ganttViewBoxTop = operToScreen( _visibleTop );
     let ganttViewBox = `${_ganttViewBoxLeft} ${_ganttViewBoxTop} ${_ganttSVGWidth} ${_ganttSVGHeight}`;
@@ -12,66 +19,95 @@ function drawGantt( init=false, shiftOnly=false ) {
     }
 
 	if( init ) {
-		while (_ganttSVG.hasChildNodes()) {
-			_ganttSVG.removeChild(_ganttSVG.lastChild);
-		}		
-		_ganttSVGBkgr = createRect( 0, 0, timeToScreen(_data.visibleMax), operToScreen(_data.operations.length), { fill:'#ffffff' } );
-		_ganttSVG.appendChild(_ganttSVGBkgr);		
-
-	} else {
-		_ganttSVGBkgr.setAttributeNS(null,'width',timeToScreen(_data.visibleMax));
-		_ganttSVGBkgr.setAttributeNS(null,'height',operToScreen(_data.operations.length));
-	}
-
-	// Drawing grid...
-  	for( let i = 0 ;  ; i++ ) {
-		let el = document.getElementById( 'ganttGrid' + i );
-		if( !el ) {
-			break;
+		let nodes = _ganttSVG.childNodes;
+		for( let n = nodes.length-1 ; n >= 0  ; n-- ) {
+			//if( nodes[n].id.indexOf('ganttBkgrGrid') == 0 ) { //
+			// Optimizing nodes[n].id.indexOf('ganttBkgrGrid') == 0 
+			if( nodes[n].id[5] == 'B' && nodes[n].id[8] == 'r' ) { 
+				continue;
+			}
+			_ganttSVG.removeChild( nodes[n] );
 		}
-		_ganttSVG.removeChild(el);
 	}
-	let gridLineProperties = { stroke:_settings.gridColor, strokeWidth:_settings.gridStrokeWidth, strokeDasharray:_settings.gridStrokeDashArray }; 
-	let gridMaxY = operToScreen(_data.operations.length);
-	for( let i = 0 ; i < _timeScaleToGrid.length ; i++ ) {
-		let x = timeToScreen( _timeScaleToGrid[i] );
-		gridLineProperties.id = 'ganttGrid' + i;
-		let line = createLine( x, 0, x, gridMaxY, gridLineProperties );
-		_ganttSVG.appendChild(line);
-	}		
-	let gridXNow = timeToScreen( _data.proj.curTimeInSeconds );
-	gridLineProperties.id = 'ganttGrid' + _timeScaleToGrid.length;
-	gridLineProperties.stroke = _settings.gridCurrentTimeColor;
-	gridLineProperties.strokeDasharray = _settings.gridStrokeDashArray;
-	let gridLine = createLine( gridXNow, 0, gridXNow, gridMaxY, gridLineProperties );
-	_ganttSVG.appendChild(gridLine);
-	// ...the grid is done.
+
+
+	// Drawing gantt bkgr
+	let ganttWidth = timeToScreen(_data.visibleMax) * (1.0 + _settings.ganttVisibleWidthExtra) / _settings.minXZoomFactor
+	let ganttHeight = operToScreen(_data.operations.length);
+	if( !_ganttSVGBkgr ) {
+		_ganttSVGBkgr = createRect( 0, 0, ganttWidth, ganttHeight, { id:'ganttBkgr', fill:_settings.ganttBkgrColor } );
+		_ganttSVG.appendChild(_ganttSVGBkgr);				
+	} else {
+		_ganttSVGBkgr.setAttributeNS( null, 'width', ganttWidth );
+		_ganttSVGBkgr.setAttributeNS( null, 'height', ganttHeight );
+	}
+
+	
+	let titleRight = (_titlesPositioning === 'r'); 
 
 	// Calculating the coordinates...
-	let fontSize = (operToScreen(_settings.ganttCompareTopMargin) - operToScreen(0)) * 0.75;	
+	let fontSize;
+	if( !titleRight ) {
+		fontSize = (operToScreen(_settings.ganttRectTopMargin) - operToScreen(0)) * 0.75;			
+	} else {
+		fontSize = (operToScreen(1.0 - _settings.ganttRectBottomMarginTitleFree) - operToScreen(0)) * 0.75;					
+	}
 	if( fontSize > _settings.ganttMaxFontSize ) {
 		fontSize = _settings.ganttMaxFontSize;
 	}
-	let rectBottomMargin = (fontSize > _settings.ganttMinFontSize) ? _settings.ganttRectBottomMargin : _settings.ganttRectBottomMarginTitleFree;
-	let rectTopMargin = (fontSize > _settings.ganttMinFontSize) ? _settings.ganttRectTopMargin : _settings.ganttRectTopMarginTitleFree;
-	let compareBottomMargin = (fontSize > _settings.ganttMinFontSize) ? _settings.ganttCompareBottomMargin : _settings.ganttCompareBottomMarginTitleFree;
-	let compareTopMargin = (fontSize > _settings.ganttMinFontSize) ? _settings.ganttCompareTopMargin : _settings.ganttCompareTopMarginTitleFree;
+
+	let noTitle = (fontSize < _settings.ganttMinFontSize);
+
+	displayTitlesPositioning(null, noTitle);
+	
+	let rectBottomMargin, rectTopMargin, compareBottomMargin, compareTopMargin;
+	if( !titleRight ) {
+		rectBottomMargin = _settings.ganttRectBottomMargin;
+		rectTopMargin = _settings.ganttRectTopMargin;
+		compareBottomMargin = _settings.ganttCompareBottomMargin;
+		compareTopMargin = _settings.ganttCompareTopMargin;
+	} else {
+		rectBottomMargin = _settings.ganttRectBottomMarginTitleFree;
+		rectTopMargin = _settings.ganttRectTopMarginTitleFree;
+		compareBottomMargin = _settings.ganttCompareBottomMarginTitleFree;
+		compareTopMargin = _settings.ganttCompareTopMarginTitleFree;		
+	}
+
 	let rectCounter = 0;
-	_data.operationDims = {}; // To store recalculated values such as : rectangle width and height etc
-	_data.operationDims.height = operToScreen(1) - operToScreen(0);
-	_data.operationDims.rectHeight = operToScreen(1.0 - rectBottomMargin) - operToScreen(rectTopMargin);
+	let operationHeight = operToScreen(1) - operToScreen(0);
+	let rectHeight = operToScreen(1.0 - rectBottomMargin) - operToScreen(rectTopMargin);
 	for( let i = 0 ; i < _data.operations.length ; i++ ) {
 		if( !_data.operations[i].visible ) {
 			continue;
 		}
+		let hiddenLeft = false; //_data.operations[i].displayFinInSeconds < _ganttVisibleLeft;
+		let hiddenRight = false; //_data.operations[i].displayStartInSeconds > _ganttVisibleLeft + _ganttVisibleWidth;
+		let hiddenTop = (rectCounter+2) < _visibleTop;
+		let hiddenBottom = (rectCounter-1) > (_visibleTop + _visibleHeight); 
+		if( (hiddenLeft || hiddenRight) || (hiddenTop || hiddenBottom)  ) {
+			_data.operations[i].onScreen = false;
+			if( _redrawAllMode ) {
+				rectCounter++;
+				continue;
+			}
+		} else {
+			_data.operations[i].onScreen = true;
+		}
+
 		_data.operations[i].left = timeToScreen( _data.operations[i].displayStartInSeconds );
 		_data.operations[i].right = timeToScreen( _data.operations[i].displayFinInSeconds );
-		_data.operations[i].width = _data.operations[i].right - _data.operations[i].left;
 		_data.operations[i].top = operToScreen(rectCounter);
-		_data.operations[i].bottom = operToScreen(rectCounter + 1);
+		_data.operations[i].bottom = _data.operations[i].top + operationHeight; // operToScreen(rectCounter + 1);
 		_data.operations[i].rectTop = operToScreen(rectCounter + rectTopMargin);
-		_data.operations[i].rectBottom = operToScreen(rectCounter + 1.0 - rectBottomMargin);
-		_data.operations[i].rectVMiddle = _data.operations[i].rectTop + _data.operations[i].rectHeight/2;
+		_data.operations[i].rectBottom = _data.operations[i].rectTop + rectHeight; // operToScreen(rectCounter + 1.0 - rectBottomMargin);
+		let rectWidth = _data.operations[i].right - _data.operations[i].left;
+		if( rectWidth < 3  ) {
+			_data.operations[i].left -= 1;
+			_data.operations[i].right += 1;
+			_data.operations[i].width = 3;
+		} else {
+			_data.operations[i].width = rectWidth;
+		}
 		rectCounter++;
 	}
 
@@ -82,76 +118,59 @@ function drawGantt( init=false, shiftOnly=false ) {
 		strokeWidth:1, opacity:_settings.ganttLinkArrowOpacity, endingArrow:true };
 	for( let i = 0 ; i < _data.links.length ; i++ ) {
 
-		let PredCode = _data.links[i].PredCode;
-		let SuccCode = _data.links[i].SuccCode;
-		let predOp = null;
-		let succOp = null;
-		for( let op = 0 ; op < _data.operations.length ; op++ ) {
-			if( !predOp ) { 
-				if( _data.operations[op].Code == PredCode ) { predOp = op; }
-			}
-			if( !succOp ) {
-				if( _data.operations[op].Code == SuccCode ) { succOp = op; }
-			}
-			if( predOp && succOp ) {
-				break;
-			}
+		let predOp = _data.links[i].predOp;
+		let succOp = _data.links[i].succOp;
+		let atLeastOneOpOnScreen = _data.operations[predOp].onScreen || _data.operations[succOp].onScreen; 
+		let bothOpsAreVisible = _data.operations[predOp].visible && _data.operations[succOp].visible;
+		if( _redrawAllMode && (!atLeastOneOpOnScreen || !bothOpsAreVisible) ) {
+			continue;
+		}
+		let line, arrowLine, lineX1, lineY1, lineX2, lineY2, arrowY, lineArrowY;
+		if( _data.links[i].TypeSF2 == 'SS' || _data.links[i].TypeSF2 == 'SF' ) {
+			lineX1 = _data.operations[predOp].left;
+		} else {
+			lineX1 = _data.operations[predOp].right;				
+		}
+		if( _data.operations[predOp].top < _data.operations[succOp].top ) {
+			lineY1 = _data.operations[predOp].rectBottom;
+			lineY2 = _data.operations[succOp].rectTop - _settings.ganttLinkArrowHeight*2;
+			arrowY = _data.operations[succOp].rectTop - _settings.ganttLinkArrowHeight;
+		} else {
+			lineY1 = _data.operations[predOp].rectTop;
+			lineY2 = _data.operations[succOp].rectBottom + _settings.ganttLinkArrowHeight*2;
+			arrowY = _data.operations[succOp].rectBottom + _settings.ganttLinkArrowHeight;
+		}
+		if( _data.links[i].TypeSF2 == 'SF' || _data.links[i].TypeSF2 == 'FF' ) {
+			lineX2 = _data.operations[succOp].right;
+		} else {
+			lineX2 = _data.operations[succOp].left;				
 		}
 
-		if( predOp && succOp ) {
-			let line, arrowLine, lineX1, lineY1, lineX2, lineY2, arrowY, lineArrowY;
-			if( _data.links[i].TypeSF2 == 'SS' || _data.links[i].TypeSF2 == 'SF' ) {
-				lineX1 = _data.operations[predOp].left;
-			} else {
-				lineX1 = _data.operations[predOp].right;				
-			}
-			if( _data.operations[predOp].top < _data.operations[succOp].top ) {
-				lineY1 = _data.operations[predOp].rectBottom;
-				lineY2 = _data.operations[succOp].rectTop - _settings.ganttLinkArrowHeight*2;
-				arrowY = _data.operations[succOp].rectTop - _settings.ganttLinkArrowHeight;
-			} else {
-				lineY1 = _data.operations[predOp].rectTop;
-				lineY2 = _data.operations[succOp].rectBottom + _settings.ganttLinkArrowHeight*2;
-				arrowY = _data.operations[succOp].rectBottom + _settings.ganttLinkArrowHeight;
-			}
-			if( _data.links[i].TypeSF2 == 'SF' || _data.links[i].TypeSF2 == 'FF' ) {
-				lineX2 = _data.operations[succOp].right;
-			} else {
-				lineX2 = _data.operations[succOp].left;				
-			}
-
-			if( init ) {
-				lineProperties.id = 'ganttLine'+i;
-				line = createLine( lineX1, lineY1, lineX2, lineY2, lineProperties );
-				arrowLineProperties.id = 'ganttLineArrow'+i;
-				arrowLine = createLine( lineX2, lineY2, lineX2, arrowY, arrowLineProperties );
-				_ganttSVG.appendChild(line);				
-				_ganttSVG.appendChild(arrowLine);		
-				// Creating a title for the link lines...
-				// let lineTitleText = `${_data.operations[predOp].Name} [${_data.operations[predOp].Code}] -> ${_data.operations[succOp].Name} [${_data.operations[succOp].Code}]`; 
-				// let lineTitle = document.createElementNS(NS,'title');
-  				// lineTitle.textContent = lineTitleText;
-  				// line.appendChild(lineTitle);
-  				// arrowLine.appendChild(lineTitle);
-			} else {
-				line = document.getElementById( 'ganttLine'+i );
-				line.setAttributeNS(null,'x1',lineX1);
-				line.setAttributeNS(null,'x2',lineX2);
-				line.setAttributeNS(null,'y1',lineY1);
-				line.setAttributeNS(null,'y2',lineY2);
-				arrowLine = document.getElementById( 'ganttLineArrow'+i );
-				arrowLine.setAttributeNS(null,'x1',lineX2);
-				arrowLine.setAttributeNS(null,'x2',lineX2);
-				arrowLine.setAttributeNS(null,'y1',lineY2);
-				arrowLine.setAttributeNS(null,'y2',arrowY);
-			}
-			if( !_data.operations[predOp].visible || !_data.operations[succOp].visible || !_displayLinksOn ) {
-				line.setAttributeNS(null,'display','none');
-				arrowLine.setAttributeNS(null,'display','none');
-			} else {				
-				line.setAttributeNS(null,'display','block');				
-				arrowLine.setAttributeNS(null,'display','block');				
-			}
+		if( init ) {
+			lineProperties.id = 'ganttLine'+i;
+			line = createLine( lineX1, lineY1, lineX2, lineY2, lineProperties );
+			arrowLineProperties.id = 'ganttLineArrow'+i;
+			arrowLine = createLine( lineX2, lineY2, lineX2, arrowY, arrowLineProperties );
+			_ganttSVG.appendChild(line);				
+			_ganttSVG.appendChild(arrowLine);		
+		} else {
+			line = document.getElementById( 'ganttLine'+i );
+			line.setAttributeNS(null,'x1',lineX1);
+			line.setAttributeNS(null,'x2',lineX2);
+			line.setAttributeNS(null,'y1',lineY1);
+			line.setAttributeNS(null,'y2',lineY2);
+			arrowLine = document.getElementById( 'ganttLineArrow'+i );
+			arrowLine.setAttributeNS(null,'x1',lineX2);
+			arrowLine.setAttributeNS(null,'x2',lineX2);
+			arrowLine.setAttributeNS(null,'y1',lineY2);
+			arrowLine.setAttributeNS(null,'y2',arrowY);
+		}
+		if( !_data.operations[predOp].visible || !_data.operations[succOp].visible || !_displayLinksOn ) {
+			line.setAttributeNS(null,'display','none');
+			arrowLine.setAttributeNS(null,'display','none');
+		} else {				
+			line.setAttributeNS(null,'display','block');				
+			arrowLine.setAttributeNS(null,'display','block');				
 		}
 	}	
 
@@ -160,30 +179,42 @@ function drawGantt( init=false, shiftOnly=false ) {
 	let op100Properties = { fill:_settings.ganttOperation100Color, opacity:_settings.ganttOperation100Opacity };
 	let opCompareProperties = { fill:_settings.ganttCompareColor, opacity:_settings.ganttCompareOpacity };
 	for( let i = 0 ; i < _data.operations.length ; i++ ) {
-		if( !_data.operations[i].visible ) { // Optimizing.
-			document.getElementById('ganttGroup'+i).setAttributeNS(null,'display','none');
+		if( _redrawAllMode && (!_data.operations[i].onScreen || !_data.operations[i].visible) ) {
 			continue;
-		}
-
+		}		
 		let rectStart = _data.operations[i].left;
 		let rectEnd = _data.operations[i].right;
 		let rectTop = _data.operations[i].rectTop;
 		let rectBottom = _data.operations[i].rectBottom;
 		let rectWidth = _data.operations[i].width;
-		let rectHeight = _data.operationDims.rectHeight;
-		let rectVMiddle = _data.operations[i].rectVMiddle;
-		let textY;
 		let displayCompare, rectCompareStart, rectCompareEnd, rectCompareTop, rectCompareBottom;
 		if( _data.operations[i].Start_COMPInSeconds != -1 && _data.operations[i].Fin_COMPInSeconds != -1 ) {
 			rectCompareStart = timeToScreen( _data.operations[i].Start_COMPInSeconds );
 			rectCompareEnd = timeToScreen( _data.operations[i].Fin_COMPInSeconds );
-			rectCompareTop = _data.operations[i].top + _data.operationDims.height * compareTopMargin;
-			rectCompareBottom = _data.operations[i].bottom - _data.operationDims.height * compareBottomMargin;
-			textY = rectCompareTop - 4;
+			rectCompareTop = _data.operations[i].top + operationHeight * compareTopMargin;
+			rectCompareBottom = _data.operations[i].bottom - operationHeight * compareBottomMargin;
 			displayCompare = true;
 		} else {
 			displayCompare = false;
+		}
+
+		let textX, textY;
+		if( !titleRight ) {
+			textX = rectStart;
 			textY = rectTop - 4;
+		} else {
+			let rhomb = false;
+			if( _data.operations[i].status == 0 || _data.operations[i].status == 100 ) { // Not started or finished...
+				; // rhomb = !(rectWidth > 0);				
+			} else { // Started but not finished
+				rhomb = (_data.operations[i].displayFinInSeconds == _data.operations[i].displayRestartInSeconds);
+			}
+			if( !rhomb ) { // It's not a rhomb
+				textX = rectEnd + 4;
+			} else {
+				textX = rectEnd + rectHeight/2 + 4;
+			}
+			textY = rectTop + fontSize;			
 		}
 
 		if( init ) { // Initializing...
@@ -203,7 +234,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 				op0Properties.fill = _data.operations[i].color;
 				if( !(rectWidth > 0) ) {
 					op0 = createRhomb( rectStart, rectTop, rectHeight, op0Properties );
-				} else if( typeof(_data.operations[i].Level) !== 'number' ) { // Not a phase ?
+				} else if( !_data.operations[i]._isPhase ) { // Not a phase ?
 					op0 = createRect( rectStart, rectTop, rectWidth, rectHeight, op0Properties ); // Rectangle
 				} else {
 					op0 = createPolygon( calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight), op0Properties );
@@ -214,7 +245,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 				op100Properties.id = 'ganttOpFinished'+i;
 				if( !(rectWidth > 0) ) {
 					op100 = createRhomb( rectStart, rectTop, rectHeight, op100Properties );
-				} else if( typeof(_data.operations[i].Level) !== 'number' ) { // Not a phase
+				} else if( !_data.operations[i]._isPhase ) { // Not a phase
 					op100 = createRect( rectStart, rectTop, rectWidth, rectHeight, op100Properties ); // Rectangle
 				} else {
 					op100 = createPolygon( calcPhaseCoords( rectStart, rectTop, rectWidth, rectHeight ), op100Properties );
@@ -227,8 +258,8 @@ function drawGantt( init=false, shiftOnly=false ) {
 				let op100;
 				let width100 = xLastFin - rectStart;
 				if( !(width100 > 0) ) {
-					op100 = createRhomb( rectStart, rectTop, rectHeight, op0Properties );
-				} else if( typeof(_data.operations[i].Level) !== 'number' ) { // Not a phase
+					op100 = createRhomb( rectStart, rectTop, rectHeight, op100Properties );
+				} else if( !_data.operations[i]._isPhase ) { // Not a phase
 					op100 = createRect( rectStart, rectTop, width100, rectHeight, op100Properties  ); // Rectangle
 				} else {
 					op100 = createPolygon( calcPhaseCoords(rectStart, rectTop, width100, rectHeight,-1), op100Properties );
@@ -247,14 +278,13 @@ function drawGantt( init=false, shiftOnly=false ) {
 				let width0 = rectEnd - xRestart;
 				if( !(width0 > 0) ) {
 					op0 = createRhomb( rectEnd, rectTop, rectHeight, op0Properties );
-				} else if( typeof(_data.operations[i].Level) !== 'number' ) { // Not a phase
+				} else if( !_data.operations[i]._isPhase ) { // Not a phase
 					op0 = createRect( xRestart, rectTop, width0, rectHeight, op0Properties  ); // Rectangle
 				} else {
 					op0 = createPolygon( calcPhaseCoords(xRestart, rectTop, width0, rectHeight, 1), op0Properties );
 				}
 				group.appendChild(op0);
 			}
-			group.style.cursor = 'pointer';
 			// group.onmouseover = function(e) { document.getElementById('tableColumn0Row'+i).setAttributeNS(null,'fill','#2f2f2f') };
 			// let bkgr = createRect( 0, lineTop, _data.table[col].width, rectHeight, { id:('tableColumn'+col+'Row'+i+'Bkgr'), fill:_data.operations[i].colorBack } );
 
@@ -264,24 +294,22 @@ function drawGantt( init=false, shiftOnly=false ) {
 			group.appendChild(title);
 
 			group.setAttributeNS( null, 'data-i', i );
-			if( 'editables' in _data ) {
-				if( _data.editables.length > 0 ) {
-					if( !_inputOnly || 
-						(_inputOnly && (typeof(_data.operations[i].Level) === 'string' || _data.operations[i].Level === null)) ) {
-			 			group.onmousedown = function(e) { e.stopPropagation(); displayEditBoxWithData(this); };
-					}
-				}
+			if( !_data.noEditables ) {
+	 			group.onmousedown = function(e) { e.stopPropagation(); displayEditBoxWithData(this); };
+				group.style.cursor = 'pointer';
 	 			//group.ontouchstart = function(e) { e.stopPropagation(); displayEditBoxWithData(this); };
 			}
 
-			text = createText( _data.operations[i].Name, rectStart, textY, // - fontSize * 0.25, 
+			text = createText( _data.operations[i].Name, textX, textY, // - fontSize * 0.25, 
 				{ fontSize:fontSize, fill:_settings.ganttFontColor, id:'ganttText'+i, textAnchor:'left', alignmentBaseline:'baseline' } );
-			text.style.cursor = 'pointer';
+			if( !_data.noEditables ) {
+				text.style.cursor = 'pointer';
+			}
 			group.appendChild(text);
 			_ganttSVG.appendChild(group);			
 		} else { // Not initializing but only updating coordinates...
 			text = document.getElementById( 'ganttText'+i );
-			text.setAttributeNS(null,'x',rectStart);
+			text.setAttributeNS(null,'x',textX);
 			text.setAttributeNS(null,'y',textY);
 			text.style.fontSize = fontSize;
 			if( displayCompare ) {
@@ -292,7 +320,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 				let el = document.getElementById('ganttOpNotStarted'+i);
 				if( !(rectWidth > 0) ) {
 					el.setAttributeNS( null,'points', calcRhombCoords( rectStart, rectTop, rectHeight ) );
-				} else if( typeof(_data.operations[i].Level) !== 'number' ) { // Not a phase
+				} else if( !_data.operations[i]._isPhase ) { // Not a phase
 					setRectCoords( el, rectStart, rectTop, rectWidth, rectHeight );
 				} else {
 					el.setAttributeNS( null,'points', calcPhaseCoords(rectStart, rectTop, rectWidth, rectHeight) );
@@ -301,7 +329,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 				let el = document.getElementById('ganttOpFinished'+i);
 				if( !(rectWidth > 0) ) {
 					el.setAttributeNS( null,'points', calcRhombCoords( rectStart, rectTop, rectHeight ) );
-				} else if( typeof(_data.operations[i].Level) !== 'number' ) { // Not a phase
+				} else if( !_data.operations[i]._isPhase ) { // Not a phase
 					setRectCoords( el, rectStart, rectTop, rectWidth, rectHeight );
 				} else {
 					el.setAttributeNS( null,'points', calcPhaseCoords(rectStart, rectTop, rectWidth, rectHeight) );
@@ -315,7 +343,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 				let el0 = document.getElementById('ganttOpNotStarted'+i);
 				if( !(width100 > 0) ) { // Zero width
 					el100.setAttributeNS( null,'points', calcRhombCoords( rectStart, rectTop, rectHeight ) );					
-				} else if( typeof(_data.operations[i].Level) !== 'number' ) { // Not a phase
+				} else if( !_data.operations[i]._isPhase ) { // Not a phase
 					setRectCoords( el100, rectStart, rectTop, width100, rectHeight );
 				} else {
 					el100.setAttributeNS( null,'points', calcPhaseCoords(rectStart, rectTop, width100, rectHeight,-1) );
@@ -327,7 +355,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 				if( !(width0 > 0) ) { // Zero width
 					el0.setAttributeNS( null,'points', calcRhombCoords( rectEnd, rectTop, rectHeight ) );					
 				}
-				if( typeof(_data.operations[i].Level) !== 'number' ) { // Not a phase
+				if( !_data.operations[i]._isPhase ) { // Not a phase
 					setRectCoords( el0, xRestart, rectTop, width0, rectHeight );
 				} else {
 					el0.setAttributeNS( null,'points', calcPhaseCoords(xRestart, rectTop, width0, rectHeight,1) );
@@ -335,7 +363,7 @@ function drawGantt( init=false, shiftOnly=false ) {
 			}
 		}
 
-		if( fontSize < _settings.ganttMinFontSize ) { // If font size is too small to make text visible at screen.
+		if( noTitle ) { // If font size is too small to make text visible at screen.
 			text.setAttributeNS(null,'display','none');
 		} else {
 			text.setAttributeNS(null,'display','block');				
@@ -359,8 +387,15 @@ function drawGanttHScroll( init=false ) {
 		return;
 	}
 
-	let overallWidth = _data.visibleMaxWidth;
-	let visibleMaxLeft = (overallWidth > _ganttVisibleWidth) ? (_data.visibleMin + overallWidth - _ganttVisibleWidth) : _data.visibleMin;
+	let extra = _ganttVisibleWidth * _settings.ganttVisibleWidthExtra;
+	let overallWidth = getGanttMaxLeft() + _ganttVisibleWidth - _data.visibleMin; // _data.visibleMaxWidth + extra;
+	let visibleMaxLeft;
+	if(overallWidth > _ganttVisibleWidth) {
+		visibleMaxLeft = getGanttMaxLeft(); // (_data.visibleMin + overallWidth - _ganttVisibleWidth);
+	} else {
+		 visibleMaxLeft = _data.visibleMin;
+	}
+
 	let sliderSize = (visibleMaxLeft > _data.visibleMin) ? (_ganttHScrollSVGWidth*_ganttVisibleWidth/overallWidth) : _ganttHScrollSVGWidth;
 	if( sliderSize < _settings.scrollSliderSize ) {
 		sliderSize = _settings.scrollSliderSize;
@@ -372,6 +407,8 @@ function drawGanttHScroll( init=false ) {
 	} else {
 		sliderPosition = 0;
 	}
+
+
 	if( init ) {
 		let bbox = _ganttHScrollSVG.getBBox();
 		_ganttHScrollSVGBkgr = createRect( 0, 0, _ganttHScrollSVGWidth, _ganttHScrollSVGHeight, 

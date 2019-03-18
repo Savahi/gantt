@@ -169,6 +169,31 @@ function drawTimeScale() {
 		rectProperties._height = height;		
 		drawTimeScaleYears( rectProperties, textProperties, displayYears, minY, maxY );
 	}
+
+	// Drawing gantt grid...
+  	for( let i = 0 ;  ; i++ ) {
+		let el = document.getElementById( 'ganttBkgrGrid' + i );
+		if( !el ) {
+			break;
+		}
+		_ganttSVG.removeChild(el);
+	}
+
+	let ganttHeight = operToScreen(_data.operations.length);
+
+	let gridLineProperties = { stroke:_settings.gridColor, strokeWidth:_settings.gridStrokeWidth, strokeDasharray:_settings.gridStrokeDashArray }; 
+	for( let i = 0 ; i < _timeScaleToGrid.length ; i++ ) {
+		let x = timeToScreen( _timeScaleToGrid[i] );
+		gridLineProperties.id = 'ganttBkgrGrid' + i;
+		let line = createLine( x, 0, x, ganttHeight, gridLineProperties );
+		_ganttSVG.appendChild(line);
+	}		
+	let gridXNow = timeToScreen( _data.proj.curTimeInSeconds );
+	gridLineProperties.id = 'ganttBkgrGrid' + _timeScaleToGrid.length;
+	gridLineProperties.stroke = _settings.gridCurrentTimeColor;
+	gridLineProperties.strokeDasharray = null; //_settings.gridStrokeDashArray;
+	let gridLine = createLine( gridXNow, 0, gridXNow, ganttHeight, gridLineProperties );
+	_ganttSVG.appendChild(gridLine);
 }
 
 
@@ -215,7 +240,7 @@ function drawTimeScaleMonths( rectProperties, textProperties, displayMonths, min
 	for( let y = minY ; y <= maxY ; y++ ) {
 		let minM = ( y == minY ) ? minDT.getMonth() : 0;
 		let maxM = ( y == maxY ) ? maxDT.getMonth() : 11;
-		let mNames = _texts[_data.lang]['monthNames']
+		let mNames = _texts[_lang]['monthNames']
 		for( let m = minM ; m <= maxM ; m++ ) {
 			let startOfMonth = new Date(y,m,1,0,0,0,0);
 			let startOfMonthInSeconds = startOfMonth.getTime() / 1000;

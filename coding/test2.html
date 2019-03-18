@@ -1,0 +1,98 @@
+<script type="text/javascript">
+  
+function findPositionOfElementAtPage( el ) {
+  if( typeof( el.offsetParent ) !== 'undefined' ) {
+    let posX, posY;
+    for( posX = 0, posY = 0; el ; el = el.offsetParent ) {
+      posX += el.offsetLeft;
+      posY += el.offsetTop;
+    }
+    return [ posX, posY ];
+  } else {
+    return [ el.x, el.y ];
+  }
+}
+
+function getCoordinatesOfClickOnImage( event, imgId ) {
+  let posX = 0, posY = 0;
+  let imgPos = findPositionOfElement( imgId );
+  let e = ( event ) ? event : window.event;
+
+  if( e.pageX || e.pageY ) {
+    posX = e.pageX;
+    posY = e.pageY;
+  } else if( e.clientX || e.clientY ) {
+      posX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+      posY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+  }
+  posX = posX - imgPos[0];
+  posY = posY - imgPos[1];
+
+  let right = ( posX > parseInt( imgId.clientWidth/2 ) ) ? 1 : 0;
+  let lower = ( posY > parseInt( imgId.clientHeight/2 ) ) ? 1 : 0;
+
+  return [ posX, posY, right, lower ];
+}
+
+
+function filterInput( id, patternStr='([^0-9]+)', minValue=100, maxValue=10000, defaultValue=100 ) {
+  let start = id.selectionStart;
+  let end = id.selectionEnd;
+  
+  const currentValue = id.value;
+  const pattern = new RegExp(patternStr, 'g');
+  let correctedValue = currentValue.replace(pattern, '');
+  if( correctedValue.length == 0 ) {
+    correctedValue = defaultValue; 
+  } else {
+    let parsed = parseInt(correctedValue);
+    if( isNaN(parsed) ) {
+      correctedValue = defaultValue;
+    } else if( parsed < minValue ) {
+      correctedValue = minValue;
+    } else if( parsed > maxValue ) {
+      correctedValue = maxValue;
+    }
+  }
+  id.value = correctedValue;
+  if( correctedValue.length < currentValue.length) {
+    end--;
+  }
+  id.setSelectionRange(start, end);  
+}
+
+//-->
+</script>
+
+The following code is placed inside the HTML body. The image needs an ID which is used in the code. The Javascript defines the function that will run when the mouse down event fires. The span blocks are used to display the coordinates.
+
+<img id='myImg' alt='' src='leftbuttonclick.png' width='400' height='300' />
+
+<input type='text' id='myInp' value='1234' />
+
+<script type="text/javascript">
+<!--
+var myImg = document.getElementById('myImg');
+myImg.onmousedown = function(e) { 
+  let c = getCoordinatesOfClickOnImage(e, myImg); 
+  document.getElementById('coordinates').innerText = c[2] + ":" + c[3];
+};
+
+const myInp = document.getElementById("myInp");
+
+myInp.addEventListener('input', function() { filterInput(this); } );
+
+</script>
+
+
+<p>COORDINATES: <span id="coordinates"></span></p>
+
+
+Another example shows how to use this technique with csImageFile to position text on an image.
+
+
+csImageFile Online Manual Trial Download Chestysoft Home
+© Chestysoft, 2019.
+
+Cookies
+This site uses cookies for functionality, traffic analysis and for targeted adve

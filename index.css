@@ -4,8 +4,8 @@
 	--toolbox-table-height:24px;
 	--toolbox-td-height:calc( var(--toolbox-table-height) - 2px );
 	--toolbox-font-size:calc( var(--toolbox-table-height) - 6px );
-	--toolbox-input-width:calc( var(--toolbox-table-height) * 2.5 );
-	--toolbox-input-font-size:calc( var(--toolbox-table-height) - 8px );
+	--toolbox-input-width:calc( var(--toolbox-table-height) * 2 );
+	--toolbox-input-font-size:calc( var(--toolbox-table-height) - 10px );
 	--ok-color: #4f4f4f;
 	--cancel-color: #bf2f2f;
 	--error-color: #b2f2f2;
@@ -86,8 +86,11 @@
 		display:none; width:100%; border:0; margin:0; padding:0; background-color:white;
 	}
 
-	.toolbox div img { border:1px dotted var(--black-color); border-radius:4px; height:var(--toolbox-font-size); 
-		cursor:pointer; padding:2px; opacity:0.75; }
+	.toolbox div img { 
+		float:left; border:0; display:inline;
+		border:1px dotted var(--black-color); border-radius:4px; height:var(--toolbox-font-size); 
+		cursor:pointer; padding:2px; opacity:0.75; 
+	}
 	.toolbox div img:hover { border:1px dotted var(--black-color); opacity:1.0; }
 
 	button { box-sizing:border-box; margin:0px; border:1px dotted var(--darkgray-color); 
@@ -112,9 +115,11 @@
 	}
 
 	table.toolbox td.toolbox-left {
-		width:50%; height:var(--toolbox-td-height); padding:0px 0px 0px 24px; text-align:left;
+		white-space:nowrap; text-overflow:ellipsis; overflow:hidden;
+		width:35%; height:var(--toolbox-td-height); padding:0px 0px 0px 24px; text-align:left;
 	}
 	table.toolbox td.toolbox-left div {
+		display:inline-block;
 		float:left; height:var(--toolbox-td-height); box-sizing:border-box; 
 		margin:0px 2px 0px 2px; padding-left:18px; padding-right:18px; border-left:4px solid var(--lightgray-color);
 		cursor:default; text-align:center; font-size:var(--toolbox-font-size);
@@ -122,16 +127,18 @@
 	table.toolbox td.toolbox-left div:first-child {
 		border:0px;
 	}
-	table.toolbox td.toolbox-left div input[type=number] {
+	table.toolbox td.toolbox-left div input[type=text] {
 		width:var(--toolbox-input-width); height:var(--toolbox-td-height); box-sizing:border-box; 
 		font-size:var(--toolbox-input-font-size); border-radius:4px;
-		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:var(--lightgray-color); text-align:center;
+		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:var(--lightgray-color); text-align:left;
 	}
 
 	table.toolbox td.toolbox-right {
-		width:50%; height:var(--toolbox-td-height); padding:0px 24px 0px 0px; text-align:right;
+		white-space:nowrap; text-overflow:ellipsis; overflow:hidden;
+		width:65%; height:var(--toolbox-td-height); padding:0px 24px 0px 0px; text-align:right;
 	}
 	table.toolbox td.toolbox-right div {
+		display:inline-block; 
 		float:right; height:var(--toolbox-td-height); padding:0px; box-sizing:border-box; 
 		margin:0px 2px 0px 2px; padding-left:18px; padding-right:18px; border-right:4px solid var(--lightgray-color);
 		cursor:default; text-align:center; font-size:var(--toolbox-font-size);
@@ -140,10 +147,10 @@
 		border:0px;
 	}
 
-	table.toolbox td.toolbox-right div input[type=number] {
+	table.toolbox td.toolbox-right div input[type=text] {
 		width:var(--toolbox-input-width); height:var(--toolbox-td-height); box-sizing:border-box; 
 		font-size:var(--toolbox-input-font-size); border-radius:4px;
-		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:var(--lightgray-color); text-align:center;		
+		margin:0px 2px 0px 2px; padding:0px; border:0; background-color:var(--lightgray-color); text-align:left;		
 	}
 	table.toolbox td.toolbox-right div input[type=checkbox] { 
 		font-size:var(--toolbox-input-font-size); height:var(--toolbox-td-height);
@@ -196,7 +203,6 @@
 	    appearance: none;
 	}
 
-
 	.helpText {
 		padding:24px 20vw 0px 20vw; text-align:left; line-height:150%; font-size:14px;
 	}
@@ -209,35 +215,3 @@
 		display:inline-block; height:20px; position:relative; top:4px;
 	}
 
-/*
-	.checkbox-container {
-	    display:block; position:relative; cursor:pointer;
-	    padding-left:var(--toolbox-td-height); font-size:var(--toolbox-input-font-size);
-	    -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-	}
-
-	.checkbox-container input {
-	    display:none; position:absolute; opacity:0; cursor:pointer; height:0; width:0;
-	}
-
-	.checkbox-checkmark {
-	    position: absolute; background-color:var(--lightgray-color); border:1px solid var(--darkgray-color); border-radius:2px;
-	    top:0; left:0; height:var(--toolbox-font-size); width:var(--toolbox-font-size);
-	}
-
-	.checkbox-container:hover input ~ .checkbox-checkmark {
-	    background-color: var(--darkgray-color);
-	}
-
-	.checkbox-container input:checked ~ .checkbox-checkmark {
-	    background-color: var(--ok-color);
-	}
-
-	.checkbox-checkmark:after {
-	    position: absolute; display:none; content: "✔"; font-size:var(--toolbox-font-size); padding:0px; 
-	}
-
-	.checkbox-container input:checked ~ .checkbox-checkmark:after {
-	    display: block; color:white; 
-	}
-*/

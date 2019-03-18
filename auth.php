@@ -2,7 +2,7 @@
 
 $s_AuthUsersFile = "users.php";
 
-$s_AuthorizationFailedHTML = "<html><body><h1>Authentification failed!</h1></body></html>";
+$s_AuthorizationFailedHTML = "<html><body><h1>Authentification failed</h1><h3>Please, reload the page and try again!</h3></body></html>";
 $s_AuthorizationFailed = "Authentification failed!";
 
 function isAuthRequired() {
@@ -29,6 +29,12 @@ function auth( $bAjax=false ) {
 	global $s_AuthUsersFile;
 	global $s_AuthorizationFailedHTML, $s_AuthorizationFailed;
 
+	if( $_SERVER['QUERY_STRING'] == 'logout' ) {
+		header("HTTP/1.0 401 Unauthorized");
+		echo "<script>window.location.replace('http://www.spiderproject.com/');</script>";
+		exit();
+	}
+
 	if( !isset( $_SERVER['PHP_AUTH_USER'] ) ) {
 	  header("WWW-Authenticate: Basic realm=\"Passwords\"");
 	  header("HTTP/1.0 401 Unauthorized");
@@ -40,6 +46,7 @@ function auth( $bAjax=false ) {
 		if( !$bAjax ) {
 		  header("WWW-Authenticate: Basic realm=\"Passwords\"");
 		  header("HTTP/1.0 401 Unauthorized");
+		  echo $s_AuthorizationFailedHTML;
 		} else {
 			echo $s_AuthorizationFailed;
 		}
@@ -79,11 +86,17 @@ function isAuthUserAndPasswordCorrect( $sUser, $sPassword ) {
 				}
 				
 				$sTryUser = $aExploded[ $iUserPos ];				
+				if( strlen($sTryUser) != strlen($sUser) ) {
+					continue;
+				}
 				if( strncmp( $sTryUser, $sUser, strlen($sTryUser) ) != 0 ) {
 					continue;
 				}
 
 				$sTryPassword = strtolower( $aExploded[ $iPasswordPos ] );
+				if( strlen($sTryPassword) != strlen($sEncryptedPassword) ) {
+					continue;
+				}
 				if( strncmp( $sEncryptedPassword, $sTryPassword, strlen($sTryPassword) ) != 0 ) {
 					continue;
 				}

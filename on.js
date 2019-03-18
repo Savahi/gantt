@@ -3,6 +3,11 @@ function onWindowLoad() {
 		_touchDevice = true;
 	}
 
+	let patternMDY = new RegExp( '([mM]+)([dD]+)([yY]+)' ); // Determining date format: DMY or MDY
+	if( patternMDY.test(_dateFormat) ) {               
+		_dateDMY=false;
+	} 
+
 	// This is for debugging purposes only!!!!
 	if( window.location.search.indexOf('input') >= 0 ) {
 		_inputOnly = true;
@@ -44,13 +49,13 @@ function onWindowMouseUp(e) {
 			document.body.classList.remove('wait');
 		} else if( _ganttSVG.style.cursor === _settings.ganttSVGCapturedCursor ) { // If the gantt chart has been moved...
 			_ganttSVG.style.cursor = _settings.ganttSVGCursor;
+			_timeSVG.style.cursor = _settings.timeSVGCursor;
 			drawTableContent(); // ... adjusting table contents accordingly.
 		}
-		return;
 	} 
 	if( _ganttSVG.style.cursor !== _settings.ganttSVGCursor ) {   // Restoring default cursors if required 
 		_ganttSVG.style.cursor = _settings.ganttSVGCursor;		  // (when mouse clicked and released in different areas)
-		_timeSVG.style.cursor = _settings.timeSVGCursor;
+		_timeSVG.style.cursor = _settings.timeSVGCursor;          // May be unnecssary at all... to be checked...
 	}
 	if( _verticalSplitterCaptured ) { 
 		_verticalSplitterCaptured = false; 
@@ -153,10 +158,11 @@ function onWindowMouseMove(e) {
 		} else if( newSliderX > maxSlider ) {
 			newSliderX = maxSlider;
 		}
-		_ganttVisibleLeft = _data.visibleMin + newSliderX * (_data.visibleMaxWidth - _ganttVisibleWidth) / maxSlider;
+		let newGanttVisibleLeft = _data.visibleMin + newSliderX * (getGanttMaxLeft() - _data.visibleMin) / maxSlider;
+		_ganttVisibleLeft = validateGanttLeft(newGanttVisibleLeft);
 		_ganttHScrollSVGSlider.setAttributeNS( null,'x', newSliderX );
-		drawTimeScale();
 		drawGantt();
+		drawTimeScale();
 		return;
 	}
 	if( _verticalScrollCaptured ) {
@@ -188,11 +194,13 @@ function onWindowMouseMove(e) {
 function onVerticalSplitterSVGMouseDown(e) { 
 	_verticalSplitterCaptured=true; 
 	_verticalSplitterCapturedAtX=e.x; 
-};
+}
 
 function onVerticalScrollSVGBkgr(e) {
+
 	let bbox = _verticalScrollSVGSlider.getBBox();
 	let mouseYRelative = e.y - _containerDivY - _tableHeaderSVGHeight;
+	//console.log(`mouseYRelative=${mouseYRelative}, bbox.y=${bbox.y}, bbox.y+bbox.height=${bbox.y + bbox.height}`);	
 	if( mouseYRelative < bbox.y ) {
 		moveYR( -1 );				
 	} else if( mouseYRelative > bbox.y + bbox.height ) {
@@ -245,25 +253,32 @@ function onGanttCapturedMouseMove(e) {
 	if( !timeScaleClicked ) {
 		let deltaY = _visibleHeight * (e.clientY - _ganttLastFoundAtY) / _ganttSVGHeight;
 		if( deltaY != 0 ) {
-			let newVisibleTop = _visibleTop - deltaY;
+			// let newVisibleTop = _visibleTop - deltaY;
+			let newTopAndHeight = validateTopAndHeight( _visibleTop - deltaY, _visibleHeight );
+			if( newTopAndHeight[0] != _visibleTop ) {
+				_visibleTop = newTopAndHeight[0];
+				moveY = true;
+			}
+			/*
 			if( !(newVisibleTop < 0) && !(newVisibleTop + _visibleHeight > _notHiddenOperationsLength) ) {
 				_visibleTop = newVisibleTop;
 				moveY = true;
 			}
+			*/
 			_ganttLastFoundAtY = e.clientY;
 		}
 	} 
 
 	if( moveX || moveY ) {
-		drawGantt();
 		if( moveX ) {
-			drawTimeScale();
 			drawGanttHScroll();					
+			drawTimeScale();
 		}
 		if( moveY ) {
 			//drawTableContent();
 			drawVerticalScroll();
 		}
+		drawGantt();
 	}
 }
 
@@ -344,9 +359,9 @@ function onGanttWheel(e) {
 	if( e.shiftKey ) {
 		let zoomFactorChange;
 		if( delta < 0 ) {
-			zoomFactorChange = _settings.zoomFactor;
+			zoomFactorChange = '+'; //_settings.zoomFactor;
 		} else {
-			zoomFactorChange = -_settings.zoomFactor;
+			zoomFactorChange = '-'; //-_settings.zoomFactor;
 		}		
 		let y = e.clientY - getElementPosition(_containerDiv).y - _ganttSVG.getAttributeNS(null,'y');
 		zoomYR( zoomFactorChange, y / _ganttSVGHeight );
@@ -366,9 +381,9 @@ function onTimeWheel(e) {
 	let zoomFactorChange;
 	if( e.shiftKey ) {
 		if( delta > 0 ) {
-			zoomFactorChange = _settings.zoomFactor;
+			zoomFactorChange = '+'; //_settings.zoomFactor;
 		} else {
-			zoomFactorChange = -_settings.zoomFactor;
+			zoomFactorChange = '-'; //-_settings.zoomFactor;
 		}
 		zoomXR( zoomFactorChange, (e.clientX - _ganttSVG.getAttributeNS(null,'x')) / _ganttSVGWidth );
 	} else {
@@ -376,17 +391,65 @@ function onTimeWheel(e) {
 		if( delta < 0 ) {
 			change = -change;
 		}
-		moveX( change );		
+		moveXR( change );		
 	}
 }
 
 
-
-function onZoomHorizontalInput(e) {
-	zoomXR( (parseInt(this.value) - parseInt(_data.visibleMaxWidth * 100.0 / _ganttVisibleWidth + 0.5)) / 100.0 );
+function onZoomHorizontallyInput(id, e) {
+	let value = filterInput(id);
+	zoomXR( (parseInt(value) - parseInt(_data.visibleMaxWidth * 100.0 / _ganttVisibleWidth + 0.5)) / 100.0 );
 }
 
-function onZoomVerticalInput(e) {
-	zoomYR( (parseFloat(this.value) - (_notHiddenOperationsLength * 100.0 / _visibleHeight) ) / 100.0 ); 
+
+function onZoomHorizontallyBlur(id) {
+	let value = parseInt(id.value);
+	if( isNaN(value) ) {
+		value = 100;
+	} else {
+		if( value < 100 ) {
+			value = 100;
+		}
+	}
+	id.value = value;
+	zoomXR( (parseInt(value) - parseInt(_data.visibleMaxWidth * 100.0 / _ganttVisibleWidth + 0.5)) / 100.0 );
 }
 
+function onZoomHorizontallyIcon(id, e, inputId) {
+	let c = getCoordinatesOfClickOnImage( id, e );
+	let value = parseInt(inputId.value);
+	if( c[2] == 0 && !isNaN(value) ) { // Upper half
+		value = parseInt((value - 25.0) / 25.0 + 0.5) * 25;
+	} else {
+		value = parseInt((value + 25.0) / 25.0 + 0.5) * 25;
+	}
+	inputId.value = value;
+	onZoomHorizontallyBlur(inputId);
+}
+
+
+function onZoomVerticallyBlur(id) {
+	let value = parseInt(id.value);
+	if( isNaN(value) ) {
+		value = 100;
+	} else {
+		if( value < 100 ) {
+			value = 100;
+		}
+	}
+	id.value = value;
+	zoomYR( (parseInt(value) - parseInt(_notHiddenOperationsLength * 100.0 / _visibleHeight + 0.5)) / 100.0 ); 
+}
+
+
+function onZoomVerticallyIcon(id, e, inputId) {
+	let c = getCoordinatesOfClickOnImage( id, e );
+	let value = parseInt(inputId.value);
+	if( c[3] == 0 && !isNaN(value)) { // Upper half
+		value = parseInt((value + 25.0) / 25.0 + 0.5) * 25;
+	} else {
+		value = parseInt((value - 25.0) / 25.0 + 0.5) * 25;
+	}
+	inputId.value = value;
+	onZoomVerticallyBlur(inputId);
+}

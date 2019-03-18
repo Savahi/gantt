@@ -4,7 +4,7 @@ function drawTableHeader( init=false, shiftOnly=false ) {
     _tableHeaderSVG.setAttributeNS(null,'viewBox',thViewBox);
     if( shiftOnly ) {
         return;
-    }
+    }   
 
     calcTableHeaderOverallWidth();
 	if( init ) {
@@ -18,21 +18,22 @@ function drawTableHeader( init=false, shiftOnly=false ) {
 
 		let left = _data.table[0].width;
 		for( let col = 1 ; col < _data.table.length ; col++ ) {
-			let svg = createSVG(left, 0, _data.table[col].width, _tableHeaderSVGHeight, 
+			let rectWidth = _data.table[col].width - _settings.tableHeaderColumnHMargin * 2; // The width of SVG-container
+			let svg = createSVG( left+_settings.tableHeaderColumnHMargin, 0, rectWidth, _tableHeaderSVGHeight, // SVG-container
 				{ id:'tableHeaderColumnNameSVG'+col, 'fill':_settings.tableHeaderFillColor } );
 			left += _data.table[col].width;
 			let props = { id:'tableHeaderColumnNameBkgr'+col, 'fill':_settings.tableHeaderFillColor, 
 				'stroke':_settings.tableHeaderBorderColor, 'strokeWidth':1 };
-			let rect = createRect(0, 0, _data.table[col].width-2, _tableHeaderSVGHeight, props );
-			rect.onmouseover = function(e) { this.setAttributeNS( null, 'stroke', _settings.tableHeaderActiveBorderColor); };
-			rect.onmouseout = function(e) { this.setAttributeNS( null, 'stroke', _settings.tableHeaderBorderColor); };
-			//let text = createText( _data.table[col].name, 2, _tableHeaderSVGHeight/2, 
-			//	{ alignmentBaseline:'baseline', textAnchor:'start', fontSize:_settings.tableMaxFontSize, fill:_settings.tableHeaderFontColor } );
+			let rect = createRect(0, 0, rectWidth, _tableHeaderSVGHeight, props ); // Background RECT
+			//rect.onmouseover = function(e) { this.setAttributeNS( null, 'stroke', _settings.tableHeaderActiveBorderColor); };
+			//rect.onmouseout = function(e) { this.setAttributeNS( null, 'stroke', _settings.tableHeaderBorderColor); };
 			let title = _data.table[col].name;
 			if( isEditable( _data.table[col].ref ) ) {
 				title += "*";
 			}
-			let text = createForeignObjectWithText( title, 0, 0, _data.table[col].width-2, _tableHeaderSVGHeight, 
+			
+			// TEXT
+			let text = createForeignObjectWithText( title, 1, 0, rectWidth-2, _tableHeaderSVGHeight, 
 				{ id:'tableHeaderColumnNameText'+col, textAlign:'center', fontSize:_settings.tableMaxFontSize, color:_settings.tableHeaderFontColor } );
 
 			svg.appendChild( rect );			
@@ -44,19 +45,38 @@ function drawTableHeader( init=false, shiftOnly=false ) {
 			svg.style.cursor = 'hand';
 			svg.dataset.columnNumber = col;
 		}
+
+		// SPLITTERS
+		left = 0;
+		for( let col = 0 ; col < _data.table.length ; col++ ) {
+			left += _data.table[col].width;
+
+			let splitter = createRect( left-_settings.tableHeaderColumnHMargin, 0, _settings.tableHeaderColumnHMargin*2, _tableHeaderSVGHeight, 
+				{ id:'tableSplitter'+col, fill:_settings.tableHeaderColumnSplitterColor } );
+			splitter.dataset.columnNumber = col;
+			splitter.setAttributeNS(null,'cursor','col-resize');
+			splitter.addEventListener( 'mousedown', onTableColumnSplitterMouseDown );
+			//splitter.addEventListener( 'touchstart', onTableColumnSplitterMouseDown );
+			_tableHeaderSVG.appendChild(splitter);
+		}
+
 	} else {
 		document.getElementById('tableHeaderBkgr').setAttributeNS(null,'width',_tableHeaderOverallWidth);
-		let left = _data.table[0].width;
-		for( let col = 1 ; col < _data.table.length ; col++ ) {
-			let svg = document.getElementById('tableHeaderColumnNameSVG'+col);
-			svg.setAttributeNS(null,'x',left+1);
-			svg.setAttributeNS(null,'width',_data.table[col].width-2);			
-			//svg.setAttributeNS(null,'display','block');
-			let rect = document.getElementById('tableHeaderColumnNameBkgr'+col);
-			rect.setAttributeNS(null,'width',_data.table[col].width-2);			
-			let text = document.getElementById('tableHeaderColumnNameText'+col);
-			text.setAttributeNS(null,'width',_data.table[col].width-2);			
-			left += _data.table[col].width;
+		let left = 0;
+		for( let col = 0 ; col < _data.table.length ; col++ ) {
+			if( col > 0 ) {
+				let rectWidth = _data.table[col].width - _settings.tableHeaderColumnHMargin * 2;
+				let svg = document.getElementById('tableHeaderColumnNameSVG'+col);
+				svg.setAttributeNS(null, 'x', left + _settings.tableHeaderColumnHMargin);
+				svg.setAttributeNS(null, 'width', rectWidth);			
+				let rect = document.getElementById('tableHeaderColumnNameBkgr'+col);
+				rect.setAttributeNS(null, 'width', rectWidth);			
+				let text = document.getElementById('tableHeaderColumnNameText'+col);
+				text.setAttributeNS(null, 'width', rectWidth-2);							
+			}
+			left += _data.table[col].width;			
+			let splitter = document.getElementById('tableSplitter'+col); 
+			splitter.setAttributeNS(null,'x',left-_settings.tableHeaderColumnHMargin);
 		}
 	}
 }
@@ -64,12 +84,17 @@ function drawTableHeader( init=false, shiftOnly=false ) {
 
 function drawTableContent( init=false, shiftOnly=false ) {
 
+	if( _redrawAllMode ) { 		// If optimization is required to cope with a huge number of operations... 
+		init=true;				// ..."init" if always true and...
+		shiftOnly=false;		// ...as well no shifting.
+	} 
+
     _tableViewBoxTop = Math.round( operToScreen( _visibleTop ) );
     let tcViewBox = `${_tableViewBoxLeft} ${_tableViewBoxTop} ${_tableContentSVGWidth} ${_tableContentSVGHeight}`;
     _tableContentSVG.setAttributeNS(null,'viewBox',tcViewBox);
     if( shiftOnly ) {
         return;
-    }
+    }  
 
 	let overallHeight = operToScreen(_data.operations.length);
 	if( init ) {
@@ -90,17 +115,6 @@ function drawTableContent( init=false, shiftOnly=false ) {
 			_tableContentSVG.appendChild( rect );
 			left += _data.table[col].width;
 		}
-
-		for( let col = 0, left=0 ; col < _data.table.length ; col++  ) { // Creating splitters
-			left += _data.table[col].width;
-			let splitter = createRect( left, 0, 2, overallHeight, 
-				{id:'tableSplitter'+col, fill:'#dfdfdf'} );
-			splitter.dataset.columnNumber = col;
-			splitter.setAttributeNS(null,'cursor','col-resize');
-			_tableContentSVG.appendChild(splitter);
-			splitter.addEventListener( 'mousedown', onTableColumnSplitterMouseDown );
-			//splitter.addEventListener( 'touchstart', onTableColumnSplitterMouseDown );
-		}
 	} else {
 		_tableContentSVGBkgr.setAttributeNS(null,'width',_tableHeaderOverallWidth);
 		_tableContentSVGBkgr.setAttributeNS(null,'height',overallHeight);
@@ -113,9 +127,6 @@ function drawTableContent( init=false, shiftOnly=false ) {
 			rect.setAttributeNS(null,'width',rectWidth);
 			left += _data.table[col].width;			
 			rect.setAttributeNS(null,'height',overallHeight);			
-			let splitter = document.getElementById('tableSplitter'+col); 
-			splitter.setAttributeNS(null,'x',left);
-			splitter.setAttributeNS(null,'height',overallHeight);
 		}
 	}
 
@@ -123,12 +134,25 @@ function drawTableContent( init=false, shiftOnly=false ) {
 	let rectCounter = 0;
 	let rectHeight = (operToScreen(1) - operToScreen(0));
 	let fontSize = (rectHeight < 16) ? parseInt(rectHeight * 0.75) : _settings.tableMaxFontSize;
+	let circleR = parseInt(3*fontSize/7);
 	for( let i = 0 ; i < _data.operations.length ; i++ ) {
+
+		if( _redrawAllMode ) {
+			if( !_data.operations[i].visible ) {
+				continue;
+			}
+			let hiddenTop = (rectCounter+2) < _visibleTop;
+			let hiddenBottom = (rectCounter-1) > (_visibleTop + _visibleHeight); 
+			if( hiddenTop || hiddenBottom  ) {
+				rectCounter += 1;
+				continue;
+			}
+		}
+
 		let lineTop = operToScreen(rectCounter);
 		let lineBottom = lineTop + rectHeight;
 		let lineHeight = lineBottom - lineTop;
-		//let fontSize = 11;
-		let lineMiddle = lineBottom - lineHeight/3;
+		let lineMiddle = lineBottom - lineHeight/2;
 		let lineId = 'ganttTableLine' + i;
 
 		// Expand functionality [+] / [-]
@@ -178,11 +202,16 @@ function drawTableContent( init=false, shiftOnly=false ) {
 			 			}
 		 				_data.operations[operationNumber].expanded = true;
 		 			}
+		 			let oldNotHiddenOperations = _notHiddenOperationsLength;
 		 			calcNotHiddenOperationsLength();
-					_zoomGanttVerticalInput.value = parseInt((_notHiddenOperationsLength*100.0) / _visibleHeight + 0.5);
-					drawVerticalScroll();
+		 			let newVisibleHeight = _visibleHeight * _notHiddenOperationsLength / oldNotHiddenOperations;
+					let topAndHeight = validateTopAndHeight( _visibleTop, newVisibleHeight );
+					_visibleTop = topAndHeight[0];
+					_visibleHeight = topAndHeight[1];
 		 			drawTableContent();
 		 			drawGantt();
+					displayYZoomFactor();
+					drawVerticalScroll();
 		 		};
 		 	}
 			if( fontSize >= _settings.tableMinFontSize ) { // If font size is too small to make text visible at screen.
@@ -229,7 +258,7 @@ function drawTableContent( init=false, shiftOnly=false ) {
 
 				let textX = _settings.tableColumnTextMargin;
 				let textProperties = { id:('tableColumn'+col+'Row'+i), fill:color, textAnchor:'start', 
-					fontSize:fontSize, fontStyle:fontStyle };
+					fontSize:fontSize, fontStyle:fontStyle, alignmentBaseline:'middle' };
 				if( ref == 'Name' ) { // A name should be adjusted according to it's position in the hierarchy
 					// textX += _settings.hierarchyIndent * _data.operations[i].parents.length;
 					content = spacesToPadNameAccordingToHierarchy(_data.operations[i].parents.length) + content; 
@@ -237,40 +266,49 @@ function drawTableContent( init=false, shiftOnly=false ) {
 						textProperties.fontWeight = 'bold'; // ... making it bold.
 					}
 				} else {
-					if( _data.table[col].type == 'float' ) {					
-						value = parseFloat( content );
-						if( !isNaN(value) ) {
-							content = value.toFixed( _data.table[col].format ); // For float values "format" stands for the radix.
-						}
-					}	
 					if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
+						if( _data.table[col].type == 'float' ) {					
+							value = parseFloat( content );
+							if( !isNaN(value) ) {
+								content = value.toFixed( _data.table[col].format ); // For float values "format" stands for the radix.
+							}
+						}							
 						textX = columnWidthToUse - _settings.tableColumnTextMargin*2;
 						textProperties.textAnchor = 'end';
-					}						
-					if( _data.table[col].type == 'string' || _data.table[col].type == 'text' ) { // For strings "format" stands for alignment
+					} else if( _data.table[col].type == 'string' || _data.table[col].type == 'text' ) { // For strings "format" stands for alignment
 						if( _data.table[col].format == 1 ) { // Align right
 							textX = columnWidthToUse - _settings.tableColumnTextMargin*2;
 							textProperties.textAnchor = 'end';							
 						} else if ( _data.table[col].format == 2 ) {
 							textX = parseInt( (columnWidthToUse - _settings.tableColumnTextMargin) / 2 );
-							textProperties.textAnchor = 'center';														
+							textProperties.textAnchor = 'middle';														
 						}
-					}
-					if( _data.table[col].type == 'datetime' ) {
+					} else if( _data.table[col].type == 'datetime' ) {
 						if( !(_data.table[col].format > 0) ) { // Date only
-							let pattern = / +[0-9]{2}:[0-9]{2} *$/; 
+							//let pattern = / +[0-9]{2}[\:\.][0-9]{2} *$/; 
+							let pattern = new RegExp(' +[0-9]{2}' + _timeDelim + '[0-9]{2} *$'); 
 							if( pattern.test(content) ) {               // If time is as well found in the string...
 								content = content.replace(pattern, ''); // ... deleting it.
 							}
 						} else {  // Date and time should be specified...
-							let pattern = /^ *[0-9]{2}\.[0-9]{2}\.[0-9]{4} *$/;
+							// let pattern = /^ *[0-9]{2}\.[0-9]{2}\.[0-9]{4} *$/;
+							let pattern = new RegExp('^ *[0-9]{2}' + _dateDelim + '[0-9]{2}' + _dateDelim + '[0-9]{4} *$');
 							if( pattern.test(content) ) {  // ... if not ... 
-								content += ' 00:00';       // ... adding time.
+								content += ' 00' + _timeDelim + '00';       // ... adding time.
 							}
 						}
+					} else if( _data.table[col].type == 'signal' ) { // Signals require being 'centered'
+						textX = parseInt( (columnWidthToUse - _settings.tableColumnTextMargin) / 2 );
+						textProperties.fill = decColorToString( content, _settings.ganttCriticalColor );;
+						textProperties.stroke = _settings.tableContentStrokeColor;						
 					}
 				}
-				let text = createText( content, textX, lineMiddle, textProperties );
+				let text;
+				if( _data.table[col].type !== 'signal' ) {
+					text = createText( content, textX, lineMiddle, textProperties );
+				} else {
+					text = createCircle( textX, lineMiddle, circleR, textProperties );					
+				}
 				tableColumnSVG.appendChild( text );
 				if( fontSize >= _settings.tableMinFontSize ) { // If font size is too small to make text visible at screen.
 					text.setAttributeNS(null,'display','block');
@@ -314,10 +352,22 @@ function drawTableContent( init=false, shiftOnly=false ) {
 				let textId = 'tableColumn'+col+'Row'+i;
 				let textEl = document.getElementById(textId);
 				if( fontSize >= _settings.tableMinFontSize ) { // If font size is big enough to make text visible at screen.
-					textEl.setAttributeNS(null,'y',lineMiddle);
-					textEl.style.fontSize = fontSize;
-					if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
-						textEl.setAttributeNS( null, 'x', columnWidthToUse - _settings.tableColumnTextMargin*2 );
+					if( _data.table[col].type !== 'signal' ) {
+						textEl.setAttributeNS(null,'y',lineMiddle);
+						textEl.style.fontSize = fontSize;
+						if( _data.table[col].type == 'float' || _data.table[col].type == 'int' ) {
+							textEl.setAttributeNS( null, 'x', columnWidthToUse - _settings.tableColumnTextMargin*2 );
+						} else if( _data.table[col].type == 'string' || _data.table[col].type == 'text' ) { // For strings "format" stands for alignment
+							if( _data.table[col].format == 1 ) { // Align right
+								textEl.setAttributeNS( null, 'x', columnWidthToUse - _settings.tableColumnTextMargin*2 );
+							} else if ( _data.table[col].format == 2 ) {
+								textEl.setAttributeNS( null, 'x', parseInt( (columnWidthToUse - _settings.tableColumnTextMargin) / 2 ) );
+							}
+						}
+					} else {
+						textEl.setAttributeNS( null, 'cx', parseInt( (columnWidthToUse - _settings.tableColumnTextMargin) / 2 ) );
+						textEl.setAttributeNS(null,'cy',lineMiddle);
+						textEl.setAttributeNS( null, 'r', circleR );						
 					}
 					textEl.setAttributeNS(null,'display','block');				
 				} else {
@@ -336,7 +386,7 @@ function drawTableContent( init=false, shiftOnly=false ) {
 				let el = document.getElementById(id);
 				el.setAttributeNS(null,'display','block');
 			}
-		} else if( !_data.operations[i].visible && expandText.style.display != 'none' && (fontSize < _settings.tableMinFontSize) ) {
+		} else if( (!_data.operations[i].visible && expandText.style.display != 'none') || (fontSize < _settings.tableMinFontSize) ) {
 			for( let col = 0 ; col < _data.table.length ; col++ ) {
 				let id = 'tableColumn'+col+'Row'+i;
 				let el = document.getElementById(id);
